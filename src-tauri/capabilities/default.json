@@ -17,6 +17,26 @@
     "notification:default",
     "opener:default",
     "sql:default",
-    "store:default"
+    "store:default",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "ytDlp",
+          "cmd": "yt-dlp",
+          "args": true
+        }
+      ]
+    },
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "ytDlp",
+          "cmd": "yt-dlp",
+          "args": true
+        }
+      ]
+    }
   ]
 }
