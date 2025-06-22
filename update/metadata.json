@@ -1,0 +1,17 @@
+{
+  "version": "0.1.0",
+  "release_date": "2025-06-23",
+  "features": [
+    "Download Videos",
+    "Download Complete Playlist or selected video from playlist",
+    "Custom title",
+    "Custom Download Folder",
+    "Remember Custom download folder"
+  ],
+  "fixed_errors": [],
+  "notes": "This is the first but complete update for general use case like downloading videos, playlist",
+  "release_url": "https://github.com/AhmedTrooper/RailwayMatrixBD/releases/tag/v0.7.0",
+  "author": "AhmedTrooper",
+  "severity": "medium",
+  "platforms": ["windows"]
+}
