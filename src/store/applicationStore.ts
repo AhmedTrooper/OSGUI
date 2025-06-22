@@ -12,8 +12,13 @@ export const useApplicationstore = create<ApplicationInterface>((set) => ({
   errorOccurredWhileUpdateCheck: false,
   seterrorOccurredWhileUpdateCheck: (status: boolean) =>
     set({ errorOccurredWhileUpdateCheck: status }),
-  checkedForUpdate:false,
-  setCheckedForUpdate:(s:boolean)=>set({checkedForUpdate:s}),
+  checkedForUpdate: false,
+  setCheckedForUpdate: (s: boolean) => set({ checkedForUpdate: s }),
+  ytDlpVersion: null,
+  setYtdlpVersion: (ytdlv: string | null) => set({ ytDlpVersion: ytdlv }),
+  onlineYtdlpVersion: null,
+  setOnlineYtdlpversion: (onlineytdlpv: string | null) =>
+    set({ onlineYtdlpVersion: onlineytdlpv }),
   fetchAppVersion: async () => {
     try {
       let currentVersion = await getVersion();

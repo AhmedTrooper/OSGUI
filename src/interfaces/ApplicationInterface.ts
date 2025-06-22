@@ -10,4 +10,8 @@ export interface ApplicationInterface {
   seterrorOccurredWhileUpdateCheck: (status: boolean) => void;
   checkedForUpdate: boolean;
   setCheckedForUpdate: (s: boolean) => void;
+  ytDlpVersion: string | null;
+  setYtdlpVersion: (ytdlv: string | null) => void;
+  onlineYtdlpVersion: string | null;
+  setOnlineYtdlpversion: (onlineytdlpv: string | null) => void;
 }
