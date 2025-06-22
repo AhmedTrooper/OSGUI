@@ -1,4 +1,4 @@
-# YT-DLP GUI - Tauri v2 + React + Zustand + HeroUI
+# 🎆 YT-DLP GUI - Tauri v2 + React + Zustand + HeroUI
 
 A lightweight desktop GUI for `yt-dlp`, built using [Tauri v2](https://tauri.app/), [React TypeScript](https://react.dev/), [Zustand](https://github.com/pmndrs/zustand), and [HeroUI](https://www.heroui.com/).
 
