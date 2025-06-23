@@ -24,6 +24,7 @@ function App() {
     (state) => state.errorOccurredWhileUpdateCheck
   );
   const setThemeData = useThemeStore((state) => state.setThemeData);
+  const fetchYtdlpVersion = useApplicationstore(state=>state.fetchYtdlpVersion);
 
   useEffect(() => {
     detectOS();
@@ -49,6 +50,10 @@ function App() {
       setCheckedForUpdate(true);
     }
   }, []);
+
+  useEffect(()=>{
+    fetchYtdlpVersion();
+  })
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-black dark:bg-zinc-900 dark:text-white transition-colors pt-10">

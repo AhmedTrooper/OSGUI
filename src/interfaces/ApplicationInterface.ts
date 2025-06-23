@@ -14,4 +14,5 @@ export interface ApplicationInterface {
   setYtdlpVersion: (ytdlv: string | null) => void;
   onlineYtdlpVersion: string | null;
   setOnlineYtdlpversion: (onlineytdlpv: string | null) => void;
+  fetchYtdlpVersion:()=>void;
 }

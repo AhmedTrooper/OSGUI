@@ -1,8 +1,9 @@
 import { ApplicationInterface } from "@/interfaces/ApplicationInterface";
 import { create } from "zustand";
 import { getVersion } from "@tauri-apps/api/app";
+import { Command } from '@tauri-apps/plugin-shell';
 
-export const useApplicationstore = create<ApplicationInterface>((set) => ({
+export const useApplicationstore = create<ApplicationInterface>((set,get) => ({
   appVersion: null,
   setAppVersion: (v: string | null) => set({ appVersion: v }),
   onlineVersion: null,
@@ -26,6 +27,17 @@ export const useApplicationstore = create<ApplicationInterface>((set) => ({
     } catch (error) {
       console.log("Version fething Error!", error);
     } finally {
+    }
+  },
+  fetchYtdlpVersion: async () => {
+    const ApplicationStore = get();
+    const setYtdlpVersion = ApplicationStore.setYtdlpVersion;
+    try{
+    const cmd =  Command.create("ytDlp",["--version"]);
+    const result = await cmd.execute();
+    setYtdlpVersion(result.stdout.trim());
+    } catch(error){
+      console.log("Ytdl version faild");
     }
   },
 }));

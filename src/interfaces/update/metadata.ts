@@ -8,5 +8,5 @@ export interface Metadata {
   author: string | null;
   severity: "low" | "medium" | "high";
   platforms: string[];
-   onlineYtDlpVersion: string | null;
-} 
+  onlineYtDlpVersion: string | null;
+}
