@@ -1,0 +1,5 @@
+export interface DatabaseInterface {
+    createOrLoadDatabase:()=>void;
+    databaseLoaded:boolean;
+    setDatabaseLoaded:(status:boolean)=>void;
+}

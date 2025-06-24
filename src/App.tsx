@@ -6,6 +6,7 @@ import { Outlet } from "react-router-dom";
 import useOsInfoStore from "./store/osInfoStore";
 import FooterBase from "./components/footer/FooterBase";
 import { useApplicationstore } from "./store/applicationStore";
+import { useDatabaseStore } from "./store/databaseStore";
 
 function App() {
   const dark = useThemeStore((state) => state.dark);
@@ -24,11 +25,28 @@ function App() {
     (state) => state.errorOccurredWhileUpdateCheck
   );
   const setThemeData = useThemeStore((state) => state.setThemeData);
-  const fetchYtdlpVersion = useApplicationstore(state=>state.fetchYtdlpVersion);
+  const fetchYtdlpVersion = useApplicationstore(
+    (state) => state.fetchYtdlpVersion
+  );
+
+  const createOrLoadDatabase = useDatabaseStore(
+    (state) => state.createOrLoadDatabase
+  );
+  const setDatabaseLoaded = useDatabaseStore(
+    (state) => state.setDatabaseLoaded
+  );
+  const databaseLoaded = useDatabaseStore((state) => state.databaseLoaded);
 
   useEffect(() => {
     detectOS();
-  });
+  }, []);
+
+  useEffect(() => {
+    if (!databaseLoaded) {
+      createOrLoadDatabase();
+      setDatabaseLoaded(true);
+    }
+  }, [databaseLoaded]);
 
   useEffect(() => {
     setThemeData();
@@ -51,9 +69,9 @@ function App() {
     }
   }, []);
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchYtdlpVersion();
-  })
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-white text-black dark:bg-zinc-900 dark:text-white transition-colors pt-10">

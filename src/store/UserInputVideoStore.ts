@@ -11,9 +11,20 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { documentDir, join } from "@tauri-apps/api/path";
 import { addToast } from "@heroui/react";
+import {
+  DownloadListInterface,
+  SingleVideoTileInterface,
+  VideoInformationInterface,
+} from "@/interfaces/video/VideoInformation";
 
 export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
   (set, get) => ({
+    videoInformation: null,
+    setVideoInformation: (vio: VideoInformationInterface) =>
+      set({ videoInformation: vio }),
+    downloadsArr: [],
+    setDownloadsArr: (dArr: DownloadListInterface) =>
+      set({ downloadsArr: dArr }),
     setVideoInformationFetchFailed: (s: boolean) =>
       set({ videoInformationFetchFailed: s }),
     setVideoUrl: (url: string) => set({ videoUrl: url }),
@@ -52,7 +63,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
 
       let jsonOutput = "";
       // let jsonArray:any[] = [];
-      const command = Command.create("ytDlpl", ["--dump-json", videoUrl]);
+      const command = Command.create("ytDlp", ["--dump-json", videoUrl]);
       //       const command = Command.create("ytDlp", [
       //   "--dump-json",
       //   "--yes-playlist",
@@ -171,5 +182,21 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
     formatSectionVisible: false,
     setFormatSectionVisible: (status: boolean) =>
       set({ formatSectionVisible: status }),
+
+    addVideoToDownloadsArr: (video: SingleVideoTileInterface) => {
+      const UserInputVideoStore = get();
+      const downloadsArr = UserInputVideoStore.downloadsArr;
+      const setDownloadsArr = UserInputVideoStore.setDownloadsArr;
+
+      const singleVideo = video;
+      let x = [...downloadsArr];
+
+      try {
+        x.push(singleVideo);
+        setDownloadsArr(x);
+      } catch (e) {
+        console.log("Pushing to downloads array failed");
+      }
+    },
   })
 );

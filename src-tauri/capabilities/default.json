@@ -17,7 +17,10 @@
     "fs:allow-document-read-recursive",
     "notification:default",
     "opener:default",
-    "sql:default",
+    "sql:allow-select",
+    "sql:allow-execute",
+    "sql:allow-close",
+    "sql:allow-load",
     "store:default",
     {
       "identifier": "shell:allow-execute",
