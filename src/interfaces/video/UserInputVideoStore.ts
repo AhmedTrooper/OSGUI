@@ -18,7 +18,7 @@ export interface UserInputVideoStoreInterface {
   formatSectionVisible: boolean;
   setFormatSectionVisible: (status: boolean) => void;
   videoInformation: VideoInformationInterface | null;
-  setVideoInformation: (vio: VideoInformationInterface) => void;
+  setVideoInformation: (vio: VideoInformationInterface | null) => void;
   downloadsArr: DownloadListInterface;
   setDownloadsArr: (dArr: DownloadListInterface) => void;
   addVideoToDownloadsArr:(video:SingleVideoTileInterface)=>void;

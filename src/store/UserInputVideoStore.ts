@@ -20,7 +20,7 @@ import {
 export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
   (set, get) => ({
     videoInformation: null,
-    setVideoInformation: (vio: VideoInformationInterface) =>
+    setVideoInformation: (vio: VideoInformationInterface | null) =>
       set({ videoInformation: vio }),
     downloadsArr: [],
     setDownloadsArr: (dArr: DownloadListInterface) =>
@@ -29,7 +29,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
       set({ videoInformationFetchFailed: s }),
     setVideoUrl: (url: string) => set({ videoUrl: url }),
     videoInformationFetchFailed: false,
-    videoUrl: "https://www.youtube.com/watch?v=42FhQWQ6SVA",
+    videoUrl: "https://www.youtube.com/watch?v=Bmm7fk8nSAw&ab_channel=8KVIDEOSULTRAHD",
     fetchVideoInformation: async () => {
       const UserInputVideoStore = get();
 
@@ -45,7 +45,8 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
       const setDialogSectionVisible =
         UserInputVideoStore.setDialogSectionVisible;
       setDialogSectionVisible(false);
-
+      UserInputVideoStore.setFormatSectionVisible(false);
+      UserInputVideoStore.setVideoInformation(null);
       const documentFolder = await documentDir();
       const folderPath = await join(documentFolder, "OSGUI");
       let noError = true;
@@ -128,6 +129,10 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
         const folderPath = await join(documentFolder, "OSGUI");
         const filePath = await join(folderPath, "video.json");
         const fileExists = await exists(filePath);
+        const userInputVideoStore = get();
+        const setFormatSectionVisible =
+          userInputVideoStore.setFormatSectionVisible;
+        const setVideoInformation = userInputVideoStore.setVideoInformation;
         if (!fileExists) {
           addToast({
             title: "video.json not found",
@@ -140,8 +145,10 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
 
         const jsonString = await readTextFile(filePath);
         const jsonData = await JSON.parse(jsonString);
+        setFormatSectionVisible(true);
+        setVideoInformation(jsonData as VideoInformationInterface);
         console.log(jsonData);
-        return jsonData;
+        // return jsonData;
       } catch (err) {
         const UserInputVideoStore = get();
         const setVideoInformationFetchFailed =
