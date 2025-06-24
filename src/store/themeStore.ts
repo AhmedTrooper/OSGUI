@@ -21,17 +21,14 @@ const useThemeStore = create<ThemeState>((set, get) => ({
     try {
       if (savedTheme) {
         if (savedTheme === "dark") {
-          console.log("Theme was dark not null")
           setDark(true);
           localStorage.setItem("theme", "dark");
         } else {
-           console.log("Theme was light not null")
           setDark(false);
           localStorage.setItem("theme", "light");
         }
       } else {
         localStorage.setItem("theme", "dark");
-        console.log("Saved theme was null is now saved to dark");
       }
     } catch (error) {
       console.log(error);
