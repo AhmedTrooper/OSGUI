@@ -49,10 +49,9 @@ export default function FormatSection() {
           </div>
         )}
 
+        {/* Audio Part  */}
 
-{/* Audio Part  */}
-
-{videoInformation && !isEmpty(videoInformation.formats) && (
+        {videoInformation && !isEmpty(videoInformation.formats) && (
           <div className="flex-1 overflow-auto mt-4">
             {videoInformation.formats.map((video, idx: number) => (
               <Card
@@ -73,20 +72,20 @@ export default function FormatSection() {
                     <h1> Video Only</h1>
                   )}
                   {video.video_ext && <h1>Extention : {video.video_ext}</h1>}
-                  {!("acodec" in videoInformation) &&
-                    !("vcodec" in videoInformation) && <h1>Audio + Video</h1>}
+                  {((!("acodec" in videoInformation) &&
+                    !("vcodec" in videoInformation))||(video.vcodec !== "none" && video.acodec !== "none")) && <h1>Audio + Video</h1>}
                 </CardBody>
-                {(!(video.vcodec === "none" && video.acodec === "none") && video.vcodec === "none" && video.acodec !== "none") && (
-                  <CardFooter>
-                    <Button color="primary">Select</Button>
-                  </CardFooter>
-                )}
+                {!(video.vcodec === "none" && video.acodec === "none") &&
+                  video.vcodec === "none" &&
+                  video.acodec !== "none" && (
+                    <CardFooter>
+                      <Button color="primary">Select</Button>
+                    </CardFooter>
+                  )}
               </Card>
             ))}
           </div>
         )}
-
-
       </div>
 
       {videoInformation && videoInformation.format_id && (

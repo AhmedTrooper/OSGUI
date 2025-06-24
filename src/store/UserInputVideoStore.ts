@@ -147,7 +147,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
         const jsonData = await JSON.parse(jsonString);
         setFormatSectionVisible(true);
         setVideoInformation(jsonData as VideoInformationInterface);
-        console.log(jsonData);
+        console.log(await jsonData);
         // return jsonData;
       } catch (err) {
         const UserInputVideoStore = get();
@@ -167,6 +167,13 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
 
         if (!videoInformationFetchFailed) {
           UserInputVideoStore.setDialogSectionVisible(true);
+           addToast({
+            title: "Successfull",
+            description:
+              "Video successfully fetched!",
+            color: "success",
+            timeout: 2000,
+          });
         } else {
           addToast({
             title: "Error",
