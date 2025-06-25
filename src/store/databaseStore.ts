@@ -63,4 +63,26 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       });
     }
   },
+  singleFileRemove:async(uniqueId : string)=>{
+    const db = await Database.load("sqlite:osgui.db");
+     const UserInputVideoStore = useUserInputVideoStore.getState();
+    const setDownloadsArr = UserInputVideoStore.setDownloadsArr;
+    try{
+      
+      await db.execute(
+      "DELETE FROM DownloadList WHERE unique_id = $1",
+      [uniqueId]
+    );
+    await setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
+
+    } catch(err){
+      console.log();
+       addToast({
+        title: "Error",
+        description: "Single file remove failed",
+        color: "danger",
+        timeout: 2000,
+      });
+    }
+  }
 }));

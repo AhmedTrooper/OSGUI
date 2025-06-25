@@ -1,13 +1,26 @@
 import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
 import { Spinner } from "@heroui/react";
 import { isEmpty } from "lodash";
-import { BadgeX, Play, ShieldCheck, Turtle } from "lucide-react";
+import {
+  BadgeX,
+  CirclePower,
+  Play,
+  ShieldCheck,
+  Trash2Icon,
+  Turtle,
+} from "lucide-react";
 import { clsx } from "clsx";
 import { useUtilityStore } from "@/store/UtilityStore";
+import { useDatabaseStore } from "@/store/databaseStore";
+import { useDownloadStore } from "@/store/downloadStore";
 
 export default function DownloadSection() {
   const downloadsArr = useUserInputVideoStore((state) => state.downloadsArr);
   const parseBoolean = useUtilityStore((state) => state.parseBoolean);
+   const singleFileRemove = useDatabaseStore((state) => state.singleFileRemove);
+      const downloadBestFormat = useDownloadStore((state) => state.downloadBestFormat); 
+      // Using this downloadBestFormat for restarting download
+
   return (
     <div className="mt-4  shadow-lg shadow-black h-[80vh] overflow-auto grid gap-4 rounded-md">
       {isEmpty(downloadsArr) && (
@@ -57,6 +70,10 @@ export default function DownloadSection() {
                 !parseBoolean(video.completed) && (
                   <Play className="m-2 cursor-pointer" />
                 )}
+              <div className=" gap-4 w-40 p-1  justify-items-end justify-center justify-self-center self-center grid grid-cols-2">
+                <Trash2Icon onClick={()=>singleFileRemove(video.unique_id)} className="cursor-pointer  active:scale-95 transition-transform duration-100 text-red-500" />
+                <CirclePower onClick={()=>downloadBestFormat(video.format_id,video.web_url as string,video.title as string)} className="cursor-pointer  active:scale-95 transition-transform duration-100 text-green-500" />
+              </div>
             </div>
           ))}
         </div>

@@ -40,7 +40,7 @@ export default function MenuBar() {
   const handleWindowClose = async () => {
     try {
       const db = await Database.load("sqlite:osgui.db");
-      await db.execute("UPDATE DownloadList SET active = false;");
+      await db.execute("UPDATE DownloadList SET active = false,isPaused = true");
       await getCurrentWindow().close();
     } catch (e) {
       console.log(e);
