@@ -19,8 +19,8 @@ import {
 
 export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
   (set, get) => ({
-    showNonMedia:false,
-  setShowNonMedia:(status:boolean)=>set({showNonMedia:status}),
+    showNonMedia: false,
+    setShowNonMedia: (status: boolean) => set({ showNonMedia: status }),
     videoInformation: null,
     setVideoInformation: (vio: VideoInformationInterface | null) =>
       set({ videoInformation: vio }),
@@ -95,6 +95,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
             const readJsonFile = get().readJsonFile;
             await readJsonFile();
           } else {
+            setIsLoadingForJsonCreation(false);
             addToast({
               title: "Error ocurred on Data Fetch",
               description: "Unsafe json output!",

@@ -28,6 +28,7 @@ export interface SingleVideoTileInterface {
   format_id: string;
   web_url?: string | null;
   title: string | null;
+  tracking_message:string;
 }
 
 export type DownloadListInterface = SingleVideoTileInterface[];

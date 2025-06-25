@@ -1,3 +1,4 @@
+import { useDownloadStore } from "@/store/downloadStore";
 import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
 import {
   Button,
@@ -5,12 +6,12 @@ import {
   CardBody,
   CardFooter,
   CardHeader,
-  Checkbox,
   Divider,
 } from "@heroui/react";
 import clsx from "clsx";
 import { isEmpty } from "lodash";
 import { BadgeCheck, Download, Turtle } from "lucide-react";
+import OpenDialogSection from "./OpenDialogSection";
 
 export default function FormatSection() {
   let videoInformation = useUserInputVideoStore(
@@ -21,6 +22,9 @@ export default function FormatSection() {
     (state) => state.setShowNonMedia
   );
 
+  const downloadBestFormat = useDownloadStore(
+    (state) => state.downloadBestFormat
+  );
   return (
     <div className="mt-4  h-[80vh] w-full flex flex-col p-4 shadow-lg shadow-black rounded-md">
       {!videoInformation && (
@@ -63,9 +67,14 @@ export default function FormatSection() {
                   {video.vcodec !== "none" && video.acodec === "none" && (
                     <BadgeCheck className="m-1 text-green-600" />
                   )}
-                  {video.resolution && <h1>{video.resolution}<span className="text-red-600">[{video.format_id}]</span></h1>}
+                  {video.resolution && (
+                    <h1>
+                      {video.resolution}
+                      <span className="text-red-600">[{video.format_id}]</span>
+                    </h1>
+                  )}
                 </CardHeader>
-                 <Divider></Divider>
+                <Divider></Divider>
                 <CardBody>
                   {video.vcodec === "none" && video.acodec === "none" && (
                     <h1>No Audio or Video-a</h1>
@@ -76,7 +85,7 @@ export default function FormatSection() {
                   {video.vcodec !== "none" && video.acodec === "none" && (
                     <h1> Video Only</h1>
                   )}
-                  {video.video_ext && <h1>Extention : {video.video_ext}</h1>}
+                  {video.video_ext && <h1>Extention : {video.ext}</h1>}
                   {!("acodec" in videoInformation) &&
                     !("vcodec" in videoInformation) && <h1>Audio + Video</h1>}
                 </CardBody>
@@ -112,12 +121,19 @@ export default function FormatSection() {
                   {video.vcodec !== "none" && video.acodec === "none" && (
                     <BadgeCheck className="m-1 text-green-600" />
                   )}
-                  {video.resolution && <h1>{video.resolution}<span className="text-red-600">[{video.format_id}]</span></h1>}
+                  {video.resolution && (
+                    <h1>
+                      {video.resolution}
+                      <span className="text-red-600">[{video.format_id}]</span>
+                    </h1>
+                  )}
                 </CardHeader>
-                 <Divider></Divider>
+                <Divider></Divider>
                 <CardBody>
                   {video.vcodec === "none" && video.acodec === "none" && (
-                    <h1 className="text-red-600 font-bold">No Audio or Video</h1>
+                    <h1 className="text-red-600 font-bold">
+                      No Audio or Video
+                    </h1>
                   )}
                   {video.vcodec === "none" && video.acodec !== "none" && (
                     <h1 className="text-red-600 font-bold"> Audio Only</h1>
@@ -125,9 +141,18 @@ export default function FormatSection() {
                   {video.vcodec !== "none" && video.acodec === "none" && (
                     <h1 className="text-red-600 font-bold"> Video Only</h1>
                   )}
-                  {video.video_ext && <h1>Extention : {video.video_ext}</h1>}
+                  {video.video_ext && (
+                    <h1>
+                      Extention :{" "}
+                      <span className="text-red-600 font-bold">
+                        {video.ext}
+                      </span>
+                    </h1>
+                  )}
                   {!("acodec" in videoInformation) &&
-                    !("vcodec" in videoInformation) && <h1 className="text-gree-600 font-bold">Audio + Video</h1>}
+                    !("vcodec" in videoInformation) && (
+                      <h1 className="text-gree-600 font-bold">Audio + Video</h1>
+                    )}
                 </CardBody>
                 {!(video.vcodec === "none" && video.acodec === "none") && (
                   <CardFooter>
@@ -155,12 +180,19 @@ export default function FormatSection() {
                     <BadgeCheck className="m-1 text-green-600" />
                   )}
 
-                  {video.resolution && <h1>{video.resolution}<span className="text-red-600">[{video.format_id}]</span></h1>}
+                  {video.resolution && (
+                    <h1>
+                      {video.resolution}
+                      <span className="text-red-600">[{video.format_id}]</span>
+                    </h1>
+                  )}
                 </CardHeader>
                 <Divider></Divider>
                 <CardBody>
                   {video.vcodec === "none" && video.acodec === "none" && (
-                    <h1 className="text-red-600 font-bold">No Audio or Video-a</h1>
+                    <h1 className="text-red-600 font-bold">
+                      No Audio or Video-a
+                    </h1>
                   )}
                   {video.vcodec === "none" && video.acodec !== "none" && (
                     <h1 className="text-red-600 font-bold"> Audio Only</h1>
@@ -168,16 +200,23 @@ export default function FormatSection() {
                   {video.vcodec !== "none" && video.acodec === "none" && (
                     <h1 className="text-red-600 font-bold"> Video Only</h1>
                   )}
-                  {video.video_ext && <h1>Extention : {video.audio_ext}</h1>}
-
-                 
+                  {video.video_ext && (
+                    <h1>
+                      Extention :{" "}
+                      <span className="text-red-600 font-bold">
+                        {video.ext}
+                      </span>
+                    </h1>
+                  )}
 
                   {(video.vcodec !== "none" || video.vcodec === undefined) &&
                     (video.acodec !== "none" || video.acodec === undefined) && (
-                      <h1 className="text-green-600 font-bold">Audio + Video</h1>
+                      <h1 className="text-green-600 font-bold">
+                        Audio + Video
+                      </h1>
                     )}
                 </CardBody>
-                 
+
                 {!(video.vcodec === "none" && video.acodec === "none") &&
                   video.vcodec === "none" &&
                   video.acodec !== "none" && (
@@ -196,6 +235,13 @@ export default function FormatSection() {
           <Button
             color="primary"
             className=" w-fit mt-4 p-2 justify-self-center"
+            onPress={() =>
+              downloadBestFormat(
+                videoInformation.format_id as string,
+                videoInformation.webpage_url as string,
+                videoInformation.title as string
+              )
+            }
           >
             <Download /> <span>{videoInformation.format}</span>
           </Button>
@@ -212,6 +258,7 @@ export default function FormatSection() {
           </Button>
         </div>
       )}
+      <OpenDialogSection/>
     </div>
   );
 }

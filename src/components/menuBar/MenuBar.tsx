@@ -3,6 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useState } from "react";
 import ThemeToggleButton from "@/ui/ThemeToggleButton";
 import { useNavigate } from "react-router-dom";
+import Database from "@tauri-apps/plugin-sql";
 
 export default function MenuBar() {
   const [isFullScreen, setIsFullScreen] = useState<boolean | null>(null);
@@ -38,6 +39,8 @@ export default function MenuBar() {
 
   const handleWindowClose = async () => {
     try {
+      const db = await Database.load("sqlite:osgui.db");
+      await db.execute("UPDATE DownloadList SET active = false;");
       await getCurrentWindow().close();
     } catch (e) {
       console.log(e);
