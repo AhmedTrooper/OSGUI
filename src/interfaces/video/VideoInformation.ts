@@ -28,7 +28,13 @@ export interface SingleVideoTileInterface {
   format_id: string;
   web_url?: string | null;
   title: string | null;
-  tracking_message:string;
+  tracking_message: string;
+  isPaused: pauseStatus;
 }
 
+export type pauseStatus = boolean | 0 | "0" | "1" | 1 | "true" | "false";
+
 export type DownloadListInterface = SingleVideoTileInterface[];
+export interface failStatusObject {
+  failed:pauseStatus
+}

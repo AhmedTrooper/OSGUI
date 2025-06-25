@@ -1,3 +1,3 @@
 export interface UtilityStoreInterface {
-  parseBoolean: (value: "true" | "false" | boolean) => boolean;
+  parseBoolean: (value: boolean | 0 | "0" | "1" | 1 | "true" | "false") => boolean;
 }

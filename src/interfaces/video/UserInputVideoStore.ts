@@ -10,7 +10,7 @@ export interface UserInputVideoStoreInterface {
   fetchVideoInformation: () => void;
   videoInformationFetchFailed: boolean;
   setVideoInformationFetchFailed: (status: boolean) => void;
-  readJsonFile: () => void;
+  readJsonFile:  () => void;
   isLoadingForJsonCreation: boolean;
   setIsLoadingForJsonCreation: (s: boolean) => void;
   dialogSectionVisible: boolean;

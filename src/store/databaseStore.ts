@@ -12,12 +12,15 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
     try {
       const db = await Database.load("sqlite:osgui.db");
 
+      //  await db.execute(`DROP TABLE IF EXISTS DownloadList;`);
+
       await db.execute(`CREATE TABLE IF NOT EXISTS DownloadList (
   id VARCHAR(255) PRIMARY KEY,
   unique_id VARCHAR(255) NOT NULL,
-  active BOOLEAN NOT NULL,
-  failed BOOLEAN NOT NULL,
-  completed BOOLEAN NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT false,
+  failed BOOLEAN NOT NULL DEFAULT false,
+  completed BOOLEAN NOT NULL DEFAULT false,
+  isPaused BOOLEAN NOT NULL DEFAULT false,
   format_id VARCHAR(255) NOT NULL,
   web_url VARCHAR(255),
   title VARCHAR(255),
@@ -27,6 +30,8 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       const allDownloads = (await db.select(
         "SELECT * FROM DownloadList"
       )) as DownloadListInterface;
+
+      console.log(allDownloads);
 
       setDownloadsArr(await allDownloads);
     } catch (err) {
@@ -42,20 +47,20 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       const db = await Database.load("sqlite:osgui.db");
       await db.execute("DELETE FROM DownloadList;");
       setDownloadsArr([]);
-       addToast({
-            title: "Successfull",
-            description: "Download list is empty!",
-            color: "success",
-            timeout: 2000,
-          });
+      addToast({
+        title: "Successfull",
+        description: "Download list is empty!",
+        color: "success",
+        timeout: 2000,
+      });
     } catch (e) {
       console.log("Error on Downloads clear", e);
-       addToast({
-            title: "Error",
-            description: "Error on Downloads clear",
-            color: "danger",
-            timeout: 2000,
-          });
+      addToast({
+        title: "Error",
+        description: "Error on Downloads clear",
+        color: "danger",
+        timeout: 2000,
+      });
     }
   },
 }));

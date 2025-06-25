@@ -32,7 +32,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
     setVideoUrl: (url: string) => set({ videoUrl: url }),
     videoInformationFetchFailed: false,
     videoUrl:
-      "https://www.youtube.com/watch?v=Bmm7fk8nSAw&ab_channel=8KVIDEOSULTRAHD",
+      "https://www.youtube.com/watch?v=R3GfuzLMPkA&ab_channel=4KUltraHD",
     fetchVideoInformation: async () => {
       const UserInputVideoStore = get();
 

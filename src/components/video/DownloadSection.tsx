@@ -1,10 +1,9 @@
 import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
 import { Spinner } from "@heroui/react";
 import { isEmpty } from "lodash";
-import { Play, ShieldCheck, Turtle } from "lucide-react";
+import { BadgeX, Play, ShieldCheck, Turtle } from "lucide-react";
 import { clsx } from "clsx";
 import { useUtilityStore } from "@/store/UtilityStore";
-
 
 export default function DownloadSection() {
   const downloadsArr = useUserInputVideoStore((state) => state.downloadsArr);
@@ -19,22 +18,34 @@ export default function DownloadSection() {
         />
       )}
       {!isEmpty(downloadsArr) && (
-        <div className="shadow-lg shadow-black  rounded-md m-2  h-fit">
+        <div className="  rounded-md m-2  h-fit">
           {downloadsArr.map((video, index) => (
-            <div key={index} className="m-2">
+            <div
+              key={index}
+              className={clsx("m-2 shadow-md shadow-black p-1 rounded-md")}
+            >
               <h1 className="text-blue-600 font-bold">{video.title}</h1>
               <h1>{video.format_id}</h1>
               <h1>{video.web_url}</h1>
-              
-              {video.tracking_message && <h1>{video.tracking_message}</h1>}
-              {parseBoolean(video.completed) && (
-                <ShieldCheck
+
+              {video.tracking_message && (
+                <h1
                   className={clsx("", {
-                    "text-red-500": video.failed,
-                    "text-green-500": !video.failed,
+                    hidden: video.tracking_message.trim() === "falseFoundTrue",
                   })}
-                />
+                >
+                  {video.tracking_message}
+                </h1>
               )}
+
+              {!parseBoolean(video.failed) && parseBoolean(video.completed) && (
+                <ShieldCheck className={clsx("text-green-600", {})} />
+              )}
+
+              {parseBoolean(video.failed) && parseBoolean(video.completed) && (
+                <BadgeX className={clsx("text-red-600", {})} />
+              )}
+
               {parseBoolean(video.active) && (
                 <Spinner
                   color="white"
@@ -42,7 +53,10 @@ export default function DownloadSection() {
                 />
               )}
 
-              {!parseBoolean(video.active) && !parseBoolean(video.completed) && <Play className="m-2 cursor-pointer"/>}
+              {parseBoolean(video.isPaused) &&
+                !parseBoolean(video.completed) && (
+                  <Play className="m-2 cursor-pointer" />
+                )}
             </div>
           ))}
         </div>
