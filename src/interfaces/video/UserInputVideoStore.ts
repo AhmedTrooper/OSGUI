@@ -22,4 +22,6 @@ export interface UserInputVideoStoreInterface {
   downloadsArr: DownloadListInterface;
   setDownloadsArr: (dArr: DownloadListInterface) => void;
   addVideoToDownloadsArr:(video:SingleVideoTileInterface)=>void;
+  showNonMedia:boolean;
+  setShowNonMedia:(status:boolean)=>void;
 }

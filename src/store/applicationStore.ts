@@ -23,6 +23,7 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
   fetchAppVersion: async () => {
     try {
       let currentVersion = await getVersion();
+      console.log(currentVersion);
     } catch (error) {
       console.log("Version fething Error!", error);
     } finally {

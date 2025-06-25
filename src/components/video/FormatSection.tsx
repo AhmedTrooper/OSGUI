@@ -1,30 +1,71 @@
 import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
-import { Button, Card, CardBody, CardFooter, CardHeader } from "@heroui/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Checkbox,
+  Divider,
+} from "@heroui/react";
+import clsx from "clsx";
 import { isEmpty } from "lodash";
-import { Download, Turtle } from "lucide-react";
+import { BadgeCheck, Download, Turtle } from "lucide-react";
 
 export default function FormatSection() {
-  const videoInformation = useUserInputVideoStore(
+  let videoInformation = useUserInputVideoStore(
     (state) => state.videoInformation
   );
-  videoInformation?.formats.reverse();
+  let showNonMedia = useUserInputVideoStore((state) => state.showNonMedia);
+  let setShowNonMedia = useUserInputVideoStore(
+    (state) => state.setShowNonMedia
+  );
+
   return (
     <div className="mt-4  h-[80vh] w-full flex flex-col p-4 shadow-lg shadow-black rounded-md">
-      {!videoInformation && <Turtle />}
+      {!videoInformation && (
+        <div className="w-full h-full p-2 justify-items-center items-center content-center">
+          <Turtle />
+        </div>
+      )}
 
       {videoInformation && <h1>{videoInformation.title}</h1>}
+      <Button
+        onPress={() => setShowNonMedia(!showNonMedia)}
+        className="m-2 p-2 w-fit justify-self-center"
+        color={!showNonMedia ? "primary" : "danger"}
+      >
+        {!showNonMedia ? (
+          <span>Show Non-Media</span>
+        ) : (
+          <span>Hide Non-Media</span>
+        )}
+      </Button>
 
-      <div className="grid grid-cols-2 gap-4 flex-1 overflow-auto mt-4">
+      {/* Non media Part */}
+
+      <div
+        className={clsx(" overflow-auto mt-4", {
+          "grid  gap-4 flex-1": showNonMedia,
+          hidden: !showNonMedia,
+        })}
+      >
         {videoInformation && !isEmpty(videoInformation.formats) && (
           <div className="flex-1 overflow-auto mt-4">
-            {videoInformation.formats.map((video, idx: number) => (
+            {videoInformation.formats.reverse().map((video, idx: number) => (
               <Card
                 key={idx}
-                className="m-2"
+                className={clsx("m-2", {
+                  hidden: !(video.vcodec === "none" && video.acodec === "none"),
+                })}
               >
                 <CardHeader className="text-blue-700">
-                  {video.resolution && <h1>{video.resolution}</h1>}
+                  {video.vcodec !== "none" && video.acodec === "none" && (
+                    <BadgeCheck className="m-1 text-green-600" />
+                  )}
+                  {video.resolution && <h1>{video.resolution}<span className="text-red-600">[{video.format_id}]</span></h1>}
                 </CardHeader>
+                 <Divider></Divider>
                 <CardBody>
                   {video.vcodec === "none" && video.acodec === "none" && (
                     <h1>No Audio or Video-a</h1>
@@ -39,6 +80,55 @@ export default function FormatSection() {
                   {!("acodec" in videoInformation) &&
                     !("vcodec" in videoInformation) && <h1>Audio + Video</h1>}
                 </CardBody>
+
+                <CardFooter>
+                  <Button color="primary">Download</Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Media part.... */}
+      <div
+        className={clsx(" overflow-auto mt-4", {
+          "grid grid-cols-2 gap-4 flex-1": !showNonMedia,
+          hidden: showNonMedia,
+        })}
+      >
+        {videoInformation && !isEmpty(videoInformation.formats) && (
+          <div className="flex-1 overflow-auto mt-4">
+            {videoInformation.formats.reverse().map((video, idx: number) => (
+              <Card
+                key={idx}
+                className={clsx("m-2", {
+                  hidden:
+                    (video.vcodec === "none" && video.acodec !== "none") ||
+                    (video.vcodec === "none" && video.acodec === "none"),
+                })}
+              >
+                <CardHeader className="text-blue-600">
+                  {video.vcodec !== "none" && video.acodec === "none" && (
+                    <BadgeCheck className="m-1 text-green-600" />
+                  )}
+                  {video.resolution && <h1>{video.resolution}<span className="text-red-600">[{video.format_id}]</span></h1>}
+                </CardHeader>
+                 <Divider></Divider>
+                <CardBody>
+                  {video.vcodec === "none" && video.acodec === "none" && (
+                    <h1 className="text-red-600 font-bold">No Audio or Video</h1>
+                  )}
+                  {video.vcodec === "none" && video.acodec !== "none" && (
+                    <h1 className="text-red-600 font-bold"> Audio Only</h1>
+                  )}
+                  {video.vcodec !== "none" && video.acodec === "none" && (
+                    <h1 className="text-red-600 font-bold"> Video Only</h1>
+                  )}
+                  {video.video_ext && <h1>Extention : {video.video_ext}</h1>}
+                  {!("acodec" in videoInformation) &&
+                    !("vcodec" in videoInformation) && <h1 className="text-gree-600 font-bold">Audio + Video</h1>}
+                </CardBody>
                 {!(video.vcodec === "none" && video.acodec === "none") && (
                   <CardFooter>
                     <Button color="primary">Select</Button>
@@ -52,29 +142,42 @@ export default function FormatSection() {
         {/* Audio Part  */}
 
         {videoInformation && !isEmpty(videoInformation.formats) && (
-          <div className="flex-1 overflow-auto mt-4">
+          <div className={clsx("flex-1 overflow-auto mt-4", {})}>
             {videoInformation.formats.map((video, idx: number) => (
               <Card
                 key={idx}
-                className="m-2"
+                className={clsx("m-2", {
+                  hidden: !(video.vcodec === "none" && video.acodec !== "none"),
+                })}
               >
-                <CardHeader className="text-blue-700">
-                  {video.resolution && <h1>{video.resolution}</h1>}
+                <CardHeader className="text-blue-600">
+                  {video.vcodec === "none" && video.acodec !== "none" && (
+                    <BadgeCheck className="m-1 text-green-600" />
+                  )}
+
+                  {video.resolution && <h1>{video.resolution}<span className="text-red-600">[{video.format_id}]</span></h1>}
                 </CardHeader>
+                <Divider></Divider>
                 <CardBody>
                   {video.vcodec === "none" && video.acodec === "none" && (
-                    <h1>No Audio or Video-a</h1>
+                    <h1 className="text-red-600 font-bold">No Audio or Video-a</h1>
                   )}
                   {video.vcodec === "none" && video.acodec !== "none" && (
-                    <h1> Audio Only</h1>
+                    <h1 className="text-red-600 font-bold"> Audio Only</h1>
                   )}
                   {video.vcodec !== "none" && video.acodec === "none" && (
-                    <h1> Video Only</h1>
+                    <h1 className="text-red-600 font-bold"> Video Only</h1>
                   )}
-                  {video.video_ext && <h1>Extention : {video.video_ext}</h1>}
-                  {((!("acodec" in videoInformation) &&
-                    !("vcodec" in videoInformation))||(video.vcodec !== "none" && video.acodec !== "none")) && <h1>Audio + Video</h1>}
+                  {video.video_ext && <h1>Extention : {video.audio_ext}</h1>}
+
+                 
+
+                  {(video.vcodec !== "none" || video.vcodec === undefined) &&
+                    (video.acodec !== "none" || video.acodec === undefined) && (
+                      <h1 className="text-green-600 font-bold">Audio + Video</h1>
+                    )}
                 </CardBody>
+                 
                 {!(video.vcodec === "none" && video.acodec === "none") &&
                   video.vcodec === "none" &&
                   video.acodec !== "none" && (
@@ -88,7 +191,7 @@ export default function FormatSection() {
         )}
       </div>
 
-      {videoInformation && videoInformation.format_id && (
+      {videoInformation && videoInformation.format_id && !showNonMedia && (
         <div className="w-full grid">
           <Button
             color="primary"
@@ -99,7 +202,7 @@ export default function FormatSection() {
         </div>
       )}
 
-      {videoInformation && videoInformation.format_id && (
+      {videoInformation && videoInformation.format_id && !showNonMedia && (
         <div className="w-full grid">
           <Button
             color="danger"

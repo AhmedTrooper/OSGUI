@@ -4,7 +4,7 @@ import { useUserInputVideoStore } from "./UserInputVideoStore";
 import Database from "@tauri-apps/plugin-sql";
 import { DownloadListInterface } from "@/interfaces/video/VideoInformation";
 
-export const useDatabaseStore = create<DatabaseInterface>((set, get) => ({
+export const useDatabaseStore = create<DatabaseInterface>((set) => ({
   createOrLoadDatabase: async () => {
     const UserInputVideoStore = useUserInputVideoStore.getState();
     const setDownloadsArr = UserInputVideoStore.setDownloadsArr;

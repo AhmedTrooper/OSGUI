@@ -19,6 +19,8 @@ import {
 
 export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
   (set, get) => ({
+    showNonMedia:false,
+  setShowNonMedia:(status:boolean)=>set({showNonMedia:status}),
     videoInformation: null,
     setVideoInformation: (vio: VideoInformationInterface | null) =>
       set({ videoInformation: vio }),
@@ -29,7 +31,8 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
       set({ videoInformationFetchFailed: s }),
     setVideoUrl: (url: string) => set({ videoUrl: url }),
     videoInformationFetchFailed: false,
-    videoUrl: "https://www.youtube.com/watch?v=Bmm7fk8nSAw&ab_channel=8KVIDEOSULTRAHD",
+    videoUrl:
+      "https://www.youtube.com/watch?v=Bmm7fk8nSAw&ab_channel=8KVIDEOSULTRAHD",
     fetchVideoInformation: async () => {
       const UserInputVideoStore = get();
 
@@ -155,7 +158,11 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
           UserInputVideoStore.setVideoInformationFetchFailed;
         setVideoInformationFetchFailed(true);
         console.error("Error reading video.json:", err);
-        return null;
+
+        const setIsLoadingForJsonCreation =
+          UserInputVideoStore.setIsLoadingForJsonCreation;
+
+        setIsLoadingForJsonCreation(false);
       } finally {
         const UserInputVideoStore = get();
 
@@ -167,10 +174,9 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
 
         if (!videoInformationFetchFailed) {
           UserInputVideoStore.setDialogSectionVisible(true);
-           addToast({
+          addToast({
             title: "Successfull",
-            description:
-              "Video successfully fetched!",
+            description: "Video successfully fetched!",
             color: "success",
             timeout: 2000,
           });
