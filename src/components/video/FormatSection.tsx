@@ -10,7 +10,7 @@ import {
 } from "@heroui/react";
 import clsx from "clsx";
 import { isEmpty } from "lodash";
-import { BadgeCheck, Download, Turtle } from "lucide-react";
+import { BadgeCheck, ChevronRight, Download, Turtle } from "lucide-react";
 import OpenDialogSection from "./OpenDialogSection";
 
 export default function FormatSection() {
@@ -22,29 +22,40 @@ export default function FormatSection() {
     (state) => state.setShowNonMedia
   );
 
-  const downloadBestFormat = useDownloadStore(
-    (state) => state.downloadBestFormat
-  );
+  const downloadBestFormat = useDownloadStore((state) => state.downloadHandler);
   return (
-    <div className="mt-4  h-[80vh] w-full flex flex-col p-4 shadow-lg shadow-black rounded-md">
+    <div className="mt-4  h-fit max-h-[120vh] w-full flex flex-col p-4 shadow-lg shadow-black rounded-md">
       {!videoInformation && (
         <div className="w-full h-full p-2 justify-items-center items-center content-center">
           <Turtle />
         </div>
       )}
 
-      {videoInformation && <h1>{videoInformation.title}</h1>}
-      <Button
-        onPress={() => setShowNonMedia(!showNonMedia)}
-        className="m-2 p-2 w-fit justify-self-center"
+      {videoInformation && <h1 className="flex"><ChevronRight/>{videoInformation.title}</h1>}
+      <div className=" h-fit w-full  mt-5 p-2 grid justify-items-center items-center">
+        {
+          !showNonMedia &&  <Button
+      
+      className={clsx(" z-50")}
         color={!showNonMedia ? "primary" : "danger"}
+          onPress={() => setShowNonMedia(!showNonMedia)}
       >
-        {!showNonMedia ? (
-          <span>Show Non-Media</span>
-        ) : (
-          <span>Hide Non-Media</span>
-        )}
+       Show Non-Media
       </Button>
+        }
+
+        {
+          showNonMedia &&  <Button
+      
+      className={clsx(" z-50")}
+        color={!showNonMedia ? "primary" : "danger"}
+          onPress={() => setShowNonMedia(!showNonMedia)}
+      >
+       Hide Non-Media
+      </Button>
+        }
+       
+      </div>
 
       {/* Non media Part */}
 
@@ -55,7 +66,7 @@ export default function FormatSection() {
         })}
       >
         {videoInformation && !isEmpty(videoInformation.formats) && (
-          <div className="flex-1 overflow-auto mt-4">
+          <div className="flex-1 overflow-auto mt-4  custom-scrollbar">
             {videoInformation.formats.reverse().map((video, idx: number) => (
               <Card
                 key={idx}
@@ -107,7 +118,7 @@ export default function FormatSection() {
         })}
       >
         {videoInformation && !isEmpty(videoInformation.formats) && (
-          <div className="flex-1 overflow-auto mt-4">
+          <div className="flex-1 overflow-auto custom-scrollbar mt-4">
             {videoInformation.formats.reverse().map((video, idx: number) => (
               <Card
                 key={idx}
@@ -167,7 +178,9 @@ export default function FormatSection() {
         {/* Audio Part  */}
 
         {videoInformation && !isEmpty(videoInformation.formats) && (
-          <div className={clsx("flex-1 overflow-auto mt-4", {})}>
+          <div
+            className={clsx("flex-1 overflow-auto custom-scrollbar mt-4", {})}
+          >
             {videoInformation.formats.map((video, idx: number) => (
               <Card
                 key={idx}
@@ -230,35 +243,38 @@ export default function FormatSection() {
         )}
       </div>
 
-      {videoInformation && videoInformation.format_id && !showNonMedia && (
-        <div className="w-full grid">
-          <Button
-            color="primary"
-            className=" w-fit mt-4 p-2 justify-self-center"
-            onPress={() =>
-              downloadBestFormat(
-                videoInformation.format_id as string,
-                videoInformation.webpage_url as string,
-                videoInformation.title as string
-              )
-            }
-          >
-            <Download /> <span>{videoInformation.format}</span>
-          </Button>
-        </div>
-      )}
+      <div className="grid  mt-4 p-2 w-full gap-4 h-fit">
+        {videoInformation && videoInformation.format_id && !showNonMedia && (
+          <div className="w-full grid max-w-full">
+            <Button
+              color="primary"
+              className="w-full  p-2   justify-self-center "
+              onPress={() =>
+                downloadBestFormat(
+                  videoInformation.format_id as string,
+                  videoInformation.webpage_url as string,
+                  videoInformation.title as string
+                )
+              }
+            >
+              <Download />
+              <span className="truncate">Instant Download ( Default Best )</span>
+            </Button>
+          </div>
+        )}
 
-      {videoInformation && videoInformation.format_id && !showNonMedia && (
-        <div className="w-full grid">
-          <Button
-            color="danger"
-            className=" w-fit mt-4 p-2 justify-self-center"
-          >
-            <Download /> <span>{videoInformation.format}</span>
-          </Button>
-        </div>
-      )}
-      <OpenDialogSection/>
+        {videoInformation && videoInformation.format_id && !showNonMedia && (
+          <div className="w-full grid">
+            <Button
+              color="success"
+              className="w-full  p-2 justify-self-center"
+            >
+              <Download /> <span className="truncate">Selected</span>
+            </Button>
+          </div>
+        )}
+      </div>
+      <OpenDialogSection />
     </div>
   );
 }

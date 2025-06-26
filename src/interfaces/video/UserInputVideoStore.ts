@@ -10,7 +10,7 @@ export interface UserInputVideoStoreInterface {
   fetchVideoInformation: () => void;
   videoInformationFetchFailed: boolean;
   setVideoInformationFetchFailed: (status: boolean) => void;
-  readJsonFile:  () => void;
+  readJsonFile: () => void;
   isLoadingForJsonCreation: boolean;
   setIsLoadingForJsonCreation: (s: boolean) => void;
   dialogSectionVisible: boolean;
@@ -21,7 +21,11 @@ export interface UserInputVideoStoreInterface {
   setVideoInformation: (vio: VideoInformationInterface | null) => void;
   downloadsArr: DownloadListInterface;
   setDownloadsArr: (dArr: DownloadListInterface) => void;
-  addVideoToDownloadsArr:(video:SingleVideoTileInterface)=>void;
-  showNonMedia:boolean;
-  setShowNonMedia:(status:boolean)=>void;
+  addVideoToDownloadsArr: (video: SingleVideoTileInterface) => void;
+  showNonMedia: boolean;
+  setShowNonMedia: (status: boolean) => void;
+  clipboardReadingHandle: () => void;
+  clipboardWritingHandle: (data: string | undefined) => void;
+  handleClipboardClear: () => void;
+  clearVideoInputField: () => void;
 }

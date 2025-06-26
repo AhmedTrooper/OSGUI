@@ -2,7 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "core:window:allow-minimize",
@@ -23,7 +25,9 @@
     "sql:allow-load",
     "store:default",
     "shell:allow-kill",
-   
+    "clipboard-manager:allow-read-text",
+    "clipboard-manager:allow-write-text",
+    "clipboard-manager:allow-clear",
     {
       "identifier": "shell:allow-execute",
       "allow": [
@@ -43,6 +47,7 @@
           "args": true
         }
       ]
-    }
+    },
+    "clipboard-manager:default"
   ]
 }

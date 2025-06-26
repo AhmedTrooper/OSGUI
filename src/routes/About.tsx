@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 
 export default function About() {
   return (
-    <div className="p-8">
+    <div className="p-8 overflow-auto custom-scrollbar">
        <Alert color="warning" className="w-full">
             
               If you know the name of the train you have to use, you can select

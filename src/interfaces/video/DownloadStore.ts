@@ -1,9 +1,25 @@
 export interface DownloadStoreInterface {
-  selectedBestFormat: string | null;
-  setSelectedBestFormat: (format: string | null) => void;
+  selectedFormat: string | null;
+  setSelectedFormat: (format: string | null) => void;
   selectedAudioStream: string | null;
   setSelectedAudioStream: (format: string | null) => void;
   selectedVideoStream: string | null;
   setSelectedVideoStream: (format: string | null) => void;
-  downloadBestFormat: (bestFormat: string, videoUrl: string,videoTitle:string) => void;
+  downloadHandler: (
+    formatString: string,
+    videoUrl: string,
+    videoTitle: string
+  ) => void;
+  createFormat: ({
+    videoStream,
+    audioStream,
+  }: {
+    videoStream?: string;
+    audioStream?: string;
+  }) => void;
+  downloadSelectedFiles: (
+    formatString: string,
+    videoUrl: string,
+    videoTitle: string
+  ) => void;
 }

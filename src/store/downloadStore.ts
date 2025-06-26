@@ -10,41 +10,38 @@ import {
   failStatusObject,
   pauseStatus,
 } from "@/interfaces/video/VideoInformation";
+import { addToast } from "@heroui/react";
 
-export const useDownloadStore = create<DownloadStoreInterface>((set) => ({
-  selectedBestFormat: null,
-  setSelectedBestFormat: (format: string | null) =>
-    set({ selectedBestFormat: format }),
+export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
+  selectedFormat: null,
+  setSelectedFormat: (format: string | null) => set({ selectedFormat: format }),
   selectedAudioStream: null,
   setSelectedAudioStream: (format: string | null) =>
     set({ selectedAudioStream: format }),
   selectedVideoStream: null,
   setSelectedVideoStream: (format: string | null) =>
     set({ selectedVideoStream: format }),
-  downloadBestFormat: async (
-    bestFormat: string,
+  downloadHandler: async (
+    formatString: string,
     videoUrl: string,
     videoTitle: string
   ) => {
     try {
-      console.log("Selected Formats is :", bestFormat);
       const videoDirectory = await videoDir();
       const uniqueId = nanoid(20);
       const mainId = nanoid(25);
-      console.log(uniqueId);
+
       const userInputVideoStore = useUserInputVideoStore.getState();
       const setDownloadsArr = userInputVideoStore.setDownloadsArr;
       const utilityStore = useUtilityStore.getState();
       const parseBoolean = utilityStore.parseBoolean;
 
-      console.log(userInputVideoStore.downloadsArr);
-
       const db = await Database.load("sqlite:osgui.db");
       const bestVideoDownloadCommand = Command.create("ytDlp", [
         "-f",
-        bestFormat,
+        formatString,
         "-o",
-        `${videoDirectory}/OSGUI/%(title)s${bestFormat}.%(ext)s`,
+        `${videoDirectory}/OSGUI/%(title)s${formatString}.%(ext)s`,
         `${videoUrl}`,
       ]);
 
@@ -53,7 +50,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set) => ({
       await db.execute(
         `DELETE FROM DownloadList
    WHERE format_id = $1 AND web_url = $2`,
-        [bestFormat.trim(), videoUrl]
+        [formatString.trim(), videoUrl]
       );
 
       await db.execute(
@@ -66,7 +63,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set) => ({
           true,
           false,
           false,
-          bestFormat,
+          formatString,
           videoUrl,
           videoTitle,
           "Retrieving download info",
@@ -77,12 +74,33 @@ export const useDownloadStore = create<DownloadStoreInterface>((set) => ({
 
       // Data catching on spawn
 
-      bestVideoDownloadCommand.stdout.on("data", async (data) => {
+      const errorHandler = async (data: string) => {
+        // console.log("Error while downloading:", data);
+
+        await db.execute(
+          `UPDATE DownloadList
+       SET failed = true,
+             active = true,
+            isPaused = true,
+           tracking_message = $1
+       WHERE unique_id = $2`,
+          [data.toString().trim(), uniqueId]
+        );
+      };
+
+      const dataHandler = async (data: string) => {
         // console.log(
         //   "\n\n\n\nStd data start\n\n\n",
         //   data,
         //   "\n\n\nstd end\n\n\n"
         // );
+
+        //   // Remove the listener immediately
+        //   console.log("Starting remove the listner");
+        //  bestVideoDownloadCommand.stdout.removeListener("data", dataHandler);
+        //   bestVideoDownloadCommand.stderr.removeListener("data", errorHandler);
+        //   // console.log("\n".repeat(20), x, "\n".repeat(20));
+        //   console.log("Done remove the listner");
 
         await db.execute(
           `UPDATE DownloadList
@@ -94,26 +112,18 @@ export const useDownloadStore = create<DownloadStoreInterface>((set) => ({
           [data.toString().trim(), uniqueId]
         );
         setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
-      });
 
-      //   Coomand error
+        // console.log("Called even after listner gone");
+      };
 
-      bestVideoDownloadCommand.stderr.on("data", async (data) => {
-        console.log("Error while downloading:", data);
+      bestVideoDownloadCommand.stdout.on("data", dataHandler);
 
-        await db.execute(
-          `UPDATE DownloadList
-       SET failed = true,
-             active = true,
-            isPaused = true,
-           tracking_message = $1
-       WHERE unique_id = $2`,
-          [data.toString().trim(), uniqueId]
-        );
-      });
+      //   Command error
 
-      bestVideoDownloadCommand.on("close", async (data) => {
-        console.log("Command closed : -> ", data);
+      bestVideoDownloadCommand.stderr.on("data", errorHandler);
+
+      bestVideoDownloadCommand.on("close", async () => {
+        // console.log("Command closed : -> ", data);
 
         //    await db.execute(
         //     `UPDATE DownloadList
@@ -129,7 +139,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set) => ({
           "SELECT failed FROM DownloadList WHERE unique_id = $1",
           [uniqueId]
         );
-        console.log(result);
+        // console.log(result);
 
         const failedStatus = (await result[0]["failed"]) as pauseStatus;
         console.log(failedStatus);
@@ -172,12 +182,67 @@ export const useDownloadStore = create<DownloadStoreInterface>((set) => ({
           await setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
         }
       });
-      bestVideoDownloadCommand.on("error", (data) => {
-        console.log("Command Error : ---> ", data);
+      bestVideoDownloadCommand.on("error", () => {
+        // console.log("Command Error : ---> ", data);
       });
     } catch (e) {
     } finally {
-      console.log("Command is finished!");
+      // console.log("Command is finished!");
     }
+  },
+  createFormat: ({
+    videoStream,
+    audioStream,
+  }: {
+    videoStream?: string;
+    audioStream?: string;
+  }) => {
+    const downloadStore = get();
+    const setSelectedFormat = downloadStore.setSelectedFormat;
+
+    if (!videoStream && !audioStream) {
+      addToast({
+        title: "Select stream",
+        description: "You must select at least one stream",
+        color: "warning",
+        timeout: 2000,
+      });
+      return;
+    }
+    let combinedStream: string | null = null;
+    if (
+      (!videoStream || videoStream.trim() === "") &&
+      audioStream &&
+      audioStream.trim() !== ""
+    ) {
+      combinedStream = audioStream.trim();
+    } else if (
+      !audioStream &&
+      audioStream === "" &&
+      videoStream &&
+      videoStream !== ""
+    ) {
+      combinedStream = videoStream.trim();
+    } else if (
+      videoStream &&
+      videoStream.trim() !== "" &&
+      audioStream &&
+      audioStream.trim() !== ""
+    ) {
+      let tempAudio = audioStream.trim();
+      let tempVideo = videoStream.trim();
+      combinedStream = `${tempVideo}+${tempAudio}`.trim();
+    }
+
+    setSelectedFormat(combinedStream);
+  },
+  downloadSelectedFiles: (
+    formatString: string,
+    videoUrl: string,
+    videoTitle: string
+  ) => {
+    //  const downloadStore =  get();
+    //  downloadStore.downloadHandler();
+    console.log(formatString, videoUrl, videoTitle);
   },
 }));

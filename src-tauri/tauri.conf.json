@@ -20,7 +20,7 @@
         "transparent": true,
         "minWidth": 800,
         "minHeight": 600,
-         "maxWidth": 800,
+        "maxWidth": 800,
         "maxHeight": 600
        
       }
@@ -40,5 +40,4 @@
       "icons/icon.ico"
     ]
   }
-
 }

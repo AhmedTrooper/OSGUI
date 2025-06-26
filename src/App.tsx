@@ -74,7 +74,7 @@ function App() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-white text-black dark:bg-zinc-900 dark:text-white transition-colors pt-10">
+    <div className="flex flex-col select-none max-h-[100vh]  bg-white text-black dark:bg-zinc-900 dark:text-white transition-colors pt-10 overflow-auto custom-scrollbar">
       {!isMobileOS && <MenuBar />}
       <main className="flex-1">
         <Outlet />
