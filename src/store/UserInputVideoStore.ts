@@ -298,7 +298,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
     clearVideoInputField: () => {
       let videoStore = get();
       videoStore.setVideoUrl("");
-      videoStore.handleClipboardClear();
+      // videoStore.handleClipboardClear();
     },
   })
 );

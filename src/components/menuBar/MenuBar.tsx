@@ -1,10 +1,21 @@
-import { ArrowLeft, ArrowRight, Maximize2, Minus, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CircleDotDashed,
+  CircleFadingArrowUp,
+  Maximize2,
+  Minus,
+  X,
+} from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useState } from "react";
 import ThemeToggleButton from "@/ui/ThemeToggleButton";
 import { useNavigate } from "react-router-dom";
 import Database from "@tauri-apps/plugin-sql";
 import TrashComponent from "./TrashComponent";
+import clsx from "clsx";
+import DrawerComponent from "./DrawerComponent";
+import { Button, Popover, PopoverContent, PopoverTrigger } from "@heroui/react";
 
 export default function MenuBar() {
   const [isFullScreen, setIsFullScreen] = useState<boolean | null>(null);
@@ -53,7 +64,7 @@ export default function MenuBar() {
   return (
     <div className="menu-bar fixed z-50 top-0 grid left-0 grid-cols-12 w-full  bg-[#191f1f] dark:bg-zinc-900 ">
       <div className="col-span-1 w-full h-full  "></div>
-      <div className="flex window-control justify-center  items-center  gap-4 p-1 col-span-2 bg-red-600 ">
+      <div className="flex window-control justify-center  items-center  gap-4 p-1 col-span-2  ">
         <X
           onClick={handleWindowClose}
           className="cursor-pointer w-5 text-white"
@@ -68,12 +79,10 @@ export default function MenuBar() {
         />
       </div>
       {/* bg-[#191f1f] dark:bg-zinc-900 */}
-      <ul
-        className="window-drag-area col-span-8 grid items-center w-full   grid-cols-12 bg-amber-500"
-      >
+      <ul className="window-drag-area col-span-8 grid items-center w-full   grid-cols-12 ">
         {/* Dragging window section.... */}
         <li
-          className="col-span-6  w-full h-full cursor-grabbing"
+          className="col-span-4  w-full h-full cursor-grabbing"
           onMouseDown={startDraggingWindow}
         ></li>
 
@@ -86,6 +95,33 @@ export default function MenuBar() {
             {" "}
             <ArrowRight />
           </p>
+        </li>
+
+        <li className={clsx("cursor-pointer col-span-1", {})}>
+          <DrawerComponent />
+        </li>
+
+        <li className="col-span-1">
+          {/* <Popover>
+            <PopoverTrigger>
+              <CircleDotDashed
+                className={clsx("cursor-pointer text-green-600", {})}
+              />
+            </PopoverTrigger>
+            <PopoverContent>
+              <h1>You are using latest yt-dlp</h1>
+            </PopoverContent>
+          </Popover> */}
+            <Popover>
+            <PopoverTrigger>
+              <CircleFadingArrowUp className={clsx("cursor-pointer text-red-600",{})} />
+            </PopoverTrigger>
+            <PopoverContent className="p-2">
+              <h1>A new version of yt-dlp is available</h1>
+              <Button color="primary" className="mt-2">Download</Button>
+            </PopoverContent>
+          </Popover>
+         
         </li>
 
         <li className="w-full col-span-2 pr-3 grid items-center justify-items-center">
