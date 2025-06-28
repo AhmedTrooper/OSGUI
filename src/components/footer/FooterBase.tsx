@@ -10,7 +10,7 @@ export default function FooterBase() {
   return (
     <div className="w-full grid grid-cols-4 justify-center justify-items-center items-center content-center gap-4 dark:bg-transparent text-white p-2 text-center">
       {ytDlpVersion && <YtDlp/>}
-      <Trash2 onClick={emptyDatabase} className="cursor-pointer text-blue-600"/>
+      <Trash2 className="cursor-pointer text-blue-600"/>
       
     </div>
   );

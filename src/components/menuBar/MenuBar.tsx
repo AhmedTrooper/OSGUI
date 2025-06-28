@@ -4,6 +4,7 @@ import { useState } from "react";
 import ThemeToggleButton from "@/ui/ThemeToggleButton";
 import { useNavigate } from "react-router-dom";
 import Database from "@tauri-apps/plugin-sql";
+import TrashComponent from "./TrashComponent";
 
 export default function MenuBar() {
   const [isFullScreen, setIsFullScreen] = useState<boolean | null>(null);
@@ -40,7 +41,9 @@ export default function MenuBar() {
   const handleWindowClose = async () => {
     try {
       const db = await Database.load("sqlite:osgui.db");
-      await db.execute("UPDATE DownloadList SET active = false,isPaused = true");
+      await db.execute(
+        "UPDATE DownloadList SET active = false,isPaused = true"
+      );
       await getCurrentWindow().close();
     } catch (e) {
       console.log(e);
@@ -48,8 +51,9 @@ export default function MenuBar() {
   };
 
   return (
-    <div className="menu-bar fixed z-50 top-0 grid left-0 grid-cols-3 w-full   bg-[#191f1f] dark:bg-zinc-900">
-      <div className="flex window-control  grid-cols-3 items-start gap-4 p-1 ">
+    <div className="menu-bar fixed z-50 top-0 grid left-0 grid-cols-12 w-full  bg-[#191f1f] dark:bg-zinc-900 ">
+      <div className="col-span-1 w-full h-full  "></div>
+      <div className="flex window-control justify-center  items-center  gap-4 p-1 col-span-2 bg-red-600 ">
         <X
           onClick={handleWindowClose}
           className="cursor-pointer w-5 text-white"
@@ -63,9 +67,9 @@ export default function MenuBar() {
           className="cursor-pointer w-5 text-white"
         />
       </div>
+      {/* bg-[#191f1f] dark:bg-zinc-900 */}
       <ul
-        className="window-drag-area col-span-2 grid items-center w-full   grid-cols-12 bg-[#191f1f] dark:bg-zinc-900
-"
+        className="window-drag-area col-span-8 grid items-center w-full   grid-cols-12 bg-amber-500"
       >
         {/* Dragging window section.... */}
         <li
@@ -88,6 +92,7 @@ export default function MenuBar() {
           <ThemeToggleButton />
         </li>
       </ul>
+      <TrashComponent />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import MenuBar from "./components/menuBar/MenuBar";
 import useThemeStore from "./store/themeStore";
 import { Outlet } from "react-router-dom";
 import useOsInfoStore from "./store/osInfoStore";
-import FooterBase from "./components/footer/FooterBase";
+
 import { useApplicationstore } from "./store/applicationStore";
 import { useDatabaseStore } from "./store/databaseStore";
 
@@ -79,7 +79,7 @@ function App() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <FooterBase />
+    
     </div>
   );
 }
