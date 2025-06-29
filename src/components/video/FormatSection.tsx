@@ -22,7 +22,21 @@ export default function FormatSection() {
     (state) => state.setShowNonMedia
   );
 
-  const downloadBestFormat = useDownloadStore((state) => state.downloadHandler);
+  const downloadHandler = useDownloadStore((state) => state.downloadHandler);
+  const videoStreamSelect = useDownloadStore(
+    (state) => state.videoStreamSelect
+  );
+  const audioStreamSelect = useDownloadStore(
+    (state) => state.audioStreamSelect
+  );
+  const selectedAudioStream = useDownloadStore(
+    (state) => state.selectedAudioStream
+  );
+  const selectedVideoStream = useDownloadStore(
+    (state) => state.selectedVideoStream
+  );
+  const selectedFormat = useDownloadStore((state) => state.selectedFormat);
+
   return (
     <div className="mt-4  h-fit max-h-[120vh] w-full flex flex-col p-4 shadow-lg shadow-black rounded-md">
       {!videoInformation && (
@@ -31,30 +45,32 @@ export default function FormatSection() {
         </div>
       )}
 
-      {videoInformation && <h1 className="flex"><ChevronRight/>{videoInformation.title}</h1>}
+      {videoInformation && (
+        <h1 className="flex">
+          <ChevronRight />
+          {videoInformation.title}
+        </h1>
+      )}
       <div className=" h-fit w-full  mt-5 p-2 grid justify-items-center items-center">
-        {
-          !showNonMedia &&  <Button
-      
-      className={clsx(" z-50")}
-        color={!showNonMedia ? "primary" : "danger"}
-          onPress={() => setShowNonMedia(!showNonMedia)}
-      >
-       Show Non-Media
-      </Button>
-        }
+        {!showNonMedia && (
+          <Button
+            className={clsx(" z-50")}
+            color={!showNonMedia ? "primary" : "danger"}
+            onPress={() => setShowNonMedia(!showNonMedia)}
+          >
+            Show Non-Media
+          </Button>
+        )}
 
-        {
-          showNonMedia &&  <Button
-      
-      className={clsx(" z-50")}
-        color={!showNonMedia ? "primary" : "danger"}
-          onPress={() => setShowNonMedia(!showNonMedia)}
-      >
-       Hide Non-Media
-      </Button>
-        }
-       
+        {showNonMedia && (
+          <Button
+            className={clsx(" z-50")}
+            color={!showNonMedia ? "primary" : "danger"}
+            onPress={() => setShowNonMedia(!showNonMedia)}
+          >
+            Hide Non-Media
+          </Button>
+        )}
       </div>
 
       {/* Non media Part */}
@@ -165,11 +181,19 @@ export default function FormatSection() {
                       <h1 className="text-gree-600 font-bold">Audio + Video</h1>
                     )}
                 </CardBody>
-                {!(video.vcodec === "none" && video.acodec === "none") && (
-                  <CardFooter>
-                    <Button color="primary">Select</Button>
-                  </CardFooter>
-                )}
+                {!(video.vcodec === "none" && video.acodec === "none") &&
+                  video.format_id && (
+                    <CardFooter>
+                      <Button
+                        color="primary"
+                        onPress={() =>
+                          videoStreamSelect(video.format_id?.trim() as string)
+                        }
+                      >
+                        Select
+                      </Button>
+                    </CardFooter>
+                  )}
               </Card>
             ))}
           </div>
@@ -234,7 +258,14 @@ export default function FormatSection() {
                   video.vcodec === "none" &&
                   video.acodec !== "none" && (
                     <CardFooter>
-                      <Button color="primary">Select</Button>
+                      <Button
+                        color="primary"
+                        onPress={() =>
+                          audioStreamSelect(video.format_id?.trim() as string)
+                        }
+                      >
+                        Select
+                      </Button>
                     </CardFooter>
                   )}
               </Card>
@@ -250,7 +281,7 @@ export default function FormatSection() {
               color="primary"
               className="w-full  p-2   justify-self-center "
               onPress={() =>
-                downloadBestFormat(
+                downloadHandler(
                   videoInformation.format_id as string,
                   videoInformation.webpage_url as string,
                   videoInformation.title as string
@@ -258,18 +289,29 @@ export default function FormatSection() {
               }
             >
               <Download />
-              <span className="truncate">Instant Download ( Default Best )</span>
+              <span className="truncate">
+                Instant Download ( Default Best )
+              </span>
             </Button>
           </div>
         )}
+
+        
 
         {videoInformation && videoInformation.format_id && !showNonMedia && (
           <div className="w-full grid">
             <Button
               color="success"
               className="w-full  p-2 justify-self-center"
+              onPress={() =>
+                downloadHandler(
+                  selectedFormat as string,
+                  videoInformation.webpage_url as string,
+                  videoInformation.title as string
+                )
+              }
             >
-              <Download /> <span className="truncate">Selected</span>
+              <Download /> <span className="">{selectedFormat}</span>
             </Button>
           </div>
         )}

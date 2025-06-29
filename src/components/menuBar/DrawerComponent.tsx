@@ -16,7 +16,7 @@ export default function DrawerComponent() {
   return (
     <div>
       <p onClick={onOpen}>
-        <ListStart />
+        <ListStart className="text-white" />
       </p>
       <Drawer
         isOpen={isOpen}

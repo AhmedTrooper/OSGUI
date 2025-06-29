@@ -37,202 +37,202 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
     setVideoUrl: (url: string) => set({ videoUrl: url }),
     videoInformationFetchFailed: false,
     videoUrl: "",
-    fetchVideoInformation: async () => {
-      const UserInputVideoStore = get();
+    // fetchVideoInformation: async () => {
+    //   const UserInputVideoStore = get();
 
-      const videoUrl = UserInputVideoStore.videoUrl;
-      const setIsLoadingForJsonCreation =
-        UserInputVideoStore.setIsLoadingForJsonCreation;
-      await setIsLoadingForJsonCreation(true);
+    //   const videoUrl = UserInputVideoStore.videoUrl;
+    //   const setIsLoadingForJsonCreation =
+    //     UserInputVideoStore.setIsLoadingForJsonCreation;
+    //   await setIsLoadingForJsonCreation(true);
 
-      const setVideoInformationFetchFailed =
-        UserInputVideoStore.setVideoInformationFetchFailed;
-      setVideoInformationFetchFailed(false);
+    //   const setVideoInformationFetchFailed =
+    //     UserInputVideoStore.setVideoInformationFetchFailed;
+    //   setVideoInformationFetchFailed(false);
 
-      const setDialogSectionVisible =
-        UserInputVideoStore.setDialogSectionVisible;
-      setDialogSectionVisible(false);
-      UserInputVideoStore.setFormatSectionVisible(false);
-      UserInputVideoStore.setVideoInformation(null);
-      const documentFolder = await documentDir();
-      const folderPath = await join(documentFolder, "OSGUI");
-      let noError = true;
+    //   const setDialogSectionVisible =
+    //     UserInputVideoStore.setDialogSectionVisible;
+    //   setDialogSectionVisible(false);
+    //   UserInputVideoStore.setFormatSectionVisible(false);
+    //   UserInputVideoStore.setVideoInformation(null);
+    //   const documentFolder = await documentDir();
+    //   const folderPath = await join(documentFolder, "OSGUI");
+    //   let noError = true;
 
-      try {
-        await readDir(folderPath); // throws if not exist
-      } catch {
-        await mkdir("OSGUI", {
-          baseDir: BaseDirectory.Document,
-          recursive: true,
-        });
-      }
+    //   try {
+    //     await readDir(folderPath); // throws if not exist
+    //   } catch {
+    //     await mkdir("OSGUI", {
+    //       baseDir: BaseDirectory.Document,
+    //       recursive: true,
+    //     });
+    //   }
 
-      const filePath = await join(folderPath, "video.json");
+    //   const filePath = await join(folderPath, "video.json");
 
-      let jsonOutput = "";
-      // let jsonArray:any[] = [];
-      const command = Command.create("ytDlp", [
-        "--dump-json",
-        `${videoUrl.trim()}`,
-      ]);
+    //   let jsonOutput = "";
+    //   // let jsonArray:any[] = [];
+    //   const command = Command.create("ytDlp", [
+    //     "--dump-json",
+    //     `${videoUrl.trim()}`,
+    //   ]);
 
-      //       const command = Command.create("ytDlp", [
-      //   "--dump-json",
-      //   "--yes-playlist",
-      //   "--no-warnings",
-      //   "--ignore-errors",
-      //   videoUrl
-      // ]);
+    //   //       const command = Command.create("ytDlp", [
+    //   //   "--dump-json",
+    //   //   "--yes-playlist",
+    //   //   "--no-warnings",
+    //   //   "--ignore-errors",
+    //   //   videoUrl
+    //   // ]);
 
-      try {
-        command.spawn();
-        command.stdout.on("data", (line) => {
-          jsonOutput = line;
-          // console.log(line);
-          // jsonArray.push(JSON.parse(line));
-        });
-        command.stderr.on("data", (data) => {
-          noError = false;
-          addToast({
-            title: "Error ocurred on Data Fetch",
-            description: data,
-            color: "danger",
-            timeout: 2000,
-          });
-        });
+    //   try {
+    //     command.spawn();
+    //     command.stdout.on("data", (line) => {
+    //       jsonOutput = line;
+    //       // console.log(line);
+    //       // jsonArray.push(JSON.parse(line));
+    //     });
+    //     command.stderr.on("data", (data) => {
+    //       noError = false;
+    //       addToast({
+    //         title: "Error ocurred on Data Fetch",
+    //         description: data,
+    //         color: "danger",
+    //         timeout: 2000,
+    //       });
+    //     });
 
-        command.on("close", async () => {
-          if (noError) {
-            // console.log(await jsonArray);
-            await writeTextFile(filePath, jsonOutput, {
-              baseDir: BaseDirectory.Document,
-            });
-            const readJsonFile = get().readJsonFile;
-            await readJsonFile();
-          } else {
-            setIsLoadingForJsonCreation(false);
-            addToast({
-              title: "Error ocurred on Data Fetch",
-              description: "Unsafe json output!",
-              color: "danger",
-              timeout: 2000,
-            });
-          }
-        });
-      } catch (error) {
-        addToast({
-          title: "Error saving video info",
-          description: "Hell",
-          color: "danger",
-          timeout: 2000,
-        });
-        console.error("❌ Error saving video info:", error);
+    //     command.on("close", async () => {
+    //       if (noError) {
+    //         // console.log(await jsonArray);
+    //         await writeTextFile(filePath, jsonOutput, {
+    //           baseDir: BaseDirectory.Document,
+    //         });
+    //         const readJsonFile = get().readJsonFile;
+    //         await readJsonFile();
+    //       } else {
+    //         setIsLoadingForJsonCreation(false);
+    //         addToast({
+    //           title: "Error ocurred on Data Fetch",
+    //           description: "Unsafe json output!",
+    //           color: "danger",
+    //           timeout: 2000,
+    //         });
+    //       }
+    //     });
+    //   } catch (error) {
+    //     addToast({
+    //       title: "Error saving video info",
+    //       description: "Hell",
+    //       color: "danger",
+    //       timeout: 2000,
+    //     });
+    //     console.error("❌ Error saving video info:", error);
 
-        const UserInputVideoStore = get();
-        const setVideoInformationFetchFailed =
-          UserInputVideoStore.setVideoInformationFetchFailed;
-        setVideoInformationFetchFailed(true);
+    //     const UserInputVideoStore = get();
+    //     const setVideoInformationFetchFailed =
+    //       UserInputVideoStore.setVideoInformationFetchFailed;
+    //     setVideoInformationFetchFailed(true);
 
-        addToast({
-          title: "Error saving video info",
-          description: error as string,
-          color: "danger",
-          timeout: 2000,
-        });
-      }
-    },
-    readJsonFile: async () => {
-      try {
-        const documentFolder = await documentDir();
-        const folderPath = await join(documentFolder, "OSGUI");
-        const filePath = await join(folderPath, "video.json");
-        const fileExists = await exists(filePath);
-        const userInputVideoStore = get();
-        const setFormatSectionVisible =
-          userInputVideoStore.setFormatSectionVisible;
-        const setVideoInformation = userInputVideoStore.setVideoInformation;
-        if (!fileExists) {
-          addToast({
-            title: "video.json not found",
-            description: "video.json does not exist at : " + filePath,
-            color: "danger",
-            timeout: 2000,
-          });
-          return null;
-        }
+    //     addToast({
+    //       title: "Error saving video info",
+    //       description: error as string,
+    //       color: "danger",
+    //       timeout: 2000,
+    //     });
+    //   }
+    // },
+    // readJsonFile: async () => {
+    //   try {
+    //     const documentFolder = await documentDir();
+    //     const folderPath = await join(documentFolder, "OSGUI");
+    //     const filePath = await join(folderPath, "video.json");
+    //     const fileExists = await exists(filePath);
+    //     const userInputVideoStore = get();
+    //     const setFormatSectionVisible =
+    //       userInputVideoStore.setFormatSectionVisible;
+    //     const setVideoInformation = userInputVideoStore.setVideoInformation;
+    //     if (!fileExists) {
+    //       addToast({
+    //         title: "video.json not found",
+    //         description: "video.json does not exist at : " + filePath,
+    //         color: "danger",
+    //         timeout: 2000,
+    //       });
+    //       return null;
+    //     }
 
-        const jsonString = await readTextFile(filePath);
-        const jsonData = await JSON.parse(jsonString);
-        setFormatSectionVisible(true);
-        setVideoInformation(jsonData as VideoInformationInterface);
-        console.log(await jsonData);
-        // return jsonData;
-      } catch (err) {
-        const UserInputVideoStore = get();
-        const setVideoInformationFetchFailed =
-          UserInputVideoStore.setVideoInformationFetchFailed;
-        setVideoInformationFetchFailed(true);
-        console.error("Error reading video.json:", err);
+    //     const jsonString = await readTextFile(filePath);
+    //     const jsonData = await JSON.parse(jsonString);
+    //     setFormatSectionVisible(true);
+    //     setVideoInformation(jsonData as VideoInformationInterface);
+    //     console.log(await jsonData);
+    //     // return jsonData;
+    //   } catch (err) {
+    //     const UserInputVideoStore = get();
+    //     const setVideoInformationFetchFailed =
+    //       UserInputVideoStore.setVideoInformationFetchFailed;
+    //     setVideoInformationFetchFailed(true);
+    //     console.error("Error reading video.json:", err);
 
-        const setIsLoadingForJsonCreation =
-          UserInputVideoStore.setIsLoadingForJsonCreation;
+    //     const setIsLoadingForJsonCreation =
+    //       UserInputVideoStore.setIsLoadingForJsonCreation;
 
-        setIsLoadingForJsonCreation(false);
-      } finally {
-        const UserInputVideoStore = get();
+    //     setIsLoadingForJsonCreation(false);
+    //   } finally {
+    //     const UserInputVideoStore = get();
 
-        const setIsLoadingForJsonCreation =
-          UserInputVideoStore.setIsLoadingForJsonCreation;
+    //     const setIsLoadingForJsonCreation =
+    //       UserInputVideoStore.setIsLoadingForJsonCreation;
 
-        const videoInformationFetchFailed =
-          UserInputVideoStore.videoInformationFetchFailed;
+    //     const videoInformationFetchFailed =
+    //       UserInputVideoStore.videoInformationFetchFailed;
 
-        if (!videoInformationFetchFailed) {
-          UserInputVideoStore.setDialogSectionVisible(true);
-          addToast({
-            title: "Successfull",
-            description: "Video successfully fetched!",
-            color: "success",
-            timeout: 2000,
-          });
-        } else {
-          addToast({
-            title: "Error",
-            description:
-              "Something went wrong,Video information fetching failed!",
-            color: "danger",
-            timeout: 2000,
-          });
-        }
+    //     if (!videoInformationFetchFailed) {
+    //       UserInputVideoStore.setDialogSectionVisible(true);
+    //       addToast({
+    //         title: "Successfull",
+    //         description: "Video successfully fetched!",
+    //         color: "success",
+    //         timeout: 2000,
+    //       });
+    //     } else {
+    //       addToast({
+    //         title: "Error",
+    //         description:
+    //           "Something went wrong,Video information fetching failed!",
+    //         color: "danger",
+    //         timeout: 2000,
+    //       });
+    //     }
 
-        setIsLoadingForJsonCreation(false);
-      }
-    },
-    isLoadingForJsonCreation: false,
-    setIsLoadingForJsonCreation: (s: boolean) =>
-      set({ isLoadingForJsonCreation: s }),
-    dialogSectionVisible: false,
-    setDialogSectionVisible: (status: boolean) =>
-      set({ dialogSectionVisible: status }),
-    formatSectionVisible: false,
-    setFormatSectionVisible: (status: boolean) =>
-      set({ formatSectionVisible: status }),
+    //     setIsLoadingForJsonCreation(false);
+    //   }
+    // },
+    // isLoadingForJsonCreation: false,
+    // setIsLoadingForJsonCreation: (s: boolean) =>
+    //   set({ isLoadingForJsonCreation: s }),
+    // dialogSectionVisible: false,
+    // setDialogSectionVisible: (status: boolean) =>
+    //   set({ dialogSectionVisible: status }),
+    // formatSectionVisible: false,
+    // setFormatSectionVisible: (status: boolean) =>
+    //   set({ formatSectionVisible: status }),
 
-    addVideoToDownloadsArr: (video: SingleVideoTileInterface) => {
-      const UserInputVideoStore = get();
-      const downloadsArr = UserInputVideoStore.downloadsArr;
-      const setDownloadsArr = UserInputVideoStore.setDownloadsArr;
+    // addVideoToDownloadsArr: (video: SingleVideoTileInterface) => {
+    //   const UserInputVideoStore = get();
+    //   const downloadsArr = UserInputVideoStore.downloadsArr;
+    //   const setDownloadsArr = UserInputVideoStore.setDownloadsArr;
 
-      const singleVideo = video;
-      let x = [...downloadsArr];
+    //   const singleVideo = video;
+    //   let x = [...downloadsArr];
 
-      try {
-        x.push(singleVideo);
-        setDownloadsArr(x);
-      } catch (e) {
-        console.log("Pushing to downloads array failed");
-      }
-    },
+    //   try {
+    //     x.push(singleVideo);
+    //     setDownloadsArr(x);
+    //   } catch (e) {
+    //     console.log("Pushing to downloads array failed");
+    //   }
+    // },
     clipboardReadingHandle: async () => {
       const UserInputVideoStore = get();
       const setVideoUrl = UserInputVideoStore.setVideoUrl;
@@ -300,6 +300,226 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
       let videoStore = get();
       videoStore.setVideoUrl("");
       // videoStore.handleClipboardClear();
+    },
+    fetchVideoInformation: async () => {
+      const UserInputVideoStore = get();
+
+      // Extract needed store functions and values
+      const videoUrl = UserInputVideoStore.videoUrl;
+      const setIsLoadingForJsonCreation =
+        UserInputVideoStore.setIsLoadingForJsonCreation;
+      const setVideoInformationFetchFailed =
+        UserInputVideoStore.setVideoInformationFetchFailed;
+      const setDialogSectionVisible =
+        UserInputVideoStore.setDialogSectionVisible;
+
+      // Set initial loading state
+      await setIsLoadingForJsonCreation(true);
+      setVideoInformationFetchFailed(false);
+      setDialogSectionVisible(false);
+      UserInputVideoStore.setFormatSectionVisible(false);
+      UserInputVideoStore.setVideoInformation(null);
+
+      // Create output folder if not exists
+      const documentFolder = await documentDir();
+      const folderPath = await join(documentFolder, "OSGUI");
+      let noError = true;
+
+      try {
+        await readDir(folderPath); // throws if not exist
+      } catch {
+        await mkdir("OSGUI", {
+          baseDir: BaseDirectory.Document,
+          recursive: true,
+        });
+      }
+
+      const filePath = await join(folderPath, "video.json");
+      let jsonOutput = "";
+
+      // Create ytDlp command
+      const command = Command.create("ytDlp", [
+        "--dump-json",
+        `${videoUrl.trim()}`,
+      ]);
+
+      // Optional alternative:
+      // const command = Command.create("ytDlp", [
+      //   "--dump-json",
+      //   "--yes-playlist",
+      //   "--no-warnings",
+      //   "--ignore-errors",
+      //   videoUrl
+      // ]);
+
+      try {
+        // Wrap spawn and events in a Promise to await until "close"
+        await new Promise<void>((resolve) => {
+          command.stdout.on("data", (line) => {
+            jsonOutput = line;
+            // console.log(line);
+            // jsonArray.push(JSON.parse(line));
+          });
+
+          command.stderr.on("data", (data) => {
+            noError = false;
+            addToast({
+              title: "Error occurred on Data Fetch",
+              description: data,
+              color: "danger",
+              timeout: 2000,
+            });
+          });
+
+          command.on("close", async () => {
+            if (noError) {
+              // Save the dumped JSON to file
+              await writeTextFile(filePath, jsonOutput, {
+                baseDir: BaseDirectory.Document,
+              });
+
+              // Read JSON into UI
+              const readJsonFile = get().readJsonFile;
+              await readJsonFile();
+            } else {
+              setIsLoadingForJsonCreation(false);
+              addToast({
+                title: "Error occurred on Data Fetch",
+                description: "Unsafe JSON output!",
+                color: "danger",
+                timeout: 2000,
+              });
+            }
+            resolve();
+          });
+
+          command.spawn(); // Start command
+        });
+      } catch (error) {
+        // Catch errors outside the command events
+        addToast({
+          title: "Error saving video info",
+          description: "Hell",
+          color: "danger",
+          timeout: 2000,
+        });
+        console.error("❌ Error saving video info:", error);
+
+        const UserInputVideoStore = get();
+        const setVideoInformationFetchFailed =
+          UserInputVideoStore.setVideoInformationFetchFailed;
+        setVideoInformationFetchFailed(true);
+
+        addToast({
+          title: "Error saving video info",
+          description: error as string,
+          color: "danger",
+          timeout: 2000,
+        });
+      }
+    },
+    readJsonFile: async () => {
+      try {
+        const documentFolder = await documentDir();
+        const folderPath = await join(documentFolder, "OSGUI");
+        const filePath = await join(folderPath, "video.json");
+
+        const fileExists = await exists(filePath);
+        const userInputVideoStore = get();
+
+        const setFormatSectionVisible =
+          userInputVideoStore.setFormatSectionVisible;
+        const setVideoInformation = userInputVideoStore.setVideoInformation;
+
+        if (!fileExists) {
+          addToast({
+            title: "video.json not found",
+            description: "video.json does not exist at: " + filePath,
+            color: "danger",
+            timeout: 2000,
+          });
+          return null;
+        }
+
+        const jsonString = await readTextFile(filePath);
+        const jsonData = JSON.parse(jsonString);
+
+        setFormatSectionVisible(true);
+        setVideoInformation(jsonData as VideoInformationInterface);
+
+        console.log(jsonData);
+      } catch (err) {
+        const userInputVideoStore = get();
+        const setVideoInformationFetchFailed =
+          userInputVideoStore.setVideoInformationFetchFailed;
+        const setIsLoadingForJsonCreation =
+          userInputVideoStore.setIsLoadingForJsonCreation;
+
+        setVideoInformationFetchFailed(true);
+        setIsLoadingForJsonCreation(false);
+
+        // console.error("Error reading video.json:", err);
+        addToast({
+          title: "Error reading video.json",
+          description: err as string,
+          color: "danger",
+          timeout: 1000,
+        });
+      } finally {
+        const userInputVideoStore = get();
+
+        const setIsLoadingForJsonCreation =
+          userInputVideoStore.setIsLoadingForJsonCreation;
+        const videoInformationFetchFailed =
+          userInputVideoStore.videoInformationFetchFailed;
+
+        if (!videoInformationFetchFailed) {
+          userInputVideoStore.setDialogSectionVisible(true);
+          addToast({
+            title: "Successful",
+            description: "Video successfully fetched!",
+            color: "success",
+            timeout: 1000,
+          });
+        } else {
+          addToast({
+            title: "Error",
+            description:
+              "Something went wrong, video information fetching failed!",
+            color: "danger",
+            timeout: 2000,
+          });
+        }
+
+        setIsLoadingForJsonCreation(false);
+      }
+    },
+
+    // State setters
+    isLoadingForJsonCreation: false,
+    setIsLoadingForJsonCreation: (s: boolean) =>
+      set({ isLoadingForJsonCreation: s }),
+
+    dialogSectionVisible: false,
+    setDialogSectionVisible: (status: boolean) =>
+      set({ dialogSectionVisible: status }),
+
+    formatSectionVisible: false,
+    setFormatSectionVisible: (status: boolean) =>
+      set({ formatSectionVisible: status }),
+
+    // Add video to downloads array
+    addVideoToDownloadsArr: (video: SingleVideoTileInterface) => {
+      const userInputVideoStore = get();
+      const downloadsArr = userInputVideoStore.downloadsArr;
+      const setDownloadsArr = userInputVideoStore.setDownloadsArr;
+
+      try {
+        const updatedArr = [...downloadsArr, video];
+        setDownloadsArr(updatedArr);
+      } catch (e) {
+        console.log("Pushing to downloads array failed", e);
+      }
     },
   })
 );

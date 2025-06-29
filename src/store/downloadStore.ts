@@ -75,7 +75,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       // Data catching on spawn
 
       const errorHandler = async (data: string) => {
-        // console.log("Error while downloading:", data);
+        console.log("Error while downloading:", data);
 
         await db.execute(
           `UPDATE DownloadList
@@ -122,8 +122,8 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
 
       bestVideoDownloadCommand.stderr.on("data", errorHandler);
 
-      bestVideoDownloadCommand.on("close", async () => {
-        // console.log("Command closed : -> ", data);
+      bestVideoDownloadCommand.on("close", async (data) => {
+        console.log("Command closed : -> ", data);
 
         //    await db.execute(
         //     `UPDATE DownloadList
@@ -142,7 +142,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         // console.log(result);
 
         const failedStatus = (await result[0]["failed"]) as pauseStatus;
-        console.log(failedStatus);
+        // console.log(failedStatus);
         let parsedFailedStatus = await parseBoolean(failedStatus);
         // console.log(pActive);
         if (parsedFailedStatus) {
@@ -244,5 +244,50 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
     //  const downloadStore =  get();
     //  downloadStore.downloadHandler();
     console.log(formatString, videoUrl, videoTitle);
+  },
+  videoStreamSelect: (vst: string) => {
+    const downloadStore = get();
+    const selectedAudioStream = downloadStore.selectedAudioStream;
+    const setSelectedFormat = downloadStore.setSelectedFormat;
+    const setSelectedVideoStream = downloadStore.setSelectedVideoStream;
+    try {
+      setSelectedVideoStream(vst);
+      if (selectedAudioStream) {
+        let formatString = `${vst.trim()}+${selectedAudioStream.trim()}`.trim();
+        setSelectedFormat(formatString);
+      } else {
+        setSelectedFormat(vst.trim());
+      }
+    } catch (error) {
+      addToast({
+        title: "Failed",
+        description: "Video stream selection failed!",
+        color: "warning",
+        timeout: 1000,
+      });
+    }
+  },
+  audioStreamSelect: (ast: string) => {
+    const downloadStore = get();
+    const selectedVideoStream = downloadStore.selectedVideoStream;
+    const setSelectedAudioStream = downloadStore.setSelectedAudioStream;
+    const setSelectedFormat = downloadStore.setSelectedFormat;
+    try {
+      setSelectedAudioStream(ast.trim());
+      if (selectedVideoStream) {
+        let formatString = `${selectedVideoStream.trim()}+${ast.trim()}`.trim();
+        setSelectedFormat(formatString);
+      } else {
+        console.log("Video stream not founf");
+        setSelectedFormat(ast.trim());
+      }
+    } catch (error) {
+      addToast({
+        title: "Failed",
+        description: "Video stream selection failed!",
+        color: "warning",
+        timeout: 1000,
+      });
+    }
   },
 }));

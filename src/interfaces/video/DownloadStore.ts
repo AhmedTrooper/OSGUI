@@ -22,4 +22,6 @@ export interface DownloadStoreInterface {
     videoUrl: string,
     videoTitle: string
   ) => void;
+  videoStreamSelect:(vst:string)=>void;
+  audioStreamSelect :(ast:string)=>void;
 }
