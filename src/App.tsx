@@ -79,7 +79,6 @@ function App() {
       <main className="flex-1">
         <Outlet />
       </main>
-    
     </div>
   );
 }

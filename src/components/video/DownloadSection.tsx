@@ -1,5 +1,5 @@
 import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
-import { Spinner } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
 import { isEmpty } from "lodash";
 import {
   BadgeX,
@@ -44,10 +44,20 @@ export default function DownloadSection() {
           {downloadsArr.map((video, index) => (
             <div
               key={index}
-              className={clsx("m-2 shadow-md shadow-black p-1 rounded-md")}
+              className={clsx("m-2 shadow-md shadow-black p-2 rounded-md")}
             >
-              <h1 className="text-blue-600 font-bold flex"><span><ChevronRight/></span>{video.title}</h1>
-              <h1>{video.format_id}</h1>
+              <h1 className="text-blue-600 font-bold flex">
+                <span>
+                  <ChevronRight />
+                </span>
+                {video.title}
+              </h1>
+              <Button
+                color="primary"
+                className="m-1"
+              >
+                {video.format_id}
+              </Button>
               <div className="flex gap-4 p-2 max-w-full">
                 <span>
                   <Copy
