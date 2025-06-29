@@ -10,18 +10,6 @@ export interface DownloadStoreInterface {
     videoUrl: string,
     videoTitle: string
   ) => void;
-  createFormat: ({
-    videoStream,
-    audioStream,
-  }: {
-    videoStream?: string;
-    audioStream?: string;
-  }) => void;
-  downloadSelectedFiles: (
-    formatString: string,
-    videoUrl: string,
-    videoTitle: string
-  ) => void;
-  videoStreamSelect:(vst:string)=>void;
-  audioStreamSelect :(ast:string)=>void;
+  videoStreamSelect: (vst: string) => void;
+  audioStreamSelect: (ast: string) => void;
 }

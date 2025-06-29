@@ -1,4 +1,4 @@
-import { ApplicationInterface } from "@/interfaces/ApplicationInterface";
+import { ApplicationInterface } from "@/interfaces/application/ApplicationInterface";
 import { create } from "zustand";
 import { getVersion } from "@tauri-apps/api/app";
 import { Command } from "@tauri-apps/plugin-shell";

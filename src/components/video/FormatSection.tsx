@@ -118,7 +118,18 @@ export default function FormatSection() {
                 </CardBody>
 
                 <CardFooter>
-                  <Button color="primary">Download</Button>
+                  <Button
+                    color="primary"
+                    onPress={() =>
+                      downloadHandler(
+                        video.format_id as string,
+                        videoInformation.webpage_url as string,
+                        videoInformation.title as string
+                      )
+                    }
+                  >
+                    Download
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
@@ -296,25 +307,26 @@ export default function FormatSection() {
           </div>
         )}
 
-        
-
-        {videoInformation && videoInformation.format_id && !showNonMedia && (
-          <div className="w-full grid">
-            <Button
-              color="success"
-              className="w-full  p-2 justify-self-center"
-              onPress={() =>
-                downloadHandler(
-                  selectedFormat as string,
-                  videoInformation.webpage_url as string,
-                  videoInformation.title as string
-                )
-              }
-            >
-              <Download /> <span className="">{selectedFormat}</span>
-            </Button>
-          </div>
-        )}
+        {videoInformation &&
+          videoInformation.format_id &&
+          !showNonMedia &&
+          (selectedAudioStream || selectedVideoStream) && (
+            <div className="w-full grid">
+              <Button
+                color="success"
+                className="w-full  p-2 justify-self-center"
+                onPress={() =>
+                  downloadHandler(
+                    selectedFormat as string,
+                    videoInformation.webpage_url as string,
+                    videoInformation.title as string
+                  )
+                }
+              >
+                <Download /> <span className="">{selectedFormat}</span>
+              </Button>
+            </div>
+          )}
       </div>
       <OpenDialogSection />
     </div>

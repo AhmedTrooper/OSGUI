@@ -190,61 +190,6 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       // console.log("Command is finished!");
     }
   },
-  createFormat: ({
-    videoStream,
-    audioStream,
-  }: {
-    videoStream?: string;
-    audioStream?: string;
-  }) => {
-    const downloadStore = get();
-    const setSelectedFormat = downloadStore.setSelectedFormat;
-
-    if (!videoStream && !audioStream) {
-      addToast({
-        title: "Select stream",
-        description: "You must select at least one stream",
-        color: "warning",
-        timeout: 2000,
-      });
-      return;
-    }
-    let combinedStream: string | null = null;
-    if (
-      (!videoStream || videoStream.trim() === "") &&
-      audioStream &&
-      audioStream.trim() !== ""
-    ) {
-      combinedStream = audioStream.trim();
-    } else if (
-      !audioStream &&
-      audioStream === "" &&
-      videoStream &&
-      videoStream !== ""
-    ) {
-      combinedStream = videoStream.trim();
-    } else if (
-      videoStream &&
-      videoStream.trim() !== "" &&
-      audioStream &&
-      audioStream.trim() !== ""
-    ) {
-      let tempAudio = audioStream.trim();
-      let tempVideo = videoStream.trim();
-      combinedStream = `${tempVideo}+${tempAudio}`.trim();
-    }
-
-    setSelectedFormat(combinedStream);
-  },
-  downloadSelectedFiles: (
-    formatString: string,
-    videoUrl: string,
-    videoTitle: string
-  ) => {
-    //  const downloadStore =  get();
-    //  downloadStore.downloadHandler();
-    console.log(formatString, videoUrl, videoTitle);
-  },
   videoStreamSelect: (vst: string) => {
     const downloadStore = get();
     const selectedAudioStream = downloadStore.selectedAudioStream;
