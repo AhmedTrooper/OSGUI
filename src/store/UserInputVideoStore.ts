@@ -75,6 +75,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
         "--dump-json",
         `${videoUrl.trim()}`,
       ]);
+
       //       const command = Command.create("ytDlp", [
       //   "--dump-json",
       //   "--yes-playlist",
@@ -84,6 +85,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
       // ]);
 
       try {
+        command.spawn();
         command.stdout.on("data", (line) => {
           jsonOutput = line;
           // console.log(line);
@@ -117,7 +119,6 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
             });
           }
         });
-        await command.spawn();
       } catch (error) {
         addToast({
           title: "Error saving video info",
