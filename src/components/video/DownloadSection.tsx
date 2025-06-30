@@ -34,7 +34,7 @@ export default function DownloadSection() {
   const modifiedDownloadsArr = useVideoUtility(
     (state) => state.modifiedDownloadsArr
   );
-  
+
   return (
     <div className="mt-4  shadow-lg shadow-black h-[80vh] overflow-auto grid gap-4 custom-scrollbar rounded-md">
       {isEmpty(downloadsArr) && (
@@ -48,7 +48,7 @@ export default function DownloadSection() {
       {/* Video Downloads List... */}
 
       {!isEmpty(downloadsArr) && (
-        <div className="  rounded-md m-2  h-fit ">
+        <div className="  rounded-md m-2  h-fit min-h-[80vh] ">
           <DownloadsHeader />
           {downloadsArr.map((video, index) => (
             <div
@@ -125,12 +125,10 @@ export default function DownloadSection() {
               </div>
             </div>
           ))}
-
-
-          {/* Header section downloads.... */}
-      <DownloadsHeader />
         </div>
       )}
+      {/* Header section downloads.... */}
+     
 
       {/* Modified Arrays...... */}
       {/* {modifiedDownloadsArr && !isEmpty(modifiedDownloadsArr) && (
@@ -214,8 +212,6 @@ export default function DownloadSection() {
           ))}
         </div>
       )} */}
-
-      
     </div>
   );
 }

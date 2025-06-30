@@ -30,7 +30,7 @@ export default function DrawerComponent() {
                 Playlist Download
               </DrawerHeader>
               <DrawerBody>
-             <PlaylistInputSection/>
+                <PlaylistInputSection />
               </DrawerBody>
               <DrawerFooter>
                 <Button
@@ -39,15 +39,7 @@ export default function DrawerComponent() {
                   className="flex"
                   onPress={onClose}
                 >
-                  <Download /> Selective Download
-                </Button>
-                <Button
-                  color="primary"
-                  onPress={onClose}
-                  className="flex"
-                >
-                  <Download />
-                  Instantly Download
+                  <Download /> Close
                 </Button>
               </DrawerFooter>
             </>

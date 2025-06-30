@@ -39,6 +39,12 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       const parseBoolean = utilityStore.parseBoolean;
 
       const db = await Database.load("sqlite:osgui.db");
+      addToast({
+        title: "Added",
+        description: "File added to download list",
+        color: "success",
+        timeout: 400,
+      });
       const bestVideoDownloadCommand = Command.create("ytDlp", [
         "-f",
         formatString,

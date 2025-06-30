@@ -19,25 +19,27 @@ export default function PlaylistInputSection() {
   const setPlaylistUrl = useHeavyPlaylistStore((state) => state.setPlaylistUrl);
 
   const playlistUrl = useHeavyPlaylistStore((state) => state.playlistUrl);
-   const playlistFetchLoading = useHeavyPlaylistStore((state) => state.playlistFetchLoading);
+  const playlistFetchLoading = useHeavyPlaylistStore(
+    (state) => state.playlistFetchLoading
+  );
 
   return (
-    <div className="grid gap-4 w-full h-full justify-items-center">
-     <div>
-    
-          <Input
-        placeholder="Enter URL"
-        className="col-span-4 overflow-auto w-60"
-        value={playlistUrl}
-        onChange={(elm) => setPlaylistUrl(elm.target.value)}
-        validate={(x: string) => {
-          if (x.startsWith("http://") || x.startsWith("https://")) return true;
-          return "URL must start with http:// or https://";
-        }}
-        validationBehavior="native"
-      />
-     </div>
-    
+    <div className="grid gap-4 w-full h-full justify-items-center content-start">
+      <div>
+        <Input
+          placeholder="Enter URL"
+          className="col-span-4 overflow-auto w-60"
+          value={playlistUrl}
+          onChange={(elm) => setPlaylistUrl(elm.target.value)}
+          validate={(x: string) => {
+            if (x.startsWith("http://") || x.startsWith("https://"))
+              return true;
+            return "URL must start with http:// or https://";
+          }}
+          validationBehavior="native"
+        />
+      </div>
+
       <div className="w-fit flex  gap-4">
         <Clipboard
           onClick={clipboardReadingHandle}
@@ -53,8 +55,14 @@ export default function PlaylistInputSection() {
           color="primary"
           onPress={fetchPlaylistInformation}
         >
-          {playlistFetchLoading ? <Spinner variant="wave" color="white" /> : <span>Create</span>}
-           
+          {playlistFetchLoading ? (
+            <Spinner
+              variant="wave"
+              color="white"
+            />
+          ) : (
+            <span>Light Fetch</span>
+          )}
         </Button>
       </div>
     </div>

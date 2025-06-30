@@ -4,6 +4,8 @@ import { Button, Checkbox } from "@heroui/react";
 import { Copy, Download, ExternalLink } from "lucide-react";
 import OpenHeavyDialogSection from "../video/OpenHeavyDialogSection";
 import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
+import CompletePlaylistDownloadComponent from "./CompletePlaylistDownloadComponent";
+import SelectedPlaylistDownloadComponent from "./SelectedPlaylistDownloadComponent";
 
 export default function HeavyPlaylistFormatSection() {
   const heavyPlaylistInformation = useHeavyPlaylistStore(
@@ -25,14 +27,18 @@ export default function HeavyPlaylistFormatSection() {
         >
           <ExternalLink />
         </a>
-         <span>
-                <Copy
-                  onClick={() => clipboardWritingHandle(heavyPlaylistInformation.webpage_url)}
-                  className="text-blue-600 cursor-pointer"
-                />
-              </span>
+        <span>
+          <Copy
+            onClick={() =>
+              clipboardWritingHandle(heavyPlaylistInformation.webpage_url)
+            }
+            className="text-blue-600 cursor-pointer"
+          />
+        </span>
         <h1>{heavyPlaylistInformation.title}</h1>
       </header>
+      <CompletePlaylistDownloadComponent/>
+      <SelectedPlaylistDownloadComponent/>
       <div className="grid gap-4">
         {heavyPlaylistInformation.entries.map((entry, index) => (
           <div
@@ -52,93 +58,100 @@ export default function HeavyPlaylistFormatSection() {
                   className="text-blue-600 cursor-pointer"
                 />
               </span>
-              {entry.url}
+              <a
+                className="cursor-pointer"
+                href={entry.url}
+                target="_blank"
+              >
+                {entry.url}
+              </a>
             </div>
             {/* Download Option..... */}
             <div className="grid grid-cols-3 gap-1">
               <Button
-              className="flex max-w-full w-fit"
-              onPress={() =>
-                downloadHandler("bestvideo+bestaudio", entry.url, entry.title)
-              }
-              color="primary"
-            >
-              <Download />
+                className="flex max-w-full w-fit"
+                onPress={() =>
+                  downloadHandler("bestvideo+bestaudio", entry.url, entry.title)
+                }
+                color="warning"
+              >
+                <Download />
                 Best
-            </Button>
-            <Button
-              className="flex max-w-full w-fit"
-              onPress={() =>
-                downloadHandler(
-                  "bestvideo[height<=2160]+bestaudio",
-                  entry.url,
-                  entry.title
-                )
-              }
-              color="secondary"
-            >
-              <Download />
-               Max-4K/2160p
-            </Button>
+              </Button>
+              <Button
+                className="flex max-w-full w-fit"
+                onPress={() =>
+                  downloadHandler(
+                    "bestvideo[height<=2160]+bestaudio",
+                    entry.url,
+                    entry.title
+                  )
+                }
+                color="success"
+              >
+                <Download />
+                Max-4K/2160p
+              </Button>
 
-            <Button
-              className="flex max-w-full w-fit"
-              onPress={() =>
-                downloadHandler(
-                  "bestvideo[height<=1440]+bestaudio",
-                  entry.url,
-                  entry.title
-                )
-              }
-              color="secondary"
-            >
-              <Download />
+              <Button
+                className="flex max-w-full w-fit"
+                onPress={() =>
+                  downloadHandler(
+                    "bestvideo[height<=1440]+bestaudio",
+                    entry.url,
+                    entry.title
+                  )
+                }
+                color="primary"
+              >
+                <Download />
                 Max-2K/1440p
-            </Button>
+              </Button>
 
-            <Button
-              className="flex max-w-full w-fit"
-              onPress={() =>
-                downloadHandler(
-                  "bestvideo[height<=1080]+bestaudio",
-                  entry.url,
-                  entry.title
-                )
-              }
-              color="primary"
-            >
-              <Download />
-               Max-1FHD/1080p
-            </Button>
+              <Button
+                className="flex max-w-full w-fit"
+                onPress={() =>
+                  downloadHandler(
+                    "bestvideo[height<=1080]+bestaudio",
+                    entry.url,
+                    entry.title
+                  )
+                }
+                color="primary"
+              >
+                <Download />
+                Max-FHD/1080p
+              </Button>
 
-            <Button
-              className="flex max-w-full w-fit"
-              onPress={() =>
-                downloadHandler(
-                  "bestvideo[height<=720]+bestaudio",
-                  entry.url,
-                  entry.title
-                )
-              }
-              color="primary"
-            >
-              <Download />
+              <Button
+                className="flex max-w-full w-fit"
+                onPress={() =>
+                  downloadHandler(
+                    "bestvideo[height<=720]+bestaudio",
+                    entry.url,
+                    entry.title
+                  )
+                }
+                color="primary"
+              >
+                <Download />
                 Max-HD/720
-            </Button>
-            <Button
-              className=" max-w-full w-fit"
-              onPress={() =>
-                downloadHandler("bestaudio/ba", entry.url, entry.title)
-              }
-              color="primary"
-            >
-              <Download />
-              Audio (Max-best)
-            </Button>
+              </Button>
+              <Button
+                className=" max-w-full w-fit"
+                onPress={() =>
+                  downloadHandler("bestaudio/ba", entry.url, entry.title)
+                }
+                color="danger"
+              >
+                <Download />
+                Audio (Max-best)
+              </Button>
             </div>
           </div>
         ))}
       </div>
+      <SelectedPlaylistDownloadComponent/>
       <OpenHeavyDialogSection />
     </div>
   );
