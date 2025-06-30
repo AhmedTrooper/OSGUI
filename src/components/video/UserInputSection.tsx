@@ -11,14 +11,17 @@ export default function UserInputSection() {
   );
   const videoUrl = useUserInputVideoStore((state) => state.videoUrl);
   const setVideoUrl = useUserInputVideoStore((state) => state.setVideoUrl);
-  const clipboardReadingHandle = useUserInputVideoStore((state) => state.clipboardReadingHandle);
-    const clearVideoInputField = useUserInputVideoStore((state) => state.clearVideoInputField);
-
+  const clipboardReadingHandle = useUserInputVideoStore(
+    (state) => state.clipboardReadingHandle
+  );
+  const clearVideoInputField = useUserInputVideoStore(
+    (state) => state.clearVideoInputField
+  );
 
   return (
     <Card className="w-full grid grid-cols-7 gap-4 justify-items-center p-2 content-center items-center">
       <Input
-      placeholder="Enter video URL"
+        placeholder="Enter video URL"
         className="col-span-4"
         value={videoUrl}
         onChange={(elm) => setVideoUrl(elm.target.value)}
@@ -28,10 +31,16 @@ export default function UserInputSection() {
         }}
         validationBehavior="native"
       />
-     <div className="w-fit flex  gap-4">
-       <Clipboard onClick={clipboardReadingHandle} className="cursor-pointer text-zinc-700 dark:text-zinc-400" />
-      <Eraser onClick={clearVideoInputField} className="cursor-pointer text-zinc-700 dark:text-zinc-400" />
-     </div>
+      <div className="w-fit flex  gap-4">
+        <Clipboard
+          onClick={clipboardReadingHandle}
+          className="cursor-pointer text-zinc-700 dark:text-zinc-400"
+        />
+        <Eraser
+          onClick={clearVideoInputField}
+          className="cursor-pointer text-zinc-700 dark:text-zinc-400"
+        />
+      </div>
       <Button
         color="primary"
         variant="shadow"
