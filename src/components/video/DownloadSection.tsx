@@ -125,6 +125,10 @@ export default function DownloadSection() {
               </div>
             </div>
           ))}
+
+
+          {/* Header section downloads.... */}
+      <DownloadsHeader />
         </div>
       )}
 
@@ -211,8 +215,7 @@ export default function DownloadSection() {
         </div>
       )} */}
 
-      {/* Header section downloads.... */}
-      <DownloadsHeader />
+      
     </div>
   );
 }

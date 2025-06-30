@@ -15,7 +15,7 @@ export default function OpenDialogSection() {
         onPress={() => setFormatSectionVisible(!formatSectionVisible)}
         color={formatSectionVisible ? "danger" : "primary"}
       >
-        <span>{formatSectionVisible ? "Close" : "Open"}</span>
+        <span>{formatSectionVisible ? "Close" : "Open"} VFS</span>
       </Button>
     </div>
   );

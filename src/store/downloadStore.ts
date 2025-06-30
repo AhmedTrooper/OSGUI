@@ -28,8 +28,10 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
   ) => {
     try {
       const videoDirectory = await videoDir();
+      const now = new Date();
+      const timestampMs = now.getTime();
       const uniqueId = nanoid(20);
-      const mainId = nanoid(25);
+      const mainId = timestampMs + nanoid(25);
 
       const userInputVideoStore = useUserInputVideoStore.getState();
       const setDownloadsArr = userInputVideoStore.setDownloadsArr;
@@ -70,7 +72,10 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
           false,
         ]
       );
-      setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
+      // setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
+      setDownloadsArr(
+        await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+      );
 
       // Data catching on spawn
 
@@ -111,7 +116,9 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
        WHERE unique_id = $2`,
           [data.toString().trim(), uniqueId]
         );
-        setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
+        setDownloadsArr(
+          await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+        );
 
         // console.log("Called even after listner gone");
       };
@@ -161,7 +168,9 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
             console.log("Error is if", error);
           }
 
-          await setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
+          await setDownloadsArr(
+            await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+          );
         } else {
           try {
             await db.execute(
@@ -179,7 +188,9 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
             console.log("Error is else", err);
           }
 
-          await setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
+          await setDownloadsArr(
+            await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+          );
         }
       });
       bestVideoDownloadCommand.on("error", () => {

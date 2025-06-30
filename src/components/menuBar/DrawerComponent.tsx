@@ -9,6 +9,7 @@ import {
   Input,
 } from "@heroui/react";
 import { Download, ListStart } from "lucide-react";
+import PlaylistInputSection from "./PlaylistInputSection";
 
 export default function DrawerComponent() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -29,8 +30,7 @@ export default function DrawerComponent() {
                 Playlist Download
               </DrawerHeader>
               <DrawerBody>
-                <Input placeholder="Enter Playlist URL" />
-                <Button color="primary">Create</Button>
+             <PlaylistInputSection/>
               </DrawerBody>
               <DrawerFooter>
                 <Button
