@@ -1,4 +1,4 @@
-export enum PlaylistVideoQuality {
+export enum LightPlaylistVideoQuality {
   BEST = "bestvideo+bestaudio",
   MAX720P = "bestvideo[height<=720]+bestaudio",
   MAX1080P = "bestvideo[height<=1080]+bestaudio",

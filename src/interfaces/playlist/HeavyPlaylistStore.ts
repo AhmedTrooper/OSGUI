@@ -1,4 +1,8 @@
-import { HeavyPlaylistInformationInterface } from "./PlaylistInformation";
+import {
+  HeavyPlaylistInformationInterface,
+  LightPlaylistEntry,
+} from "./PlaylistInformation";
+import { LightPlaylistVideoQuality } from "./QualityEnums";
 
 export interface HeavyPlaylistStoreInterface {
   playlistUrl: string;
@@ -17,4 +21,21 @@ export interface HeavyPlaylistStoreInterface {
     vio: HeavyPlaylistInformationInterface | null
   ) => void;
   fetchHeavyPlaylistInformation: () => Promise<void>;
+  lightEntriesArr: LightPlaylistEntry[];
+  setLightEntriesArr: (arr: LightPlaylistEntry[]) => void;
+  modifiedLightEntriesArr: null | LightPlaylistEntry[];
+  setModifiedLightEntriesArr: (arr: LightPlaylistEntry[] | null) => void;
+  addItemsToLightModifiedEntriesArr: (item: LightPlaylistEntry) => void;
+  removeItemsFromLightModifiedEntriesArr: (item: LightPlaylistEntry) => void;
+  lightPlaylistBatchDownload: (
+  fileArray: LightPlaylistEntry[],
+  playlistTitle: string,
+  fileFormat: LightPlaylistVideoQuality
+) => Promise<void>;
+  lightPlaylistSingleDownloadHandler: (
+    fileTitle: string,
+    fileUrl: string,
+    playlistTitle: string,
+    fileFormat: LightPlaylistVideoQuality
+  ) => void;
 }

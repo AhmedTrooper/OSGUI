@@ -1,11 +1,13 @@
 import { useDownloadStore } from "@/store/downloadStore";
 import { useHeavyPlaylistStore } from "@/store/HeavyPlaylistStore";
-import { Button, Checkbox } from "@heroui/react";
-import { Copy, Download, ExternalLink } from "lucide-react";
+import { Button } from "@heroui/react";
+import { Copy, Download, ExternalLink, FilePlus2 } from "lucide-react";
 import OpenHeavyDialogSection from "../video/OpenHeavyDialogSection";
 import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
 import CompletePlaylistDownloadComponent from "./CompletePlaylistDownloadComponent";
 import SelectedPlaylistDownloadComponent from "./SelectedPlaylistDownloadComponent";
+import SelectedLightEntries from "./SelectedLightEntries";
+import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnums";
 
 export default function HeavyPlaylistFormatSection() {
   const heavyPlaylistInformation = useHeavyPlaylistStore(
@@ -16,6 +18,16 @@ export default function HeavyPlaylistFormatSection() {
   );
 
   const downloadHandler = useDownloadStore((state) => state.downloadHandler);
+  const lightEntriesArr = useHeavyPlaylistStore(
+    (state) => state.lightEntriesArr
+  );
+  const lightPlaylistSingleDownloadHandler = useHeavyPlaylistStore(
+    (state) => state.lightPlaylistSingleDownloadHandler
+  );
+
+  const addItemsToLightModifiedEntriesArr = useHeavyPlaylistStore(
+    (state) => state.addItemsToLightModifiedEntriesArr
+  );
 
   if (!heavyPlaylistInformation) return;
   return (
@@ -37,16 +49,22 @@ export default function HeavyPlaylistFormatSection() {
         </span>
         <h1>{heavyPlaylistInformation.title}</h1>
       </header>
-      <CompletePlaylistDownloadComponent/>
-      <SelectedPlaylistDownloadComponent/>
+      <CompletePlaylistDownloadComponent />
+      <SelectedPlaylistDownloadComponent />
+      <SelectedLightEntries />
       <div className="grid gap-4">
-        {heavyPlaylistInformation.entries.map((entry, index) => (
+        {lightEntriesArr.map((entry, index) => (
           <div
             key={index}
             className="shadow-lg shadow-black p-4 grid gap-4 rounded-lg"
           >
             <header className="flex gap-4">
-              <Checkbox value={index.toString().trim()}></Checkbox>
+              <span>
+                <FilePlus2
+                  onClick={() => addItemsToLightModifiedEntriesArr(entry)}
+                  className="text-zinc-600 cursor-pointer"
+                />
+              </span>
               <h1>
                 {++index + " -> "} {entry.title}
               </h1>
@@ -71,7 +89,12 @@ export default function HeavyPlaylistFormatSection() {
               <Button
                 className="flex max-w-full w-fit"
                 onPress={() =>
-                  downloadHandler("bestvideo+bestaudio", entry.url, entry.title)
+                  lightPlaylistSingleDownloadHandler(
+                    entry.title,
+                    entry.url,
+                    heavyPlaylistInformation.title,
+                    LightPlaylistVideoQuality.BEST
+                  )
                 }
                 color="warning"
               >
@@ -81,10 +104,11 @@ export default function HeavyPlaylistFormatSection() {
               <Button
                 className="flex max-w-full w-fit"
                 onPress={() =>
-                  downloadHandler(
-                    "bestvideo[height<=2160]+bestaudio",
+                  lightPlaylistSingleDownloadHandler(
+                    entry.title,
                     entry.url,
-                    entry.title
+                    heavyPlaylistInformation.title,
+                    LightPlaylistVideoQuality.MAX4K
                   )
                 }
                 color="success"
@@ -96,10 +120,11 @@ export default function HeavyPlaylistFormatSection() {
               <Button
                 className="flex max-w-full w-fit"
                 onPress={() =>
-                  downloadHandler(
-                    "bestvideo[height<=1440]+bestaudio",
+                  lightPlaylistSingleDownloadHandler(
+                    entry.title,
                     entry.url,
-                    entry.title
+                    heavyPlaylistInformation.title,
+                    LightPlaylistVideoQuality.MAX2K
                   )
                 }
                 color="primary"
@@ -111,10 +136,11 @@ export default function HeavyPlaylistFormatSection() {
               <Button
                 className="flex max-w-full w-fit"
                 onPress={() =>
-                  downloadHandler(
-                    "bestvideo[height<=1080]+bestaudio",
+                  lightPlaylistSingleDownloadHandler(
+                    entry.title,
                     entry.url,
-                    entry.title
+                    heavyPlaylistInformation.title,
+                    LightPlaylistVideoQuality.MAX1080P
                   )
                 }
                 color="primary"
@@ -126,10 +152,11 @@ export default function HeavyPlaylistFormatSection() {
               <Button
                 className="flex max-w-full w-fit"
                 onPress={() =>
-                  downloadHandler(
-                    "bestvideo[height<=720]+bestaudio",
+                  lightPlaylistSingleDownloadHandler(
+                    entry.title,
                     entry.url,
-                    entry.title
+                    heavyPlaylistInformation.title,
+                    LightPlaylistVideoQuality.MAX720P
                   )
                 }
                 color="primary"
@@ -140,7 +167,12 @@ export default function HeavyPlaylistFormatSection() {
               <Button
                 className=" max-w-full w-fit"
                 onPress={() =>
-                  downloadHandler("bestaudio/ba", entry.url, entry.title)
+                  lightPlaylistSingleDownloadHandler(
+                    entry.title,
+                    entry.url,
+                    heavyPlaylistInformation.title,
+                    LightPlaylistVideoQuality.AUDIOONLY
+                  )
                 }
                 color="danger"
               >
@@ -151,7 +183,7 @@ export default function HeavyPlaylistFormatSection() {
           </div>
         ))}
       </div>
-      <SelectedPlaylistDownloadComponent/>
+      <SelectedPlaylistDownloadComponent />
       <OpenHeavyDialogSection />
     </div>
   );
