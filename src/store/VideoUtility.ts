@@ -13,10 +13,10 @@ export const useVideoUtility = create<VideoUtilityInterface>((set, get) => ({
     set({ modifiedDownloadsArr: arr }),
   filterDownloadsArr: (filters: DownloadsFilter) => {
     const userIntent = filters;
-    const userInputVideoStore = useUserInputVideoStore.getState();
-    const downloadsArr = userInputVideoStore.downloadsArr;
-    const setDownloadsArr = userInputVideoStore.setDownloadsArr;
-    let tempDownloadsArr = [...downloadsArr];
+    // const userInputVideoStore = useUserInputVideoStore.getState();
+    // const downloadsArr = userInputVideoStore.downloadsArr;
+    // const setDownloadsArr = userInputVideoStore.setDownloadsArr;
+    // let tempDownloadsArr = [...downloadsArr];
 
     try {
       switch (userIntent) {

@@ -1,15 +1,21 @@
 import { useHeavyPlaylistStore } from "@/store/HeavyPlaylistStore";
-import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
-import { Button, Input, Spinner } from "@heroui/react";
+import {
+  Button,
+  Input,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Spinner,
+} from "@heroui/react";
 import { Eraser, Clipboard } from "lucide-react";
 
 export default function PlaylistInputSection() {
-  const clipboardReadingHandle = useUserInputVideoStore(
-    (state) => state.clipboardReadingHandle
+  const clipboardReadingHandleForPlaylist = useHeavyPlaylistStore(
+    (state) => state.clipboardReadingHandleForPlaylist
   );
 
-  const clearVideoInputField = useUserInputVideoStore(
-    (state) => state.clearVideoInputField
+  const clearVideoInputFieldForPlaylist = useHeavyPlaylistStore(
+    (state) => state.clearVideoInputFieldForPlaylist
   );
 
   const fetchPlaylistInformation = useHeavyPlaylistStore(
@@ -27,7 +33,7 @@ export default function PlaylistInputSection() {
     <div className="grid gap-4 w-full h-full justify-items-center content-start">
       <div>
         <Input
-          placeholder="Enter URL"
+          placeholder="Enter playlist URL"
           className="col-span-4 overflow-auto w-60"
           value={playlistUrl}
           onChange={(elm) => setPlaylistUrl(elm.target.value)}
@@ -42,29 +48,36 @@ export default function PlaylistInputSection() {
 
       <div className="w-fit flex  gap-4">
         <Clipboard
-          onClick={clipboardReadingHandle}
+          onClick={clipboardReadingHandleForPlaylist}
           className="cursor-pointer text-zinc-700 dark:text-zinc-400"
         />
         <Eraser
-          onClick={clearVideoInputField}
+          onClick={clearVideoInputFieldForPlaylist}
           className="cursor-pointer text-zinc-700 dark:text-zinc-400"
         />
       </div>
       <div>
-        <Button
-          color="primary"
-          onPress={fetchPlaylistInformation}
-        >
-          {playlistFetchLoading ? (
-            <Spinner
-              variant="wave"
-              color="white"
-            />
-          ) : (
-            <span>Light Fetch</span>
-          )}
-        </Button>
-      
+        <div className="w-full  grid grid-cols-2 gap-4">
+          <Button
+            color="primary"
+            onPress={fetchPlaylistInformation}
+          >
+            {playlistFetchLoading ? (
+              <Spinner
+                variant="wave"
+                color="white"
+              />
+            ) : (
+              <span>Light Search</span>
+            )}
+          </Button>
+          <Popover>
+            <PopoverTrigger>
+              <Button color="success">Deep Search</Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-2">Coming soon</PopoverContent>
+          </Popover>
+        </div>
       </div>
     </div>
   );

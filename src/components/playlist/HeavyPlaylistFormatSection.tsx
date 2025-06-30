@@ -1,13 +1,21 @@
-import { useDownloadStore } from "@/store/downloadStore";
 import { useHeavyPlaylistStore } from "@/store/HeavyPlaylistStore";
 import { Button } from "@heroui/react";
-import { Copy, Download, ExternalLink, FilePlus2 } from "lucide-react";
+import {
+  ChevronRight,
+  Copy,
+  Download,
+  ExternalLink,
+  FilePlus2,
+  List,
+} from "lucide-react";
 import OpenHeavyDialogSection from "../video/OpenHeavyDialogSection";
 import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
 import CompletePlaylistDownloadComponent from "./CompletePlaylistDownloadComponent";
 import SelectedPlaylistDownloadComponent from "./SelectedPlaylistDownloadComponent";
 import SelectedLightEntries from "./SelectedLightEntries";
 import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnums";
+import { isEmpty } from "lodash";
+import { FaSadCry } from "react-icons/fa";
 
 export default function HeavyPlaylistFormatSection() {
   const heavyPlaylistInformation = useHeavyPlaylistStore(
@@ -17,7 +25,6 @@ export default function HeavyPlaylistFormatSection() {
     (state) => state.clipboardWritingHandle
   );
 
-  const downloadHandler = useDownloadStore((state) => state.downloadHandler);
   const lightEntriesArr = useHeavyPlaylistStore(
     (state) => state.lightEntriesArr
   );
@@ -29,9 +36,49 @@ export default function HeavyPlaylistFormatSection() {
     (state) => state.addItemsToLightModifiedEntriesArr
   );
 
-  if (!heavyPlaylistInformation) return;
+  if (!heavyPlaylistInformation) {
+    return (
+      <h1 className="flex font-bold items-center gap-4 text-zinc-600 p-2">
+        <FaSadCry className="text-red-600" />
+        <span>
+          No playlist information is found.Check if url is of a playlist!
+        </span>
+      </h1>
+    );
+  }
+  if (Array.isArray(heavyPlaylistInformation))
+    return (
+      <h1 className="flex font-bold items-center gap-4 text-zinc-600 p-2">
+        <FaSadCry className="text-red-600" />
+        <span>
+          No playlist information is found.Check if url is of a playlist!
+        </span>
+      </h1>
+    );
+  if (!Array.isArray(heavyPlaylistInformation.entries))
+    return (
+      <h1 className="flex font-bold items-center gap-4 text-zinc-600 p-2">
+        <FaSadCry className="text-red-600" />
+        <span>
+          No playlist information is found.Check if url is of a playlist!
+        </span>
+      </h1>
+    );
+  if (!Array.isArray(lightEntriesArr))
+    return (
+      <h1 className="flex font-bold items-center gap-4 text-zinc-600 p-2">
+        <FaSadCry className="text-red-600" />
+        <span>
+          No playlist information is found.Check if url is of a playlist!
+        </span>
+      </h1>
+    );
   return (
     <div className="rounded-lg shadow-md shadow-black m-2 p-4 overflow-auto custom-scrollbar max-h-[80vh] grid gap-4">
+      <h1 className="w-full content-center items-center p-2 flex font-bold text-3xl">
+        <ChevronRight />
+        Playlist Information
+      </h1>
       <header className="flex gap-4">
         <a
           target="_blank"
@@ -49,22 +96,21 @@ export default function HeavyPlaylistFormatSection() {
         </span>
         <h1>{heavyPlaylistInformation.title}</h1>
       </header>
-      <CompletePlaylistDownloadComponent />
-      <SelectedPlaylistDownloadComponent />
-      <SelectedLightEntries />
+
+      {!isEmpty(lightEntriesArr) && (
+        <h1 className="w-fit items-center text-2xl gap-4 font-bold flex">
+          <List />
+          <span>Video List</span>
+        </h1>
+      )}
+
       <div className="grid gap-4">
         {lightEntriesArr.map((entry, index) => (
           <div
             key={index}
             className="shadow-lg shadow-black p-4 grid gap-4 rounded-lg"
           >
-            <header className="flex gap-4">
-              <span>
-                <FilePlus2
-                  onClick={() => addItemsToLightModifiedEntriesArr(entry)}
-                  className="text-zinc-600 cursor-pointer"
-                />
-              </span>
+            <header className="grid gap-4">
               <h1>
                 {++index + " -> "} {entry.title}
               </h1>
@@ -180,10 +226,22 @@ export default function HeavyPlaylistFormatSection() {
                 Audio (Max-best)
               </Button>
             </div>
+            <Button
+              className="flex"
+              color="primary"
+              onPress={() => addItemsToLightModifiedEntriesArr(entry)}
+            >
+              <FilePlus2 className="text-white cursor-pointer" />
+              <span>Select</span>
+            </Button>
           </div>
         ))}
       </div>
+
+      <SelectedLightEntries />
       <SelectedPlaylistDownloadComponent />
+      <CompletePlaylistDownloadComponent />
+
       <OpenHeavyDialogSection />
     </div>
   );

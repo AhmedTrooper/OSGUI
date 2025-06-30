@@ -5,6 +5,7 @@ import {
 import { LightPlaylistVideoQuality } from "./QualityEnums";
 
 export interface HeavyPlaylistStoreInterface {
+  playlistVerificationString: string;
   playlistUrl: string;
   setPlaylistUrl: (url: string) => void;
   playlistFetchFailed: boolean;
@@ -28,14 +29,17 @@ export interface HeavyPlaylistStoreInterface {
   addItemsToLightModifiedEntriesArr: (item: LightPlaylistEntry) => void;
   removeItemsFromLightModifiedEntriesArr: (item: LightPlaylistEntry) => void;
   lightPlaylistBatchDownload: (
-  fileArray: LightPlaylistEntry[],
-  playlistTitle: string,
-  fileFormat: LightPlaylistVideoQuality
-) => Promise<void>;
+    fileArray: LightPlaylistEntry[],
+    playlistTitle: string,
+    fileFormat: LightPlaylistVideoQuality
+  ) => Promise<void>;
   lightPlaylistSingleDownloadHandler: (
     fileTitle: string,
     fileUrl: string,
     playlistTitle: string,
     fileFormat: LightPlaylistVideoQuality
   ) => void;
+  clipboardReadingHandleForPlaylist: () => void;
+  clipboardWritingHandleForPlaylist: (data: string | undefined) => void;
+  clearVideoInputFieldForPlaylist: () => void;
 }

@@ -30,11 +30,14 @@ import {
   failStatusObject,
   pauseStatus,
 } from "@/interfaces/video/VideoInformation";
+import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager";
 
 export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
   (set, get) => ({
-    playlistUrl:
-      "https://www.youtube.com/playlist?list=PLinedj3B30sA_M0oxCRgFzPzEMX3CSfT5",
+    playlistVerificationString:
+      "ee02e844-f476-444f-86ae-ebe482ec350e-9ce65990-0035-487e-b523-9527d6471457-162336da-9301-4a97-9267-548752f4472f",
+
+    playlistUrl: "",
     playlistFetchFailed: false,
     heavyPlaylistFormatSectionVisible: false,
     setHeavyPlaylistFormatSectionVisible: (status: boolean) =>
@@ -51,9 +54,12 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
       set({ isLoadingForPlaylistJsonCreation: s }),
 
     fetchHeavyPlaylistInformation: async () => {
-      console.log("Playlist information fetch true");
+      // console.log("Playlist information fetch true");
       const playlistStore = get();
       const userInputVideoStore = useUserInputVideoStore.getState();
+      playlistStore.setHeavyPlaylistInformation(null);
+      playlistStore.setLightEntriesArr([]);
+      playlistStore.setModifiedLightEntriesArr(null);
 
       // Extract needed store functions and values
       const playlistUrl = playlistStore.playlistUrl;
@@ -106,8 +112,8 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
       // ]);
 
       const command = Command.create("ytDlp", [
-        "--flat-playlist", // ✅ Only IDs/titles, not full video metadata
-        "--dump-single-json", // ✅ Return one single JSON object
+        "--flat-playlist",
+        "--dump-single-json",
         "--yes-playlist",
         "--no-warnings",
         "--ignore-errors",
@@ -120,7 +126,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
           command.stdout.on("data", (line) => {
             console.log("Reached 67");
             jsonOutput += line;
-            console.log("Data is : ", line);
+            // console.log("Data is : ", line);
             // jsonArray.push(JSON.parse(line));
           });
           console.log("Reached 5");
@@ -134,6 +140,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
               color: "danger",
               timeout: 2000,
             });
+            setPlaylistFetchLoading(false);
           });
 
           command.on("close", async () => {
@@ -155,12 +162,6 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
             } else {
               console.log("Reached 9");
               setIsLoadingForJsonCreation(false);
-              addToast({
-                title: "Error occurred on Data Fetch",
-                description: "Unsafe JSON output!",
-                color: "danger",
-                timeout: 2000,
-              });
             }
             resolve();
           });
@@ -184,6 +185,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
         const playlistStore = get();
         const setPlaylistFetchFailed = playlistStore.setPlaylistFetchFailed;
         setPlaylistFetchFailed(true);
+        setPlaylistFetchLoading(false);
 
         addToast({
           title: "Error saving video info",
@@ -201,6 +203,8 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
       const heavyPlaylistStore = get();
       const setHeavyPlaylistInformation =
         heavyPlaylistStore.setHeavyPlaylistInformation;
+      const setPlaylistFetchLoading =
+        heavyPlaylistStore.setPlaylistFetchLoading;
       try {
         console.log("Reached 20");
         const documentFolder = await documentDir();
@@ -222,6 +226,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
             color: "danger",
             timeout: 2000,
           });
+          setPlaylistFetchLoading(false);
           return null;
         }
 
@@ -255,6 +260,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
           color: "danger",
           timeout: 1000,
         });
+        setPlaylistFetchLoading(false);
         console.log("Reached 24");
       } finally {
         console.log("Reached 25");
@@ -367,6 +373,9 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
       fileFormat: LightPlaylistVideoQuality
     ) => {
       try {
+        const heavyPlaylistStore = get();
+        const playlistVerificationString =
+          heavyPlaylistStore.playlistVerificationString;
         const videoDirectory = await videoDir();
         const now = new Date();
         const timestampMs = now.getTime();
@@ -406,8 +415,8 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
 
         await db.execute(
           `INSERT INTO DownloadList (
-    id, unique_id, active, failed, completed, format_id, web_url, title, tracking_message,isPaused
-  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    id, unique_id, active, failed, completed, format_id, web_url, title, tracking_message,isPaused,playlistVerification,playlistTitle
+  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
           [
             mainId,
             uniqueId,
@@ -419,6 +428,8 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
             videoTitle,
             "Retrieving download info",
             false,
+            playlistVerificationString,
+            playlistTitle,
           ]
         );
         // setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
@@ -429,7 +440,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
         // Data catching on spawn
 
         const errorHandler = async (data: string) => {
-          console.log("Error while downloading:", data);
+          // console.log("Error while downloading:", data);
 
           await db.execute(
             `UPDATE DownloadList
@@ -478,8 +489,8 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
 
         bestVideoDownloadCommand.stderr.on("data", errorHandler);
 
-        bestVideoDownloadCommand.on("close", async (data) => {
-          console.log("Command closed : -> ", data);
+        bestVideoDownloadCommand.on("close", async () => {
+          // console.log("Command closed : -> ", data);
 
           //    await db.execute(
           //     `UPDATE DownloadList
@@ -514,7 +525,13 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
               );
               //setting tracking_message as "falseFoundTrue" string d and based on this, show or hide message box..😑
             } catch (error) {
-              console.log("Error is if", error);
+              // console.log("Error is if", error);
+              addToast({
+                title: "SQL Failed",
+                description: error as string,
+                color: "success",
+                timeout: 2000,
+              });
             }
 
             await setDownloadsArr(
@@ -534,7 +551,13 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
 
               //setting tracking_message as "falseFoundTrue" string d and based on this, show or hide message box..😑
             } catch (err) {
-              console.log("Error is else", err);
+              addToast({
+                title: "SQL Failed",
+                description: err as string,
+                color: "success",
+                timeout: 2000,
+              });
+              // console.log("Error is else", err);
             }
 
             await setDownloadsArr(
@@ -577,6 +600,54 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
           timeout: 2000,
         });
       }
+    },
+    clipboardReadingHandleForPlaylist: async () => {
+      let heavyPlalistStore = get();
+      const setVideoUrl = heavyPlalistStore.setPlaylistUrl;
+
+      try {
+        const content = await readText();
+        await setVideoUrl(content);
+        addToast({
+          title: "Paste successfull",
+          description: "Successfully pasted the link!",
+          color: "success",
+          timeout: 1000,
+        });
+      } catch (err) {
+        console.log(err);
+        addToast({
+          title: "Paste failed",
+          description: err as string,
+          color: "warning",
+          timeout: 1000,
+        });
+      }
+    },
+    clipboardWritingHandleForPlaylist: async (data: string | undefined) => {
+      try {
+        if (data) {
+          await writeText(data.trim());
+
+          addToast({
+            title: "Copied",
+            description: "Playlist URL is copied successsfully",
+            color: "primary",
+            timeout: 1000,
+          });
+        }
+      } catch (err) {
+        addToast({
+          title: "Copy failed",
+          description: err as string,
+          color: "warning",
+          timeout: 1000,
+        });
+      }
+    },
+    clearVideoInputFieldForPlaylist: () => {
+      let heavyPlalistStore = get();
+      heavyPlalistStore.setPlaylistUrl("");
     },
   })
 );

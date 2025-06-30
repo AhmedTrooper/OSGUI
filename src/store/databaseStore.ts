@@ -13,6 +13,7 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       const db = await Database.load("sqlite:osgui.db");
 
       //  await db.execute(`DROP TABLE IF EXISTS DownloadList;`);
+      //  console.log("Table droped")
 
       await db.execute(`CREATE TABLE IF NOT EXISTS DownloadList (
   id VARCHAR(255) PRIMARY KEY,
@@ -24,7 +25,9 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
   format_id VARCHAR(255) NOT NULL,
   web_url VARCHAR(255),
   title VARCHAR(255),
-  tracking_message TEXT
+  tracking_message TEXT,
+  playlistVerification TEXT,
+  playlistTitle TEXT
 );`);
 
       const allDownloads = (await db.select(
@@ -35,7 +38,12 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
 
       setDownloadsArr(await allDownloads);
     } catch (err) {
-      console.log("Database error", err);
+      addToast({
+        title: "SQL Error",
+        description: err as string,
+        color: "danger",
+        timeout: 1000,
+      });
     }
   },
   databaseLoaded: false,
@@ -63,26 +71,23 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       });
     }
   },
-  singleFileRemove:async(uniqueId : string)=>{
+  singleFileRemove: async (uniqueId: string) => {
     const db = await Database.load("sqlite:osgui.db");
-     const UserInputVideoStore = useUserInputVideoStore.getState();
+    const UserInputVideoStore = useUserInputVideoStore.getState();
     const setDownloadsArr = UserInputVideoStore.setDownloadsArr;
-    try{
-      
-      await db.execute(
-      "DELETE FROM DownloadList WHERE unique_id = $1",
-      [uniqueId]
-    );
-    await setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
-
-    } catch(err){
+    try {
+      await db.execute("DELETE FROM DownloadList WHERE unique_id = $1", [
+        uniqueId,
+      ]);
+      await setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
+    } catch (err) {
       console.log();
-       addToast({
+      addToast({
         title: "Error",
         description: "Single file remove failed",
         color: "danger",
         timeout: 2000,
       });
     }
-  }
+  },
 }));

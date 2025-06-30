@@ -3,17 +3,16 @@
   "release_date": "2025-06-23",
   "features": [
     "Download Videos",
-    "Download Complete Playlist or selected video from playlist",
-    "Custom title",
-    "Custom Download Folder",
-    "Remember Custom download folder",
-    "Remember session download folder"
+    "Download Complete Playlist or selected video from playlist"
   ],
   "fixed_errors": [],
   "notes": "This is the first but complete application for general use case like downloading videos, audios, playlist",
   "release_url": "https://github.com/AhmedTrooper/RailwayMatrixBD/releases/tag/v0.7.0",
   "author": "AhmedTrooper",
   "severity": "high",
-  "platforms": ["windows"],
-  "onlineYtDlpVersion": "2025.04.30"
+  "platforms": [
+    "windows"
+  ],
+  "onlineYtDlpVersion": "2025.04.30",
+  "onlineApplicationVersion": "0.8.0"
 }

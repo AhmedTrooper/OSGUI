@@ -10,7 +10,7 @@ import {
 } from "@heroui/react";
 import clsx from "clsx";
 import { isEmpty } from "lodash";
-import { BadgeCheck, ChevronRight, Download, Turtle } from "lucide-react";
+import { BadgeCheck, ChevronRight, Download, List, Turtle } from "lucide-react";
 import OpenDialogSection from "./OpenDialogSection";
 
 export default function FormatSection() {
@@ -144,6 +144,17 @@ export default function FormatSection() {
           hidden: showNonMedia,
         })}
       >
+        <h1 className="col-span-2 grid p-2 grid-cols-2 content-center justify-items-start">
+          <p className="flex gap-4">
+           <List/>
+           <span>Video</span>
+            </p>
+            <p className="flex gap-4">
+           <List/>
+           <span>Audio</span>
+            </p>
+       
+        </h1>
         {videoInformation && !isEmpty(videoInformation.formats) && (
           <div className="flex-1 overflow-auto custom-scrollbar mt-4">
             {videoInformation.formats.reverse().map((video, idx: number) => (

@@ -29,6 +29,10 @@
     "clipboard-manager:allow-write-text",
     "clipboard-manager:allow-clear",
     {
+      "identifier": "opener:allow-open-path",
+      "allow": []
+    },
+    {
       "identifier": "shell:allow-execute",
       "allow": [
         {

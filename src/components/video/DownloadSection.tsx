@@ -16,7 +16,8 @@ import { useUtilityStore } from "@/store/UtilityStore";
 import { useDatabaseStore } from "@/store/databaseStore";
 import { useDownloadStore } from "@/store/downloadStore";
 import DownloadsHeader from "./DownloadsHeader";
-import { useVideoUtility } from "@/store/VideoUtility";
+import { useHeavyPlaylistStore } from "@/store/HeavyPlaylistStore";
+import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnums";
 
 export default function DownloadSection() {
   const downloadsArr = useUserInputVideoStore((state) => state.downloadsArr);
@@ -26,13 +27,11 @@ export default function DownloadSection() {
   const clipboardWritingHandle = useUserInputVideoStore(
     (state) => state.clipboardWritingHandle
   );
-  // Using this downloadBestFormat for restarting download
-
-  // const pauseVideo = useDownloadStore(
-  //   (state) => state.pauseVideo
-  // );
-  const modifiedDownloadsArr = useVideoUtility(
-    (state) => state.modifiedDownloadsArr
+  const playlistVerificationString = useHeavyPlaylistStore(
+    (state) => state.playlistVerificationString
+  );
+  const lightPlaylistSingleDownloadHandler = useHeavyPlaylistStore(
+    (state) => state.lightPlaylistSingleDownloadHandler
   );
 
   return (
@@ -112,23 +111,39 @@ export default function DownloadSection() {
                   onClick={() => singleFileRemove(video.unique_id)}
                   className="cursor-pointer  active:scale-95 transition-transform duration-100 text-red-500"
                 />
-                <CirclePower
-                  onClick={() =>
-                    downloadHandler(
-                      video.format_id,
-                      video.web_url as string,
-                      video.title as string
-                    )
-                  }
-                  className="cursor-pointer  active:scale-95 transition-transform duration-100 text-green-600"
-                />
+
+                {playlistVerificationString !== video.playlistVerification && (
+                  <CirclePower
+                    onClick={() =>
+                      downloadHandler(
+                        video.format_id,
+                        video.web_url as string,
+                        video.title as string
+                      )
+                    }
+                    className="cursor-pointer  active:scale-95 transition-transform duration-100 text-green-600"
+                  />
+                )}
+
+                {playlistVerificationString === video.playlistVerification && (
+                  <CirclePower
+                    onClick={() =>
+                      lightPlaylistSingleDownloadHandler(
+                        video.title as string,
+                        video.web_url as string,
+                        video.playlistTitle,
+                        video.format_id as LightPlaylistVideoQuality
+                      )
+                    }
+                    className="cursor-pointer  active:scale-95 transition-transform duration-100 text-blue-600"
+                  />
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
       {/* Header section downloads.... */}
-     
 
       {/* Modified Arrays...... */}
       {/* {modifiedDownloadsArr && !isEmpty(modifiedDownloadsArr) && (

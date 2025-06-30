@@ -30,11 +30,13 @@ export interface SingleVideoTileInterface {
   title: string | null;
   tracking_message: string;
   isPaused: pauseStatus;
+  playlistVerification: string;
+  playlistTitle: string;
 }
 
 export type pauseStatus = boolean | 0 | "0" | "1" | 1 | "true" | "false";
 
 export type DownloadListInterface = SingleVideoTileInterface[];
 export interface failStatusObject {
-  failed:pauseStatus
+  failed: pauseStatus;
 }

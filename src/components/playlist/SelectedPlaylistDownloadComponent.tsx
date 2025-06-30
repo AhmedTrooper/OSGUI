@@ -18,6 +18,10 @@ export default function SelectedPlaylistDownloadComponent() {
 
   return (
     <div className="w-full  h-fit p-2 grid grid-cols-2 gap-2 shadow-md shadow-black rounded-md">
+      <h1 className="font-bold text-3xl items-center flex p-2 gap-4 col-span-2">
+          <Download />
+          <span>Selected Videos</span>
+          </h1>
       <Button
         color="success"
         className="flex"
