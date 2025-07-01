@@ -59,17 +59,10 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
           addToast({
             title: "Application Update Available",
             description: `Online : ${onlineApplicationVersion}, Local: ${localApplicationVersion}`,
-            color: "danger",
-            timeout: 3000,
+            color: "warning",
+            timeout: 1000,
           });
           applicationStore.setIsApplicationUpdateAvailable(true);
-        } else {
-          addToast({
-            title: "Application Update Available",
-            description: `Online : ${onlineApplicationVersion}, Local: ${localApplicationVersion}`,
-            color: "success",
-            timeout: 3000,
-          });
         }
       }
 
@@ -79,7 +72,7 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
         title: "Application Version fetching Error!",
         description: error as string,
         color: "danger",
-        timeout: 3000,
+        timeout: 1000,
       });
       applicationStore.setErrorOccurredWhileApplicationUpdateCheck(true);
     } finally {
@@ -93,14 +86,14 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
     let localYtdlp: string | null = null;
     let onlineYtdlp: string | null = null;
     try {
-      console.log("Yt-dlp is started fetching!");
+      // console.log("Yt-dlp is started fetching!");
       const cmd = Command.create("ytDlp", ["--version"]);
       const result = await cmd.execute();
       const response = await fetch(ApplicationStore.metadataUrl);
-      console.log(response);
+      // console.log(response);
       if (response.status === 200) {
         const data = (await response.json()) as MetadataInterface;
-        console.log(data);
+        // console.log(data);
         ApplicationStore.setMetadataInformation(data);
         ApplicationStore.setOnlineYtdlpversion(data.onlineYtDlpVersion);
         onlineYtdlp = data.onlineYtDlpVersion;
@@ -113,7 +106,7 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
         title: "Yt-dlp check failed",
         description: error as string,
         color: "danger",
-        timeout: 2000,
+        timeout: 1000,
       });
     } finally {
       if (localYtdlp && onlineYtdlp && localYtdlp < onlineYtdlp) {
@@ -121,15 +114,8 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
         addToast({
           title: "Yt-dlp update available",
           description: `Online: ${onlineYtdlp}, Local: ${localYtdlp}`,
-          color: "danger",
-          timeout: 3000,
-        });
-      } else {
-        addToast({
-          title: "Yt-dlp update available",
-          description: `Online: ${onlineYtdlp}, Local: ${localYtdlp}`,
-          color: "success",
-          timeout: 3000,
+          color: "warning",
+          timeout: 1000,
         });
       }
       ApplicationStore.setCheckedForYtdlpUpdate(true);

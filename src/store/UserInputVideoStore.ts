@@ -367,8 +367,8 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
         addToast({
           title: "Searching",
           description: "Started searching for information!",
-          color: "success",
-          timeout: 2000,
+          color: "primary",
+          timeout: 500,
         });
       } else {
         command = videoCommand;
@@ -376,8 +376,8 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
         addToast({
           title: "Video Searching",
           description: "Started searching for video!",
-          color: "success",
-          timeout: 2000,
+          color: "primary",
+          timeout: 500,
         });
       }
 

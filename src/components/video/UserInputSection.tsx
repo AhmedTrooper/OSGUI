@@ -1,5 +1,14 @@
 import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
-import { Button, Card, Input, Spinner, Switch } from "@heroui/react";
+import {
+  Button,
+  Card,
+  Input,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Spinner,
+  Switch,
+} from "@heroui/react";
 import clsx from "clsx";
 import { Clipboard, Eraser, List } from "lucide-react";
 
@@ -65,21 +74,47 @@ export default function UserInputSection() {
           className="cursor-pointer text-zinc-700 dark:text-zinc-400"
         />
       </div>
-      <Button
-        color="primary"
-        variant="shadow"
-        className="font-bold w-full col-span-2 grid justify-items-center items-center"
-        onPress={fetchVideoInformation}
-      >
-        {isLoadingForJsonCreation ? (
-          <Spinner
-            color="white"
-            variant="dots"
-          />
-        ) : (
-          "Search"
-        )}
-      </Button>
+      {videoUrl && videoUrl !== "" && (
+        <Button
+          color="primary"
+          variant="shadow"
+          className="font-bold w-full col-span-2 grid justify-items-center items-center"
+          onPress={fetchVideoInformation}
+        >
+          {isLoadingForJsonCreation ? (
+            <Spinner
+              color="white"
+              variant="dots"
+            />
+          ) : (
+            "Search"
+          )}
+        </Button>
+      )}
+
+      {(videoUrl || videoUrl) === "" && (
+        <Popover>
+          <PopoverTrigger>
+            <Button
+              color="primary"
+              variant="shadow"
+              className="font-bold w-full col-span-2 grid justify-items-center items-center"
+            >
+              {isLoadingForJsonCreation ? (
+                <Spinner
+                  color="white"
+                  variant="dots"
+                />
+              ) : (
+                "Search"
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <h1>URL can't be empty!</h1>
+          </PopoverContent>
+        </Popover>
+      )}
     </Card>
   );
 }
