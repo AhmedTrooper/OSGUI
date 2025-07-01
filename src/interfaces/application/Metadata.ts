@@ -9,4 +9,5 @@ export interface MetadataInterface {
   severity: "low" | "medium" | "high";
   platforms: string[];
   onlineYtDlpVersion: string;
+  ytdlpUrl: string;
 }

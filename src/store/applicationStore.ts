@@ -6,6 +6,9 @@ import { MetadataInterface } from "@/interfaces/application/MetaData";
 import { addToast } from "@heroui/react";
 
 export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
+  isYtdlpUpdateAvailable: false,
+  setIsYtdlpUpdateAvailable: (status: boolean) =>
+    set({ isYtdlpUpdateAvailable: status }),
   metadataInformation: null,
   setMetadataInformation: (metadata: null | MetadataInterface) =>
     set({ metadataInformation: metadata }),
@@ -61,6 +64,7 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
       console.log(response);
       if (response.status === 200) {
         const data = (await response.json()) as MetadataInterface;
+        console.log(data);
         ApplicationStore.setMetadataInformation(data);
         ApplicationStore.setOnlineYtdlpversion(data.onlineYtDlpVersion);
         onlineYtdlp = data.onlineYtDlpVersion;
@@ -72,10 +76,11 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
       console.log("Ytdl version faild");
     } finally {
       if (localYtdlp && onlineYtdlp && localYtdlp < onlineYtdlp) {
+        ApplicationStore.setIsYtdlpUpdateAvailable(true);
         addToast({
           title: "Yt-dlp update available",
           description: `Online: ${onlineYtdlp}, Local: ${localYtdlp}`,
-          color: "warning",
+          color: "danger",
           timeout: 3000,
         });
       } else {

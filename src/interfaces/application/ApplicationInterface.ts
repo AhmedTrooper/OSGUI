@@ -26,4 +26,6 @@ export interface ApplicationInterface {
   ytdlpOnlineUrl: string;
   metadataInformation: MetadataInterface | null;
   setMetadataInformation: (metadata: null | MetadataInterface) => void;
+  isYtdlpUpdateAvailable: boolean;
+  setIsYtdlpUpdateAvailable: (status: boolean) => void;
 }

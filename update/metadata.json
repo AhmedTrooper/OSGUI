@@ -13,5 +13,6 @@
   "platforms": [
     "windows"
   ],
-  "onlineYtDlpVersion": "2025.06.30"
+  "onlineYtDlpVersion": "2025.06.30",
+  "ytdlpUrl": "https://github.com/yt-dlp/yt-dlp/releases/tag/2025.06.30"
 }
