@@ -2,8 +2,13 @@ import { ApplicationInterface } from "@/interfaces/application/ApplicationInterf
 import { create } from "zustand";
 import { getVersion } from "@tauri-apps/api/app";
 import { Command } from "@tauri-apps/plugin-shell";
+import { MetadataInterface } from "@/interfaces/application/MetaData";
+import { addToast } from "@heroui/react";
 
 export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
+  metadataInformation: null,
+  setMetadataInformation: (metadata: null | MetadataInterface) =>
+    set({ metadataInformation: metadata }),
   metadataUrl:
     "https://raw.githubusercontent.com/AhmedTrooper/OSGUI/main/update/metadata.json",
   appVersion: null,
@@ -31,26 +36,56 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
     set({ errorOccurredWhileYtdlpUpdateCheck: status }),
   fetchAppVersion: async () => {
     const applicationStore = get();
-    try {
-      let currentVersion = await getVersion();
-      applicationStore.setAppVersion(currentVersion);
-      let response = await fetch(applicationStore.applicationOnlineUrl);
-      let data = await response.json();
-      console.log(data);
-    } catch (error) {
-      console.log("Version fething Error!", error);
-    } finally {
-    }
+    // try {
+    //   let currentVersion = await getVersion();
+    //   applicationStore.setAppVersion(currentVersion);
+    //   let response = await fetch(applicationStore.metadataUrl);
+    //   let data = await response.;
+    //   console.log("Application Version", data);
+    // } catch (error) {
+    //   console.log("Application Version fething Error!", error);
+    // } finally {
+    // }
   },
   fetchYtdlpVersion: async () => {
     const ApplicationStore = get();
     const setYtdlpVersion = ApplicationStore.setYtdlpVersion;
+    ApplicationStore.setOnlineYtdlpversion;
+    let localYtdlp: string | null = null;
+    let onlineYtdlp: string | null = null;
     try {
+      console.log("Yt-dlp is started fetching!");
       const cmd = Command.create("ytDlp", ["--version"]);
       const result = await cmd.execute();
+      const response = await fetch(ApplicationStore.metadataUrl);
+      console.log(response);
+      if (response.status === 200) {
+        const data = (await response.json()) as MetadataInterface;
+        ApplicationStore.setMetadataInformation(data);
+        ApplicationStore.setOnlineYtdlpversion(data.onlineYtDlpVersion);
+        onlineYtdlp = data.onlineYtDlpVersion;
+      }
       setYtdlpVersion(result.stdout.trim());
+      localYtdlp = result.stdout.trim();
+      ApplicationStore.setYtdlpVersion(result.stdout.trim());
     } catch (error) {
       console.log("Ytdl version faild");
+    } finally {
+      if (localYtdlp && onlineYtdlp && localYtdlp < onlineYtdlp) {
+        addToast({
+          title: "Yt-dlp update available",
+          description: `Online: ${onlineYtdlp}, Local: ${localYtdlp}`,
+          color: "warning",
+          timeout: 3000,
+        });
+      } else {
+        addToast({
+          title: "Yt-dlp update available",
+          description: `Online: ${onlineYtdlp}, Local: ${localYtdlp}`,
+          color: "success",
+          timeout: 3000,
+        });
+      }
     }
   },
   applicationOnlineUrl: "",

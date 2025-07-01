@@ -251,7 +251,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
           timeout: 1000,
         });
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         addToast({
           title: "Paste failed",
           description: err as string,
@@ -291,7 +291,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
           timeout: 1000,
         });
       } catch (error) {
-        console.log(error);
+        // console.log(error);
         addToast({
           title: "Clear error",
           description: "Couln't clear clipboard",
@@ -509,7 +509,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
           });
         }
 
-        console.log(jsonData);
+        // console.log(jsonData);
       } catch (err) {
         const userInputVideoStore = get();
         const setVideoInformationFetchFailed =
@@ -580,7 +580,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
         const updatedArr = [...downloadsArr, video];
         setDownloadsArr(updatedArr);
       } catch (e) {
-        console.log("Pushing to downloads array failed", e);
+        // console.log("Pushing to downloads array failed", e);
       }
     },
   })

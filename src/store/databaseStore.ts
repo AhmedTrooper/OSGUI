@@ -34,7 +34,7 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
         "SELECT * FROM DownloadList"
       )) as DownloadListInterface;
 
-      console.log(allDownloads);
+      // console.log(allDownloads);
 
       setDownloadsArr(await allDownloads);
     } catch (err) {
@@ -62,7 +62,7 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
         timeout: 2000,
       });
     } catch (e) {
-      console.log("Error on Downloads clear", e);
+      // console.log("Error on Downloads clear", e);
       addToast({
         title: "Error",
         description: "Error on Downloads clear",
@@ -81,7 +81,6 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       ]);
       await setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
     } catch (err) {
-      console.log();
       addToast({
         title: "Error",
         description: "Single file remove failed",

@@ -16,6 +16,8 @@ import clsx from "clsx";
 import DrawerComponent from "./DrawerComponent";
 import { Button, Popover, PopoverContent, PopoverTrigger } from "@heroui/react";
 import TutorialSection from "./TutorialSection";
+import { useApplicationstore } from "@/store/applicationStore";
+import VersionComponent from "./VersionComponent";
 
 export default function MenuBar() {
   const [isFullScreen, setIsFullScreen] = useState<boolean | null>(null);
@@ -23,6 +25,7 @@ export default function MenuBar() {
   const startDraggingWindow = async () => {
     await getCurrentWindow().startDragging();
   };
+  const metadataInformation =  useApplicationstore(state=>state.metadataInformation);
 
   const hideWindow = async () => {
     try {
@@ -121,13 +124,8 @@ export default function MenuBar() {
               </p>
             </PopoverTrigger>
             <PopoverContent className="p-2">
-              <h1>A new version of yt-dlp is available</h1>
-              <Button
-                color="primary"
-                className="mt-2"
-              >
-                Download
-              </Button>
+              {!metadataInformation && <span>Trying to get meta data...</span>}
+              {metadataInformation && <VersionComponent/>}
             </PopoverContent>
           </Popover>
         </li>

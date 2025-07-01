@@ -86,7 +86,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       // Data catching on spawn
 
       const errorHandler = async (data: string) => {
-        console.log("Error while downloading:", data);
+        // console.log("Error while downloading:", data);
 
         await db.execute(
           `UPDATE DownloadList
@@ -136,7 +136,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       bestVideoDownloadCommand.stderr.on("data", errorHandler);
 
       bestVideoDownloadCommand.on("close", async (data) => {
-        console.log("Command closed : -> ", data);
+        // console.log("Command closed : -> ", data);
 
         //    await db.execute(
         //     `UPDATE DownloadList
@@ -171,7 +171,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
             );
             //setting tracking_message as "falseFoundTrue" string d and based on this, show or hide message box..😑
           } catch (error) {
-            console.log("Error is if", error);
+            // console.log("Error is if", error);
           }
 
           await setDownloadsArr(
@@ -191,7 +191,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
 
             //setting tracking_message as "falseFoundTrue" string d and based on this, show or hide message box..😑
           } catch (err) {
-            console.log("Error is else", err);
+            // console.log("Error is else", err);
           }
 
           await setDownloadsArr(
@@ -240,7 +240,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         let formatString = `${selectedVideoStream.trim()}+${ast.trim()}`.trim();
         setSelectedFormat(formatString);
       } else {
-        console.log("Video stream not founf");
+        // console.log("Video stream not founf");
         setSelectedFormat(ast.trim());
       }
     } catch (error) {

@@ -1,4 +1,7 @@
+import { MetadataInterface } from "./MetaData";
+
 export interface ApplicationInterface {
+  metadataUrl: string;
   appVersion: string | null;
   setAppVersion: (v: string | null) => void;
   onlineVersion: string | null;
@@ -21,4 +24,6 @@ export interface ApplicationInterface {
   setErrorOccurredWhileYtdlpUpdateCheck: (status: boolean) => void;
   applicationOnlineUrl: string;
   ytdlpOnlineUrl: string;
+  metadataInformation: MetadataInterface | null;
+  setMetadataInformation: (metadata: null | MetadataInterface) => void;
 }

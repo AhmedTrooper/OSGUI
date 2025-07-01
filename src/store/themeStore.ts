@@ -31,7 +31,7 @@ const useThemeStore = create<ThemeState>((set, get) => ({
         localStorage.setItem("theme", "dark");
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   },
 }));
