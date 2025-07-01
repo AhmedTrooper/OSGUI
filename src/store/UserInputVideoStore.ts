@@ -21,6 +21,7 @@ import {
   writeText,
   clear,
 } from "@tauri-apps/plugin-clipboard-manager";
+import { useHeavyPlaylistStore } from "./HeavyPlaylistStore";
 
 export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
   (set, get) => ({
@@ -303,7 +304,8 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
     },
     fetchVideoInformation: async () => {
       const UserInputVideoStore = get();
-
+      const heavyPlaylistStore = useHeavyPlaylistStore.getState();
+      heavyPlaylistStore.setHeavyPlaylistFormatSectionVisible(false);
       // Extract needed store functions and values
       const videoUrl = UserInputVideoStore.videoUrl;
       const setIsLoadingForJsonCreation =

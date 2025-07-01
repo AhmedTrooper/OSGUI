@@ -13,16 +13,16 @@ function App() {
   const setDark = useThemeStore((state) => state.setDark);
   const detectOS = useOsInfoStore((state) => state.detectMobileOS);
   const isMobileOS = useOsInfoStore((state) => state.isMobileOS);
-  const checkedForUpdate = useApplicationstore(
-    (state) => state.checkedForUpdate
+  const checkedForApplicationUpdate = useApplicationstore(
+    (state) => state.checkedForApplicationUpdate
   );
   const fetchAppVersion = useApplicationstore((state) => state.fetchAppVersion);
-  const setCheckedForUpdate = useApplicationstore(
-    (state) => state.setCheckedForUpdate
+  const setCheckedForApplicationUpdate = useApplicationstore(
+    (state) => state.setCheckedForApplicationUpdate
   );
 
-  const errorOccurredWhileUpdateCheck = useApplicationstore(
-    (state) => state.errorOccurredWhileUpdateCheck
+  const errorOccurredWhileApplicationUpdateCheck = useApplicationstore(
+    (state) => state.errorOccurredWhileApplicationUpdateCheck
   );
   const setThemeData = useThemeStore((state) => state.setThemeData);
   const fetchYtdlpVersion = useApplicationstore(
@@ -63,9 +63,12 @@ function App() {
   }, [dark]);
 
   useEffect(() => {
-    if (!checkedForUpdate || errorOccurredWhileUpdateCheck) {
+    if (
+      !checkedForApplicationUpdate ||
+      errorOccurredWhileApplicationUpdateCheck
+    ) {
       fetchAppVersion();
-      setCheckedForUpdate(true);
+      setCheckedForApplicationUpdate(true);
     }
   }, []);
 

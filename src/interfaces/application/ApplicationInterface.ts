@@ -19,6 +19,6 @@ export interface ApplicationInterface {
   setCheckedForYtdlpUpdate: (s: boolean) => void;
   errorOccurredWhileYtdlpUpdateCheck: boolean;
   setErrorOccurredWhileYtdlpUpdateCheck: (status: boolean) => void;
-  applicationOnlineUrl:string;
-  ytdlpOnlineUrl:string;
+  applicationOnlineUrl: string;
+  ytdlpOnlineUrl: string;
 }

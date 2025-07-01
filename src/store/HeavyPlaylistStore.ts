@@ -71,6 +71,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
         userInputVideoStore.setDialogSectionVisible;
       const setPlaylistFetchLoading = playlistStore.setPlaylistFetchLoading;
       setPlaylistFetchLoading(true);
+      userInputVideoStore.setFormatSectionVisible(false);
 
       // Set initial loading state
       setIsLoadingForJsonCreation(true);

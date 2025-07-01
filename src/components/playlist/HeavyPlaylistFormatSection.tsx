@@ -145,7 +145,7 @@ export default function HeavyPlaylistFormatSection() {
                 color="warning"
               >
                 <Download />
-                Best
+                Best Q.
               </Button>
               <Button
                 className="flex max-w-full w-fit"
