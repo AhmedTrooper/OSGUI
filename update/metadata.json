@@ -1,5 +1,5 @@
 {
-  "onlineApplicationVersion": "0.8.0",
+  "onlineApplicationVersion": "0.2.0",
   "release_date": "2025-07-01",
   "features": [
     "Download Videos",
@@ -16,6 +16,6 @@
   "platforms": [
     "windows"
   ],
-  "onlineYtDlpVersion": "2025.06.30",
+  "onlineYtDlpVersion": "2025.06.25",
   "ytdlpUrl": "https://github.com/yt-dlp/yt-dlp/releases/tag/2025.06.30"
 }
