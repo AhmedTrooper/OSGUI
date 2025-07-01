@@ -16,8 +16,10 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
     "https://raw.githubusercontent.com/AhmedTrooper/OSGUI/main/update/metadata.json",
   appVersion: null,
   setAppVersion: (v: string | null) => set({ appVersion: v }),
-  onlineVersion: null,
-  setOnlineVersion: (ov: string | null) => set({ onlineVersion: ov }),
+  onlineApplicationVersion: null,
+
+  setOnlineApplicationVersion: (ov: string | null) =>
+    set({ onlineApplicationVersion: ov }),
   isApplicationUpdateAvailable: false,
   setIsApplicationUpdateAvailable: (status: boolean) =>
     set({ isApplicationUpdateAvailable: status }),
@@ -39,16 +41,50 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
     set({ errorOccurredWhileYtdlpUpdateCheck: status }),
   fetchAppVersion: async () => {
     const applicationStore = get();
-    // try {
-    //   let currentVersion = await getVersion();
-    //   applicationStore.setAppVersion(currentVersion);
-    //   let response = await fetch(applicationStore.metadataUrl);
-    //   let data = await response.;
-    //   console.log("Application Version", data);
-    // } catch (error) {
-    //   console.log("Application Version fething Error!", error);
-    // } finally {
-    // }
+    let localApplicationVersion: string | null = null;
+    let onlineApplicationVersion: string | null = null;
+    try {
+      let currentVersion = await getVersion();
+      localApplicationVersion = currentVersion;
+      applicationStore.setAppVersion(currentVersion);
+      let response = await fetch(applicationStore.metadataUrl);
+      if (response.status === 200) {
+        let data = (await response.json()) as MetadataInterface;
+        applicationStore.setMetadataInformation(data);
+        applicationStore.setOnlineApplicationVersion(
+          data.onlineApplicationVersion
+        );
+        onlineApplicationVersion = data.onlineApplicationVersion;
+        if (localApplicationVersion < onlineApplicationVersion) {
+          addToast({
+            title: "Application Update Available",
+            description: `Online : ${onlineApplicationVersion}, Local: ${localApplicationVersion}`,
+            color: "danger",
+            timeout: 3000,
+          });
+          applicationStore.setIsApplicationUpdateAvailable(true);
+        } else {
+          addToast({
+            title: "Application Update Available",
+            description: `Online : ${onlineApplicationVersion}, Local: ${localApplicationVersion}`,
+            color: "success",
+            timeout: 3000,
+          });
+        }
+      }
+
+      applicationStore.fetchYtdlpVersion();
+    } catch (error) {
+      addToast({
+        title: "Application Version fetching Error!",
+        description: error as string,
+        color: "danger",
+        timeout: 3000,
+      });
+      applicationStore.setErrorOccurredWhileApplicationUpdateCheck(true);
+    } finally {
+      applicationStore.setCheckedForApplicationUpdate(true);
+    }
   },
   fetchYtdlpVersion: async () => {
     const ApplicationStore = get();
@@ -73,7 +109,12 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
       localYtdlp = result.stdout.trim();
       ApplicationStore.setYtdlpVersion(result.stdout.trim());
     } catch (error) {
-      console.log("Ytdl version faild");
+      addToast({
+        title: "Yt-dlp check failed",
+        description: error as string,
+        color: "danger",
+        timeout: 2000,
+      });
     } finally {
       if (localYtdlp && onlineYtdlp && localYtdlp < onlineYtdlp) {
         ApplicationStore.setIsYtdlpUpdateAvailable(true);
@@ -91,6 +132,7 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
           timeout: 3000,
         });
       }
+      ApplicationStore.setCheckedForYtdlpUpdate(true);
     }
   },
   applicationOnlineUrl: "",

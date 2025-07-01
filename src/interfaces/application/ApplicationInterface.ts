@@ -4,8 +4,8 @@ export interface ApplicationInterface {
   metadataUrl: string;
   appVersion: string | null;
   setAppVersion: (v: string | null) => void;
-  onlineVersion: string | null;
-  setOnlineVersion: (ov: string | null) => void;
+  onlineApplicationVersion: string | null;
+  setOnlineApplicationVersion: (ov: string | null) => void;
   isApplicationUpdateAvailable: boolean;
   setIsApplicationUpdateAvailable: (status: boolean) => void;
   fetchAppVersion: () => void;

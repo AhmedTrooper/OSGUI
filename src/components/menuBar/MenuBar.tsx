@@ -14,13 +14,19 @@ import Database from "@tauri-apps/plugin-sql";
 import TrashComponent from "./TrashComponent";
 import clsx from "clsx";
 import DrawerComponent from "./DrawerComponent";
-import { Button, Popover, PopoverContent, PopoverTrigger } from "@heroui/react";
+import { Popover, PopoverContent, PopoverTrigger } from "@heroui/react";
 import TutorialSection from "./TutorialSection";
 import { useApplicationstore } from "@/store/applicationStore";
 import VersionComponent from "./VersionComponent";
 
 export default function MenuBar() {
   const [isFullScreen, setIsFullScreen] = useState<boolean | null>(null);
+  const isYtdlpUpdateAvailable = useApplicationstore(
+    (state) => state.isYtdlpUpdateAvailable
+  );
+  const isApplicationUpdateAvailable = useApplicationstore(
+    (state) => state.isApplicationUpdateAvailable
+  );
   const navigate = useNavigate();
   const startDraggingWindow = async () => {
     await getCurrentWindow().startDragging();
@@ -119,7 +125,10 @@ export default function MenuBar() {
               <p>
                 {" "}
                 <CircleFadingArrowUp
-                  className={clsx("cursor-pointer text-red-600", {})}
+                  className={clsx("cursor-pointer", {
+                    "text-red-600":isApplicationUpdateAvailable || isYtdlpUpdateAvailable,
+                    "text-green-600":!isApplicationUpdateAvailable && !isYtdlpUpdateAvailable
+                  })}
                 />
               </p>
             </PopoverTrigger>

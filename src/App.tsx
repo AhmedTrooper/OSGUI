@@ -17,17 +17,8 @@ function App() {
     (state) => state.checkedForApplicationUpdate
   );
   const fetchAppVersion = useApplicationstore((state) => state.fetchAppVersion);
-  const setCheckedForApplicationUpdate = useApplicationstore(
-    (state) => state.setCheckedForApplicationUpdate
-  );
 
-  const errorOccurredWhileApplicationUpdateCheck = useApplicationstore(
-    (state) => state.errorOccurredWhileApplicationUpdateCheck
-  );
   const setThemeData = useThemeStore((state) => state.setThemeData);
-  const fetchYtdlpVersion = useApplicationstore(
-    (state) => state.fetchYtdlpVersion
-  );
 
   const createOrLoadDatabase = useDatabaseStore(
     (state) => state.createOrLoadDatabase
@@ -63,18 +54,8 @@ function App() {
   }, [dark]);
 
   useEffect(() => {
-    if (
-      !checkedForApplicationUpdate ||
-      errorOccurredWhileApplicationUpdateCheck
-    ) {
-      fetchAppVersion();
-      setCheckedForApplicationUpdate(true);
-    }
+    if (!checkedForApplicationUpdate) fetchAppVersion();
   }, []);
-
-  useEffect(() => {
-    fetchYtdlpVersion();
-  });
 
   return (
     <div className="flex flex-col select-none max-h-[100vh]  bg-white text-black dark:bg-zinc-900 dark:text-white transition-colors pt-10 overflow-auto custom-scrollbar">
