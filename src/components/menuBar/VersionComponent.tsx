@@ -73,9 +73,10 @@ export default function VersionComponent() {
       </div>
 
       {!isYtdlpUpdateAvailable && (
-        <h1 className="m-2 text-green-600 p-4 shadow-md shadow-black rounded-md">
-          Yt-dlp is up to date!
-        </h1>
+        <div className="p-4">
+                  <Alert color="success">Yt-dlp is up to date!</Alert>
+
+        </div>
       )}
 
       {isYtdlpUpdateAvailable && (
