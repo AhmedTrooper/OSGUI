@@ -4,6 +4,8 @@ import { getVersion } from "@tauri-apps/api/app";
 import { Command } from "@tauri-apps/plugin-shell";
 
 export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
+  metadataUrl:
+    "https://raw.githubusercontent.com/AhmedTrooper/OSGUI/main/update/metadata.json",
   appVersion: null,
   setAppVersion: (v: string | null) => set({ appVersion: v }),
   onlineVersion: null,
@@ -51,6 +53,6 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
       console.log("Ytdl version faild");
     }
   },
-  applicationOnlineUrl:"",
-  ytdlpOnlineUrl:"",
+  applicationOnlineUrl: "",
+  ytdlpOnlineUrl: "",
 }));

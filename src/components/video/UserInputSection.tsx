@@ -29,9 +29,7 @@ export default function UserInputSection() {
   return (
     <Card className="w-full grid grid-cols-7 gap-4 justify-items-center p-2 content-center items-center">
       <Input
-        placeholder={
-          downloadPlaylist ? "Enter playlist URL" : "Enter video URL"
-        }
+        placeholder={downloadPlaylist ? "Enter video or playlist URL" : "Enter video URL"}
         className="col-span-3"
         value={videoUrl}
         onChange={(elm) => setVideoUrl(elm.target.value)}
