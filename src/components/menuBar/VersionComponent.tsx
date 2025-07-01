@@ -26,10 +26,6 @@ export default function VersionComponent() {
         <h1>Application : {appVersion}</h1>
         <h1>Yt-Dlp : {ytDlpVersion}</h1>
 
-       
-
-       
-
         {isApplicationUpdateAvailable && (
           <div>
             <Alert
@@ -74,8 +70,7 @@ export default function VersionComponent() {
 
       {!isYtdlpUpdateAvailable && (
         <div className="p-4">
-                  <Alert color="success">Yt-dlp is up to date!</Alert>
-
+          <Alert color="success">Yt-dlp is up to date!</Alert>
         </div>
       )}
 
@@ -112,44 +107,43 @@ export default function VersionComponent() {
         </div>
       )}
 
+      {/* Features.... */}
 
-       {/* Features.... */}
+      {!isEmpty(metadataInformation.features) && (
+        <div className="shadow-md m-2 shadow-black p-2 rounded-md ">
+          <h1 className="text-green-600 font-bold text-xl mt-2">
+            New Features
+          </h1>
+          <ul>
+            {metadataInformation.features.map((features, index) => (
+              <li key={index}>
+                <span>{features}</span>
 
-        {!isEmpty(metadataInformation.features) && (
-          <div className="shadow-md m-2 shadow-black p-2 rounded-md ">
-            <h1 className="text-green-600 font-bold text-xl mt-2">
-              New Features
-            </h1>
-            <ul>
-              {metadataInformation.features.map((features, index) => (
-                <li key={index}>
-                  <span>{features}</span>
+                {index !== metadataInformation.features.length - 1 && (
+                  <Divider />
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-                  {index !== metadataInformation.features.length - 1 && (
-                    <Divider />
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-       {/* Fixed Bugs...... */}
-        {!isEmpty(metadataInformation.fixed_errors) && (
-          <div className="shadow-md m-2 shadow-black p-2 rounded-md mt-2">
-            <h1 className="text-green-600 font-bold text-xl">Fixed Errors</h1>
-            <ul>
-              {metadataInformation.fixed_errors.map((error, index) => (
-                <li key={index}>
-                  <span>{error}</span>
-                  {index !== metadataInformation.fixed_errors.length - 1 && (
-                    <Divider />
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      {/* Fixed Bugs...... */}
+      {!isEmpty(metadataInformation.fixed_errors) && (
+        <div className="shadow-md m-2 shadow-black p-2 rounded-md mt-2">
+          <h1 className="text-green-600 font-bold text-xl">Fixed Errors</h1>
+          <ul>
+            {metadataInformation.fixed_errors.map((error, index) => (
+              <li key={index}>
+                <span>{error}</span>
+                {index !== metadataInformation.fixed_errors.length - 1 && (
+                  <Divider />
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

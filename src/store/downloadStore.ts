@@ -135,7 +135,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
 
       bestVideoDownloadCommand.stderr.on("data", errorHandler);
 
-      bestVideoDownloadCommand.on("close", async (data) => {
+      bestVideoDownloadCommand.on("close", async () => {
         // console.log("Command closed : -> ", data);
 
         //    await db.execute(
