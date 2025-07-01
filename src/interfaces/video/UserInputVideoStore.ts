@@ -28,4 +28,6 @@ export interface UserInputVideoStoreInterface {
   clipboardWritingHandle: (data: string | undefined) => void;
   handleClipboardClear: () => void;
   clearVideoInputField: () => void;
+  downloadPlaylist: boolean;
+  setDownloadPlaylist: (status: boolean) => void;
 }

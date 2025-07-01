@@ -22,9 +22,12 @@ import {
   clear,
 } from "@tauri-apps/plugin-clipboard-manager";
 import { useHeavyPlaylistStore } from "./HeavyPlaylistStore";
+import { HeavyPlaylistInformationInterface } from "@/interfaces/playlist/PlaylistInformation";
 
 export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
   (set, get) => ({
+    downloadPlaylist: true,
+    setDownloadPlaylist: (status: boolean) => set({ downloadPlaylist: status }),
     showNonMedia: false,
     setShowNonMedia: (status: boolean) => set({ showNonMedia: status }),
     videoInformation: null,
@@ -314,6 +317,8 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
         UserInputVideoStore.setVideoInformationFetchFailed;
       const setDialogSectionVisible =
         UserInputVideoStore.setDialogSectionVisible;
+      const downloadPlaylist = UserInputVideoStore.downloadPlaylist;
+      const setDownloadPlaylist = UserInputVideoStore.setDownloadPlaylist;
 
       // Set initial loading state
       await setIsLoadingForJsonCreation(true);
@@ -339,11 +344,48 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
       const filePath = await join(folderPath, "video.json");
       let jsonOutput = "";
 
-      // Create ytDlp command
-      const command = Command.create("ytDlp", [
+      //Command.....
+      let command;
+      //Create ytDlp command
+      const videoCommand = Command.create("ytDlp", [
         "--dump-json",
         `${videoUrl.trim()}`,
       ]);
+
+      const playlistCommand = Command.create("ytDlp", [
+        "--flat-playlist",
+        "--dump-single-json",
+        "--yes-playlist",
+        "--no-warnings",
+        "--ignore-errors",
+        `${videoUrl.trim()}`,
+      ]);
+
+      if (downloadPlaylist) {
+        command = playlistCommand;
+        setDownloadPlaylist(true);
+        addToast({
+          title: "Searching",
+          description: "Started searching for information!",
+          color: "success",
+          timeout: 2000,
+        });
+      } else {
+        command = videoCommand;
+        setDownloadPlaylist(true);
+        addToast({
+          title: "Video Searching",
+          description: "Started searching for video!",
+          color: "success",
+          timeout: 2000,
+        });
+      }
+
+      // //Single json dump....
+      // const command = Command.create("ytDlp", [
+      //   "--dump-single-json",
+      //   `${videoUrl.trim()}`,
+      // ]);
 
       // Optional alternative:
       // const command = Command.create("ytDlp", [
@@ -359,7 +401,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
         await new Promise<void>((resolve) => {
           command.stdout.on("data", (line) => {
             jsonOutput = line;
-            // console.log(line);
+            // console.log(`Line :`, line);
             // jsonArray.push(JSON.parse(line));
           });
 
@@ -425,6 +467,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
         const documentFolder = await documentDir();
         const folderPath = await join(documentFolder, "OSGUI");
         const filePath = await join(folderPath, "video.json");
+        const heavyPlaylistStore = useHeavyPlaylistStore.getState();
 
         const fileExists = await exists(filePath);
         const userInputVideoStore = get();
@@ -446,8 +489,25 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
         const jsonString = await readTextFile(filePath);
         const jsonData = JSON.parse(jsonString);
 
-        setFormatSectionVisible(true);
-        setVideoInformation(jsonData as VideoInformationInterface);
+        if (jsonData["entries"] && Array.isArray(jsonData["entries"])) {
+          heavyPlaylistStore.setHeavyPlaylistFormatSectionVisible(true);
+          heavyPlaylistStore.setHeavyPlaylistInformation(
+            jsonData as HeavyPlaylistInformationInterface
+          );
+          heavyPlaylistStore.setLightEntriesArr(jsonData.entries);
+        } else if (jsonData["formats"] && Array.isArray(jsonData["formats"])) {
+          setFormatSectionVisible(true);
+          setVideoInformation(jsonData as VideoInformationInterface);
+        } else {
+          setFormatSectionVisible(false);
+          heavyPlaylistStore.setHeavyPlaylistFormatSectionVisible(false);
+          addToast({
+            title: "No Data Found",
+            description: "Make sure you entered the correct url!",
+            color: "warning",
+            timeout: 1000,
+          });
+        }
 
         console.log(jsonData);
       } catch (err) {

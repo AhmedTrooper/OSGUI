@@ -1,6 +1,7 @@
 import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
-import { Button, Card, Input, Spinner } from "@heroui/react";
-import { Clipboard, Eraser } from "lucide-react";
+import { Button, Card, Input, Spinner, Switch } from "@heroui/react";
+import clsx from "clsx";
+import { Clipboard, Eraser, List } from "lucide-react";
 
 export default function UserInputSection() {
   const fetchVideoInformation = useUserInputVideoStore(
@@ -17,12 +18,21 @@ export default function UserInputSection() {
   const clearVideoInputField = useUserInputVideoStore(
     (state) => state.clearVideoInputField
   );
+  const downloadPlaylist = useUserInputVideoStore(
+    (state) => state.downloadPlaylist
+  );
+
+  const setDownloadPlaylist = useUserInputVideoStore(
+    (state) => state.setDownloadPlaylist
+  );
 
   return (
     <Card className="w-full grid grid-cols-7 gap-4 justify-items-center p-2 content-center items-center">
       <Input
-        placeholder="Enter video URL"
-        className="col-span-4"
+        placeholder={
+          downloadPlaylist ? "Enter playlist URL" : "Enter video URL"
+        }
+        className="col-span-3"
         value={videoUrl}
         onChange={(elm) => setVideoUrl(elm.target.value)}
         validate={(x: string) => {
@@ -31,6 +41,20 @@ export default function UserInputSection() {
         }}
         validationBehavior="native"
       />
+      <Switch
+        width={10}
+        height={10}
+        color={"success"}
+        isSelected={downloadPlaylist}
+        onChangeCapture={() => setDownloadPlaylist(!downloadPlaylist)}
+      >
+        <List
+          className={clsx("", {
+            "text-green-600": downloadPlaylist,
+            "text-red-600": !downloadPlaylist,
+          })}
+        />
+      </Switch>
       <div className="w-fit flex  gap-4">
         <Clipboard
           onClick={clipboardReadingHandle}
@@ -53,7 +77,7 @@ export default function UserInputSection() {
             variant="dots"
           />
         ) : (
-          "Create"
+          "Search"
         )}
       </Button>
     </Card>
