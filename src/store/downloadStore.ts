@@ -240,7 +240,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         let formatString = `${selectedVideoStream.trim()}+${ast.trim()}`.trim();
         setSelectedFormat(formatString);
       } else {
-        // console.log("Video stream not founf");
+        // console.log("Video stream not found");
         setSelectedFormat(ast.trim());
       }
     } catch (error) {
