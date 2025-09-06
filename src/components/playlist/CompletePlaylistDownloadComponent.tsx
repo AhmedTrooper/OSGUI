@@ -1,4 +1,4 @@
-import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnums";
+import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnumsInterface";
 import { useHeavyPlaylistStore } from "@/store/HeavyPlaylistStore";
 import { Button } from "@heroui/react";
 import { Download } from "lucide-react";

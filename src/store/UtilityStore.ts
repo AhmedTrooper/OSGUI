@@ -1,4 +1,4 @@
-import { UtilityStoreInterface } from "@/interfaces/utility/UtilityStore";
+import { UtilityStoreInterface } from "@/interfaces/utility/UtilityStoreInterface";
 import { create } from "zustand";
 
 export const useUtilityStore = create<UtilityStoreInterface>(() => ({

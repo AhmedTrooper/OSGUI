@@ -1,4 +1,4 @@
-import { TitleSort } from "@/interfaces/video/VideoUtility";
+import { TitleSort } from "@/interfaces/video/VideoUtilityInterface";
 import { useVideoUtility } from "@/store/VideoUtility";
 import { Divider } from "@heroui/react";
 import { SortAsc, SortDesc } from "lucide-react";

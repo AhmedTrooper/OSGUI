@@ -1,8 +1,8 @@
-import { DatabaseInterface } from "@/interfaces/database/Database";
+import { DatabaseInterface } from "@/interfaces/database/DatabaseInterface";
 import { create } from "zustand";
 import { useUserInputVideoStore } from "./UserInputVideoStore";
 import Database from "@tauri-apps/plugin-sql";
-import { DownloadListInterface } from "@/interfaces/video/VideoInformation";
+import { DownloadListInterface } from "@/interfaces/video/VideoInformationInterface";
 import { addToast } from "@heroui/react";
 
 export const useDatabaseStore = create<DatabaseInterface>((set) => ({

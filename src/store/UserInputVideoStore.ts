@@ -1,4 +1,4 @@
-import { UserInputVideoStoreInterface } from "@/interfaces/video/UserInputVideoStore";
+import { UserInputVideoStoreInterface } from "@/interfaces/video/UserInputVideoStoreInterface";
 import { Command } from "@tauri-apps/plugin-shell";
 import { create } from "zustand";
 import {
@@ -15,14 +15,14 @@ import {
   DownloadListInterface,
   SingleVideoTileInterface,
   VideoInformationInterface,
-} from "@/interfaces/video/VideoInformation";
+} from "@/interfaces/video/VideoInformationInterface";
 import {
   readText,
   writeText,
   clear,
 } from "@tauri-apps/plugin-clipboard-manager";
 import { useHeavyPlaylistStore } from "./HeavyPlaylistStore";
-import { HeavyPlaylistInformationInterface } from "@/interfaces/playlist/PlaylistInformation";
+import { HeavyPlaylistInformationInterface } from "@/interfaces/playlist/PlaylistInformationInterface";
 
 export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
   (set, get) => ({

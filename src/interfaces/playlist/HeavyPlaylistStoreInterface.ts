@@ -1,8 +1,8 @@
 import {
   HeavyPlaylistInformationInterface,
   LightPlaylistEntry,
-} from "./PlaylistInformation";
-import { LightPlaylistVideoQuality } from "./QualityEnums";
+} from "./PlaylistInformationInterface";
+import { LightPlaylistVideoQuality } from "./QualityEnumsInterface";
 
 export interface HeavyPlaylistStoreInterface {
   playlistVerificationString: string;

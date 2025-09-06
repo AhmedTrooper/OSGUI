@@ -1,4 +1,4 @@
-import { LocalStorageThemeInterface } from "@/interfaces/theme/LocalStorageTheme";
+import { LocalStorageThemeInterface } from "@/interfaces/theme/LocalStorageThemeInterface";
 import { create } from "zustand";
 
 interface ThemeState {

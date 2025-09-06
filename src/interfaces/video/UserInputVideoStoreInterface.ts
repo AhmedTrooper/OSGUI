@@ -2,7 +2,7 @@ import {
   DownloadListInterface,
   SingleVideoTileInterface,
   VideoInformationInterface,
-} from "./VideoInformation";
+} from "./VideoInformationInterface";
 
 export interface UserInputVideoStoreInterface {
   videoUrl: string;

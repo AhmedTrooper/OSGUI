@@ -28,10 +28,7 @@ export default function VersionComponent() {
 
         {isApplicationUpdateAvailable && (
           <div>
-            <Alert
-              color="danger"
-              className="m-2"
-            >
+            <Alert color="danger" className="m-2">
               <h1>New version of Application is available</h1>
             </Alert>
             <h1>
@@ -44,14 +41,8 @@ export default function VersionComponent() {
                 {metadataInformation.onlineApplicationVersion}
               </span>
             </h1>
-            <a
-              target="_blank"
-              href={metadataInformation.release_url}
-            >
-              <Button
-                className="m-2 flex"
-                color="success"
-              >
+            <a target="_blank" href={metadataInformation.release_url}>
+              <Button className="m-2 flex" color="success">
                 <Download />
                 Download
               </Button>
@@ -59,10 +50,7 @@ export default function VersionComponent() {
           </div>
         )}
         {!isApplicationUpdateAvailable && (
-          <Alert
-            color="success"
-            className="m-2"
-          >
+          <Alert color="success" className="m-2">
             You are up to date. No new Application Version!
           </Alert>
         )}
@@ -76,10 +64,7 @@ export default function VersionComponent() {
 
       {isYtdlpUpdateAvailable && (
         <div className="m-2 p-4 shadow-md shadow-black rounded-md">
-          <Alert
-            color="danger"
-            className="m-2"
-          >
+          <Alert color="danger" className="m-2">
             Yt-Dlp new version available
           </Alert>
           <h1 className="text-blue-600"></h1>
@@ -93,14 +78,8 @@ export default function VersionComponent() {
               {metadataInformation.onlineYtDlpVersion}
             </span>
           </h1>
-          <a
-            target="_blank"
-            href={metadataInformation.ytdlpUrl}
-          >
-            <Button
-              className="m-2"
-              color="success"
-            >
+          <a target="_blank" href={metadataInformation.ytdlpUrl}>
+            <Button className="m-2" color="success">
               Download Yt-Dlp
             </Button>
           </a>
@@ -115,15 +94,17 @@ export default function VersionComponent() {
             New Features
           </h1>
           <ul>
-            {metadataInformation.features.map((features, index) => (
-              <li key={index}>
-                <span>{features}</span>
+            {metadataInformation.features.map(
+              (features: string, index: number) => (
+                <li key={index}>
+                  <span>{features}</span>
 
-                {index !== metadataInformation.features.length - 1 && (
-                  <Divider />
-                )}
-              </li>
-            ))}
+                  {index !== metadataInformation.features.length - 1 && (
+                    <Divider />
+                  )}
+                </li>
+              )
+            )}
           </ul>
         </div>
       )}
@@ -133,14 +114,16 @@ export default function VersionComponent() {
         <div className="shadow-md m-2 shadow-black p-2 rounded-md mt-2">
           <h1 className="text-green-600 font-bold text-xl">Fixed Errors</h1>
           <ul>
-            {metadataInformation.fixed_errors.map((error, index) => (
-              <li key={index}>
-                <span>{error}</span>
-                {index !== metadataInformation.fixed_errors.length - 1 && (
-                  <Divider />
-                )}
-              </li>
-            ))}
+            {metadataInformation.fixed_errors.map(
+              (error: string, index: number) => (
+                <li key={index}>
+                  <span>{error}</span>
+                  {index !== metadataInformation.fixed_errors.length - 1 && (
+                    <Divider />
+                  )}
+                </li>
+              )
+            )}
           </ul>
         </div>
       )}

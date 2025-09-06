@@ -2,8 +2,8 @@ import { ApplicationInterface } from "@/interfaces/application/ApplicationInterf
 import { create } from "zustand";
 import { getVersion } from "@tauri-apps/api/app";
 import { Command } from "@tauri-apps/plugin-shell";
-import { MetadataInterface } from "@/interfaces/application/MetaData";
 import { addToast } from "@heroui/react";
+import { MetadataInterface } from "@/interfaces/application/MetadataInterface";
 
 export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
   isYtdlpUpdateAvailable: false,

@@ -1,4 +1,4 @@
-import { DownloadStoreInterface } from "@/interfaces/video/DownloadStore";
+import { DownloadStoreInterface } from "@/interfaces/video/DownloadStoreInterface";
 import { videoDir } from "@tauri-apps/api/path";
 import { Command } from "@tauri-apps/plugin-shell";
 import { create } from "zustand";
@@ -9,7 +9,7 @@ import { useUtilityStore } from "./UtilityStore";
 import {
   failStatusObject,
   pauseStatus,
-} from "@/interfaces/video/VideoInformation";
+} from "@/interfaces/video/VideoInformationInterface";
 import { addToast } from "@heroui/react";
 
 export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({

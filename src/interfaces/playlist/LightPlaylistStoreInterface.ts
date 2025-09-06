@@ -1,4 +1,4 @@
-import { LightPlaylistInformationInterface } from "./PlaylistInformation";
+import { LightPlaylistInformationInterface } from "./PlaylistInformationInterface";
 
 export interface LightPlaylistStoreInterface {
   readLightPlaylistJsonFile: () => Promise<null | undefined>;

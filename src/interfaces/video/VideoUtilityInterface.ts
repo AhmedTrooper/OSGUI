@@ -1,8 +1,8 @@
-import { DownloadListInterface } from "./VideoInformation";
+import { DownloadListInterface } from "./VideoInformationInterface";
 
 export interface VideoUtilityInterface {
   modifiedDownloadsArr: null | DownloadListInterface;
-  setModifiedDownloadsArr:(arr :  null | DownloadListInterface)=>void;
+  setModifiedDownloadsArr: (arr: null | DownloadListInterface) => void;
   sortDownloadsArr: (sorts: TitleSort) => void;
   filterDownloadsArr: (filters: DownloadsFilter) => void;
 }

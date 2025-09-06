@@ -16,20 +16,20 @@ import {
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
 import { Command } from "@tauri-apps/plugin-shell";
-import { HeavyPlaylistStoreInterface } from "@/interfaces/playlist/HeavyPlaylistStore";
+import { HeavyPlaylistStoreInterface } from "@/interfaces/playlist/HeavyPlaylistStoreInterface";
 import {
   HeavyPlaylistInformationInterface,
   LightPlaylistEntry,
-} from "@/interfaces/playlist/PlaylistInformation";
+} from "@/interfaces/playlist/PlaylistInformationInterface";
 import { isEmpty } from "lodash";
-import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnums";
+import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnumsInterface";
 import { nanoid } from "nanoid";
 import { useUtilityStore } from "./UtilityStore";
 import Database from "@tauri-apps/plugin-sql";
 import {
   failStatusObject,
   pauseStatus,
-} from "@/interfaces/video/VideoInformation";
+} from "@/interfaces/video/VideoInformationInterface";
 import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager";
 
 export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(

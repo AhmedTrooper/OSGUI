@@ -17,7 +17,7 @@ import { useDatabaseStore } from "@/store/databaseStore";
 import { useDownloadStore } from "@/store/downloadStore";
 import DownloadsHeader from "./DownloadsHeader";
 import { useHeavyPlaylistStore } from "@/store/HeavyPlaylistStore";
-import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnums";
+import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnumsInterface";
 
 export default function DownloadSection() {
   const downloadsArr = useUserInputVideoStore((state) => state.downloadsArr);
@@ -60,10 +60,7 @@ export default function DownloadSection() {
                 </span>
                 {video.title}
               </h1>
-              <Button
-                color="primary"
-                className="m-1"
-              >
+              <Button color="primary" className="m-1">
                 {video.format_id}
               </Button>
               <div className="flex gap-4 p-2 max-w-full">
@@ -95,11 +92,7 @@ export default function DownloadSection() {
               )}
 
               {parseBoolean(video.active) && (
-                <Spinner
-                  color="white"
-                  variant="spinner"
-                  className="m-2"
-                />
+                <Spinner color="white" variant="spinner" className="m-2" />
               )}
 
               {parseBoolean(video.isPaused) &&

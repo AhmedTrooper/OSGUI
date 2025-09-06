@@ -1,9 +1,9 @@
-import { DownloadListInterface } from "@/interfaces/video/VideoInformation";
+import { DownloadListInterface } from "@/interfaces/video/VideoInformationInterface";
 import {
   DownloadsFilter,
   TitleSort,
   VideoUtilityInterface,
-} from "@/interfaces/video/VideoUtility";
+} from "@/interfaces/video/VideoUtilityInterface";
 import { addToast } from "@heroui/react";
 import { create } from "zustand";
 import { useUserInputVideoStore } from "./UserInputVideoStore";

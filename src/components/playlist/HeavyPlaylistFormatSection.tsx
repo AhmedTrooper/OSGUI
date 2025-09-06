@@ -13,7 +13,7 @@ import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
 import CompletePlaylistDownloadComponent from "./CompletePlaylistDownloadComponent";
 import SelectedPlaylistDownloadComponent from "./SelectedPlaylistDownloadComponent";
 import SelectedLightEntries from "./SelectedLightEntries";
-import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnums";
+import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnumsInterface";
 import { isEmpty } from "lodash";
 import { FaSadCry } from "react-icons/fa";
 
@@ -80,10 +80,7 @@ export default function HeavyPlaylistFormatSection() {
         Playlist Information
       </h1>
       <header className="flex gap-4">
-        <a
-          target="_blank"
-          href={heavyPlaylistInformation.webpage_url}
-        >
+        <a target="_blank" href={heavyPlaylistInformation.webpage_url}>
           <ExternalLink />
         </a>
         <span>
@@ -122,11 +119,7 @@ export default function HeavyPlaylistFormatSection() {
                   className="text-blue-600 cursor-pointer"
                 />
               </span>
-              <a
-                className="cursor-pointer"
-                href={entry.url}
-                target="_blank"
-              >
+              <a className="cursor-pointer" href={entry.url} target="_blank">
                 {entry.url}
               </a>
             </div>
