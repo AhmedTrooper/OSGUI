@@ -8,6 +8,8 @@ export const DirectDownloadSection = () => {
   const generateFileTitle = useFileStore((state) => state.generateFileTitle);
   const fileTitle = useFileStore((state) => state.fileTitle);
   const fileUrl = useFileStore((state) => state.fileUrl);
+  const pasteFileTitle = useFileStore((state) => state.pasteFileTitle);
+  const pasteFileUrl = useFileStore((state) => state.pasteFileUrl);
 
   return (
     <div className="mt-4 mb-4">
@@ -22,7 +24,10 @@ export const DirectDownloadSection = () => {
             }
           ></Input>
 
-          <span className="w-full cursor-pointer flex items-center justify-center">
+          <span
+            onClick={pasteFileUrl}
+            className="w-full cursor-pointer flex items-center justify-center"
+          >
             <FaPaste className="text-2xl" />
           </span>
 
@@ -33,7 +38,10 @@ export const DirectDownloadSection = () => {
             value={fileTitle as string}
             placeholder="File Title"
           ></Input>
-          <span className="w-full cursor-pointer flex items-center justify-center">
+          <span
+            onClick={pasteFileTitle}
+            className="w-full cursor-pointer flex items-center justify-center"
+          >
             <FaPaste className="text-2xl" />
           </span>
           <Button color="primary" onPress={generateFileTitle}>

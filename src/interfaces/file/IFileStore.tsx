@@ -5,4 +5,5 @@ export interface FileState {
   generateFileTitle: () => Promise<void>;
   setFileUrl: (url: string) => void;
   setFileTitle: (title: string) => void;
+  pasteFileTitle: () => Promise<void>;
 }
