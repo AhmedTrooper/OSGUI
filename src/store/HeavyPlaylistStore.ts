@@ -6,7 +6,7 @@ import {
   BaseDirectory,
   documentDir,
   join,
-  videoDir,
+  downloadDir,
 } from "@tauri-apps/api/path";
 import {
   exists,
@@ -377,7 +377,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
         const heavyPlaylistStore = get();
         const playlistVerificationString =
           heavyPlaylistStore.playlistVerificationString;
-        const videoDirectory = await videoDir();
+        const downloadDirectory = await downloadDir();
         const now = new Date();
         const timestampMs = now.getTime();
         const uniqueId = nanoid(20);
@@ -402,7 +402,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
           "-f",
           fileFormat,
           "-o",
-          `${videoDirectory}/OSGUI/${playlistTitle}/%(title)s${formatString}.%(ext)s`,
+          `${downloadDirectory}/OSGUI/${playlistTitle}/%(title)s${formatString}.%(ext)s`,
           `${fileUrl}`,
         ]);
 

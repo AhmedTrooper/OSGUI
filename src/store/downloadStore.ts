@@ -1,5 +1,5 @@
 import { DownloadStoreInterface } from "@/interfaces/video/DownloadStoreInterface";
-import { videoDir } from "@tauri-apps/api/path";
+import { downloadDir } from "@tauri-apps/api/path";
 import { Command } from "@tauri-apps/plugin-shell";
 import { create } from "zustand";
 import { nanoid } from "nanoid";
@@ -27,7 +27,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
     videoTitle: string
   ) => {
     try {
-      const videoDirectory = await videoDir();
+      const downloadDirectory = await downloadDir();
       const now = new Date();
       const timestampMs = now.getTime();
       const uniqueId = nanoid(20);
@@ -49,7 +49,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         "-f",
         formatString,
         "-o",
-        `${videoDirectory}/OSGUI/%(title)s${formatString}.%(ext)s`,
+        `${downloadDirectory}/OSGUI/%(title)s${formatString}.%(ext)s`,
         `${videoUrl}`,
       ]);
 

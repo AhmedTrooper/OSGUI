@@ -6,6 +6,7 @@ import DownloadSection from "./DownloadSection";
 import { useHeavyPlaylistStore } from "@/store/HeavyPlaylistStore";
 import HeavyPlaylistFormatSection from "../playlist/HeavyPlaylistFormatSection";
 import OpenHeavyDialogSection from "./OpenHeavyDialogSection";
+import { DirectDownloadSection } from "../file/DirectDownloadSection";
 
 export default function VideoContainer() {
   const dialogSectionVisible = useUserInputVideoStore(
@@ -28,10 +29,11 @@ export default function VideoContainer() {
   return (
     <div className="video-container">
       <UserInputSection />
+      <DirectDownloadSection />
       {dialogSectionVisible && videoInformation && <OpenDialogSection />}
       {formatSectionVisible && <FormatSection />}
-    {heavyPlaylistInformation && <OpenHeavyDialogSection/>}
-      {heavyPlaylistFormatSectionVisible && <HeavyPlaylistFormatSection/>}
+      {heavyPlaylistInformation && <OpenHeavyDialogSection />}
+      {heavyPlaylistFormatSectionVisible && <HeavyPlaylistFormatSection />}
       <DownloadSection />
     </div>
   );
