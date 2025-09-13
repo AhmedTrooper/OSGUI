@@ -5,10 +5,12 @@ import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import { addToast } from "@heroui/react";
 
 export const useFileStore = create<FileState>((set, get) => ({
-  fileUrl: null,
-  fileTitle: null,
-  setFileUrl: (url: string) => set({ fileUrl: url }),
-  setFileTitle: (title: string) => set({ fileTitle: title }),
+  resetFileUrl: () => set({ fileUrl: "" }),
+  resetFileTitle: () => set({ fileTitle: "" }),
+  fileUrl: "",
+  fileTitle: "",
+  setFileUrl: (url: string | null) => set({ fileUrl: url }),
+  setFileTitle: (title: string | null) => set({ fileTitle: title }),
   pasteFileUrl: async () => {
     try {
       const clipText = await readText();

@@ -3,7 +3,9 @@ export interface FileState {
   fileTitle: string | null;
   pasteFileUrl: () => Promise<void>;
   generateFileTitle: () => Promise<void>;
-  setFileUrl: (url: string) => void;
-  setFileTitle: (title: string) => void;
+  setFileUrl: (url: string | null) => void;
+  setFileTitle: (title: string | null) => void;
   pasteFileTitle: () => Promise<void>;
+  resetFileUrl: () => void;
+  resetFileTitle: () => void;
 }

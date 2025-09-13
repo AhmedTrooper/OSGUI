@@ -62,7 +62,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       if (directURL) {
         bestVideoDownloadCommand = directFileDownloadCommand;
       }
-      await bestVideoDownloadCommand.spawn();
+      const childDataProcess = await bestVideoDownloadCommand.spawn();
 
       await db.execute(
         `DELETE FROM DownloadList
@@ -109,6 +109,9 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       };
 
       const dataHandler = async (data: string) => {
+        const videoToPause = useUserInputVideoStore.getState().videoToPause;
+        if (videoToPause === uniqueId) await childDataProcess.kill();
+        console.log(videoToPause, uniqueId, videoToPause === uniqueId);
         // console.log(
         //   "\n\n\n\nStd data start\n\n\n",
         //   data,

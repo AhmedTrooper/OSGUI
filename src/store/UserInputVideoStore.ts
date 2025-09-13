@@ -26,6 +26,8 @@ import { HeavyPlaylistInformationInterface } from "@/interfaces/playlist/Playlis
 
 export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
   (set, get) => ({
+    videoToPause: null,
+    setVideoToPause: (vId: string | null) => set({ videoToPause: vId }),
     downloadPlaylist: true,
     setDownloadPlaylist: (status: boolean) => set({ downloadPlaylist: status }),
     showNonMedia: false,

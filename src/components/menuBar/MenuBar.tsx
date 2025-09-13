@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import Database from "@tauri-apps/plugin-sql";
 import TrashComponent from "./TrashComponent";
 import clsx from "clsx";
-import DrawerComponent from "./DrawerComponent";
+// import DrawerComponent from "./DrawerComponent";
 import { Popover, PopoverContent, PopoverTrigger } from "@heroui/react";
 import TutorialSection from "./TutorialSection";
 import { useApplicationstore } from "@/store/applicationStore";
@@ -31,7 +31,9 @@ export default function MenuBar() {
   const startDraggingWindow = async () => {
     await getCurrentWindow().startDragging();
   };
-  const metadataInformation =  useApplicationstore(state=>state.metadataInformation);
+  const metadataInformation = useApplicationstore(
+    (state) => state.metadataInformation
+  );
 
   const hideWindow = async () => {
     try {
@@ -77,10 +79,7 @@ export default function MenuBar() {
           onClick={handleWindowClose}
           className="cursor-pointer w-5 text-white"
         />
-        <Minus
-          onClick={hideWindow}
-          className="cursor-pointer w-5 text-white"
-        />
+        <Minus onClick={hideWindow} className="cursor-pointer w-5 text-white" />
         <Maximize2
           onClick={handleFullScreen}
           className="cursor-pointer w-5 text-white"
@@ -106,7 +105,7 @@ export default function MenuBar() {
         </li>
 
         <li className={clsx("cursor-pointer col-span-1", {})}>
-          <DrawerComponent />
+          {/* <DrawerComponent /> */}
         </li>
 
         <li className="col-span-1">
@@ -126,15 +125,17 @@ export default function MenuBar() {
                 {" "}
                 <CircleFadingArrowUp
                   className={clsx("cursor-pointer", {
-                    "text-red-600":isApplicationUpdateAvailable || isYtdlpUpdateAvailable,
-                    "text-green-600":!isApplicationUpdateAvailable && !isYtdlpUpdateAvailable
+                    "text-red-600":
+                      isApplicationUpdateAvailable || isYtdlpUpdateAvailable,
+                    "text-green-600":
+                      !isApplicationUpdateAvailable && !isYtdlpUpdateAvailable,
                   })}
                 />
               </p>
             </PopoverTrigger>
             <PopoverContent className="p-2">
               {!metadataInformation && <span>Trying to get meta data...</span>}
-              {metadataInformation && <VersionComponent/>}
+              {metadataInformation && <VersionComponent />}
             </PopoverContent>
           </Popover>
         </li>

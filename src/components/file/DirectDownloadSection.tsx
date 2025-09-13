@@ -2,8 +2,8 @@ import { useDownloadStore } from "@/store/downloadStore";
 import { useFileStore } from "@/store/FileStore";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Button, Input } from "@heroui/react";
-import { Download, File, SparkleIcon } from "lucide-react";
-import { FaPaste } from "react-icons/fa";
+import { Download, SparkleIcon } from "lucide-react";
+import { FaEraser, FaPaste } from "react-icons/fa";
 
 export const DirectDownloadSection = () => {
   const generateFileTitle = useFileStore((state) => state.generateFileTitle);
@@ -36,11 +36,12 @@ export const DirectDownloadSection = () => {
             }
           ></Input>
 
-          <span
-            onClick={pasteFileUrl}
-            className="w-full cursor-pointer flex items-center justify-center"
-          >
-            <FaPaste className="text-2xl" />
+          <span className="w-full gap-4 cursor-pointer flex items-center justify-center">
+            <FaPaste onClick={pasteFileUrl} className="text-2xl" />
+            <FaEraser
+              className="text-2xl"
+              onClick={() => useFileStore.getState().resetFileUrl()}
+            />
           </span>
 
           <Input
@@ -50,11 +51,12 @@ export const DirectDownloadSection = () => {
             value={fileTitle as string}
             placeholder="File Title"
           ></Input>
-          <span
-            onClick={pasteFileTitle}
-            className="w-full cursor-pointer flex items-center justify-center"
-          >
-            <FaPaste className="text-2xl" />
+          <span className="w-full cursor-pointer flex gap-4 items-center justify-center">
+            <FaPaste onClick={pasteFileTitle} className="text-2xl" />
+            <FaEraser
+              className="text-2xl"
+              onClick={() => useFileStore.getState().resetFileTitle()}
+            />
           </span>
           <Button color="primary" onPress={generateFileTitle}>
             <span>Generate Title</span>

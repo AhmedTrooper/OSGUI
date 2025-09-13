@@ -30,4 +30,6 @@ export interface UserInputVideoStoreInterface {
   clearVideoInputField: () => void;
   downloadPlaylist: boolean;
   setDownloadPlaylist: (status: boolean) => void;
+  videoToPause: string | null;
+  setVideoToPause: (vId: string | null) => void;
 }
