@@ -8,7 +8,8 @@ export interface DownloadStoreInterface {
   downloadHandler: (
     formatString: string,
     videoUrl: string,
-    videoTitle: string
+    videoTitle: string,
+    directURL?: boolean
   ) => void;
   videoStreamSelect: (vst: string) => void;
   audioStreamSelect: (ast: string) => void;

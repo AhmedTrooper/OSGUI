@@ -24,7 +24,8 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
   downloadHandler: async (
     formatString: string,
     videoUrl: string,
-    videoTitle: string
+    videoTitle: string,
+    directURL: boolean = false
   ) => {
     try {
       const downloadDirectory = await downloadDir();
@@ -45,14 +46,22 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         color: "success",
         timeout: 400,
       });
-      const bestVideoDownloadCommand = Command.create("ytDlp", [
+      let bestVideoDownloadCommand = Command.create("ytDlp", [
         "-f",
         formatString,
         "-o",
         `${downloadDirectory}/OSGUI/%(title)s${formatString}.%(ext)s`,
         `${videoUrl}`,
       ]);
+      const directFileDownloadCommand = Command.create("ytDlp", [
+        "-o",
+        `${downloadDirectory}/OSGUI/%(title)s${formatString}.%(ext)s`,
+        `${videoUrl}`,
+      ]);
 
+      if (directURL) {
+        bestVideoDownloadCommand = directFileDownloadCommand;
+      }
       await bestVideoDownloadCommand.spawn();
 
       await db.execute(

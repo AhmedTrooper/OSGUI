@@ -105,30 +105,45 @@ export default function DownloadSection() {
                   className="cursor-pointer  active:scale-95 transition-transform duration-100 text-red-500"
                 />
 
-                {playlistVerificationString !== video.playlistVerification && (
+                {playlistVerificationString !== video.playlistVerification &&
+                  video.format_id !== "DFU" && (
+                    <CirclePower
+                      onClick={() =>
+                        downloadHandler(
+                          video.format_id,
+                          video.web_url as string,
+                          video.title as string
+                        )
+                      }
+                      className="cursor-pointer  active:scale-95 transition-transform duration-100 text-green-600"
+                    />
+                  )}
+
+                {playlistVerificationString === video.playlistVerification &&
+                  video.format_id !== "DFU" && (
+                    <CirclePower
+                      onClick={() =>
+                        lightPlaylistSingleDownloadHandler(
+                          video.title as string,
+                          video.web_url as string,
+                          video.playlistTitle,
+                          video.format_id as LightPlaylistVideoQuality
+                        )
+                      }
+                      className="cursor-pointer  active:scale-95 transition-transform duration-100 text-blue-600"
+                    />
+                  )}
+                {video.format_id === "DFU" && (
                   <CirclePower
                     onClick={() =>
                       downloadHandler(
                         video.format_id,
                         video.web_url as string,
-                        video.title as string
+                        video.title as string,
+                        true
                       )
                     }
                     className="cursor-pointer  active:scale-95 transition-transform duration-100 text-green-600"
-                  />
-                )}
-
-                {playlistVerificationString === video.playlistVerification && (
-                  <CirclePower
-                    onClick={() =>
-                      lightPlaylistSingleDownloadHandler(
-                        video.title as string,
-                        video.web_url as string,
-                        video.playlistTitle,
-                        video.format_id as LightPlaylistVideoQuality
-                      )
-                    }
-                    className="cursor-pointer  active:scale-95 transition-transform duration-100 text-blue-600"
                   />
                 )}
               </div>

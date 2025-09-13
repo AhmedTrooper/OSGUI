@@ -104,6 +104,7 @@ lerna-debug.log*
 
 node_modules
 src-tauri/target/
+src-tauri/Cargo.lock
 dist
 dist-ssr
 *.local

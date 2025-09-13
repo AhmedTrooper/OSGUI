@@ -1,7 +1,8 @@
+import { useDownloadStore } from "@/store/downloadStore";
 import { useFileStore } from "@/store/FileStore";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Button, Input } from "@heroui/react";
-import { SparkleIcon } from "lucide-react";
+import { Download, File, SparkleIcon } from "lucide-react";
 import { FaPaste } from "react-icons/fa";
 
 export const DirectDownloadSection = () => {
@@ -10,10 +11,21 @@ export const DirectDownloadSection = () => {
   const fileUrl = useFileStore((state) => state.fileUrl);
   const pasteFileTitle = useFileStore((state) => state.pasteFileTitle);
   const pasteFileUrl = useFileStore((state) => state.pasteFileUrl);
+  const downloadHandler = useDownloadStore((state) => state.downloadHandler);
 
   return (
     <div className="mt-4 mb-4">
       <Card>
+        <CardHeader className="grid">
+          <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
+            Direct File Download{" "}
+            <span className="text-sm">(any file type)</span>
+          </h3>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Paste a direct download link to a file and optionally a title, then
+            click download.
+          </p>
+        </CardHeader>
         <CardBody className="grid grid-cols-2 gap-4">
           <Input
             placeholder="Direct Download URL (if available)"
@@ -55,8 +67,19 @@ export const DirectDownloadSection = () => {
                 : "danger"
             }
             disabled={!fileTitle || !fileUrl}
+            onPress={() =>
+              downloadHandler(
+                "DFU",
+                fileUrl as string,
+                fileTitle as string,
+                true
+              )
+            }
           >
-            Download
+            Download File
+            <span>
+              <Download />
+            </span>
           </Button>
         </CardBody>
       </Card>
