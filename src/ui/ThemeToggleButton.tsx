@@ -1,4 +1,4 @@
-import useThemeStore from "@/store/themeStore";
+import useThemeStore from "@/store/ThemeStore";
 import { Moon, Sun } from "lucide-react";
 
 export default function ThemeToggleButton() {
@@ -7,7 +7,7 @@ export default function ThemeToggleButton() {
 
   return (
     <button onMouseUp={toggleDark} className="w-fit p-1 justify-self-end">
-       {dark ? <Sun className="w-5"/> : <Moon className="w-5 text-white"/>}
+      {dark ? <Sun className="w-5" /> : <Moon className="w-5 text-white" />}
     </button>
   );
 }

@@ -16,7 +16,7 @@ import clsx from "clsx";
 // import DrawerComponent from "./DrawerComponent";
 import { Popover, PopoverContent, PopoverTrigger } from "@heroui/react";
 import TutorialSection from "./TutorialSection";
-import { useApplicationstore } from "@/store/applicationStore";
+import { useApplicationstore } from "@/store/ApplicationStore";
 import VersionComponent from "./VersionComponent";
 
 export default function MenuBar() {

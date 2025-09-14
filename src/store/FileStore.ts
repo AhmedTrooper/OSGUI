@@ -25,7 +25,6 @@ export const useFileStore = create<FileState>((set, get) => ({
     }
   },
   generateFileTitle: async () => {
-    console.log("Clicked");
     const FileStore = get();
     const generatedFileTitle = nanoid(15);
     FileStore.setFileTitle(generatedFileTitle);

@@ -1,4 +1,4 @@
-import { useDownloadStore } from "@/store/downloadStore";
+import { useDownloadStore } from "@/store/DownloadStore";
 import { useFileStore } from "@/store/FileStore";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Button, Input } from "@heroui/react";

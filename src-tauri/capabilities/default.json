@@ -2,9 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": [
-    "main"
-  ],
+  "windows": ["main"],
   "permissions": [
     "core:default",
     "core:window:allow-minimize",
@@ -13,7 +11,6 @@
     "core:window:allow-start-dragging",
     "core:window:allow-set-fullscreen",
     "core:window:allow-close",
-    "os:default",
     "shell:default",
     "fs:allow-document-write-recursive",
     "fs:allow-document-read-recursive",
@@ -52,6 +49,13 @@
         }
       ]
     },
-    "clipboard-manager:default"
+    "clipboard-manager:default",
+    "os:default",
+    "os:allow-arch",
+    "os:allow-family",
+    "os:allow-hostname",
+    "os:allow-locale",
+    "os:allow-platform",
+    "os:allow-version"
   ]
 }

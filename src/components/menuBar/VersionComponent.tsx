@@ -1,4 +1,4 @@
-import { useApplicationstore } from "@/store/applicationStore";
+import { useApplicationstore } from "@/store/ApplicationStore";
 import { Alert, Button, Divider } from "@heroui/react";
 import { isEmpty } from "lodash";
 import { Download } from "lucide-react";

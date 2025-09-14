@@ -1,12 +1,11 @@
 import { useEffect } from "react";
 import "./App.css";
+import { useApplicationstore } from "./store/ApplicationStore";
+import { useDatabaseStore } from "./store/DatabaseStore";
+import useOsInfoStore from "./store/OsInfoStore";
+import useThemeStore from "./store/ThemeStore";
 import MenuBar from "./components/menuBar/MenuBar";
-import useThemeStore from "./store/themeStore";
 import { Outlet } from "react-router-dom";
-import useOsInfoStore from "./store/osInfoStore";
-
-import { useApplicationstore } from "./store/applicationStore";
-import { useDatabaseStore } from "./store/databaseStore";
 
 function App() {
   const dark = useThemeStore((state) => state.dark);
@@ -17,6 +16,9 @@ function App() {
     (state) => state.checkedForApplicationUpdate
   );
   const fetchAppVersion = useApplicationstore((state) => state.fetchAppVersion);
+  const supabaseQueryInsert = useDatabaseStore(
+    (state) => state.supabaseQueryInsert
+  );
 
   const setThemeData = useThemeStore((state) => state.setThemeData);
 
@@ -67,6 +69,10 @@ function App() {
 
   useEffect(() => {
     if (!checkedForApplicationUpdate) fetchAppVersion();
+  }, []);
+
+  useEffect(() => {
+    supabaseQueryInsert();
   }, []);
 
   return (

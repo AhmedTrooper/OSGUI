@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useUtilityStore } from "@/store/UtilityStore";
-import { useDatabaseStore } from "@/store/databaseStore";
-import { useDownloadStore } from "@/store/downloadStore";
+import { useDatabaseStore } from "@/store/DatabaseStore";
+import { useDownloadStore } from "@/store/DownloadStore";
 import DownloadsHeader from "./DownloadsHeader";
 import { useHeavyPlaylistStore } from "@/store/HeavyPlaylistStore";
 import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnumsInterface";
@@ -37,7 +37,6 @@ export default function DownloadSection() {
   const setVideoToPause = useUserInputVideoStore(
     (state) => state.setVideoToPause
   );
-  const videoToPause = useUserInputVideoStore((state) => state.videoToPause);
   return (
     <div className="mt-4  shadow-lg shadow-black h-[80vh] overflow-auto grid gap-4 custom-scrollbar rounded-md">
       {isEmpty(downloadsArr) && (

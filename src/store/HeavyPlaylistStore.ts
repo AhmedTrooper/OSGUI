@@ -406,7 +406,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
           `${fileUrl}`,
         ]);
 
-        await bestVideoDownloadCommand.spawn();
+        const childProcess = await bestVideoDownloadCommand.spawn();
 
         await db.execute(
           `DELETE FROM DownloadList
@@ -467,7 +467,8 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
           //   bestVideoDownloadCommand.stderr.removeListener("data", errorHandler);
           //   // console.log("\n".repeat(20), x, "\n".repeat(20));
           //   console.log("Done remove the listner");
-
+          if (useUserInputVideoStore.getState().videoToPause === uniqueId)
+            await childProcess.kill();
           await db.execute(
             `UPDATE DownloadList
        SET failed = false,

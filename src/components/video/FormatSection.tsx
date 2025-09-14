@@ -1,4 +1,4 @@
-import { useDownloadStore } from "@/store/downloadStore";
+import { useDownloadStore } from "@/store/DownloadStore";
 import { useUserInputVideoStore } from "@/store/UserInputVideoStore";
 import {
   Button,
@@ -146,14 +146,13 @@ export default function FormatSection() {
       >
         <h1 className="col-span-2 grid p-2 grid-cols-2 content-center justify-items-start">
           <p className="flex gap-4">
-           <List/>
-           <span>Video</span>
-            </p>
-            <p className="flex gap-4">
-           <List/>
-           <span>Audio</span>
-            </p>
-       
+            <List />
+            <span>Video</span>
+          </p>
+          <p className="flex gap-4">
+            <List />
+            <span>Audio</span>
+          </p>
         </h1>
         {videoInformation && !isEmpty(videoInformation.formats) && (
           <div className="flex-1 overflow-auto custom-scrollbar mt-4">

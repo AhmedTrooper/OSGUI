@@ -4,8 +4,43 @@ import { useUserInputVideoStore } from "./UserInputVideoStore";
 import Database from "@tauri-apps/plugin-sql";
 import { DownloadListInterface } from "@/interfaces/video/VideoInformationInterface";
 import { addToast } from "@heroui/react";
+// @ts-ignore
+import MySupabaseClient from "@/lib/SupabaseClient";
+import { nanoid } from "nanoid";
+import {
+  platform,
+  hostname,
+  locale,
+  arch,
+  version,
+  family,
+} from "@tauri-apps/plugin-os";
 
 export const useDatabaseStore = create<DatabaseInterface>((set) => ({
+  supabaseQueryInsert: async () => {
+    try {
+      // addToast({
+      //   title: "Supabase inserting started",
+      //   description: "Inserting OS and usage data to Supabase",
+      //   color: "primary",
+      //   timeout: 2000,
+      // });
+      const htnm = await hostname();
+      const lcl = await locale();
+      const pt = platform();
+
+      const arc = arch();
+      const vrsn = version();
+      const fml = family();
+      const osInformationString = `${htnm}_${lcl}_${pt}_${arc}_${vrsn}_${fml}`;
+      // @ts-ignore
+      await MySupabaseClient.from("OSGUIUsage").insert({
+        random_gen_str: `OSGUI - ${osInformationString} - ${nanoid(20)}`,
+      });
+    } catch (error) {
+      // console.log("Supabase insert error", error);
+    }
+  },
   createOrLoadDatabase: async () => {
     const UserInputVideoStore = useUserInputVideoStore.getState();
     const setDownloadsArr = UserInputVideoStore.setDownloadsArr;
