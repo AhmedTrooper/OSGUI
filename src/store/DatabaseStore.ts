@@ -15,6 +15,12 @@ import {
   version,
   family,
 } from "@tauri-apps/plugin-os";
+import {
+  getVersion,
+  getName,
+  getTauriVersion,
+  getIdentifier,
+} from "@tauri-apps/api/app";
 
 export const useDatabaseStore = create<DatabaseInterface>((set) => ({
   supabaseQueryInsert: async () => {
@@ -32,13 +38,27 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       const arc = arch();
       const vrsn = version();
       const fml = family();
+      const vr = await getVersion();
+      const nm = await getName();
+      const tauriV = await getTauriVersion();
+      const idf = await getIdentifier();
+      const appInformationString = `${nm}_${vr}_${tauriV}_${idf}`;
+      // Example: MyApp_1.0.0_1.0.0-rc.1_Windows_en-US_x64_10.0.19043_Windows_NT
       const osInformationString = `${htnm}_${lcl}_${pt}_${arc}_${vrsn}_${fml}`;
       // @ts-ignore
-      await MySupabaseClient.from("OSGUIUsage").insert({
-        random_gen_str: `OSGUI - ${osInformationString} - ${nanoid(20)}`,
+      await MySupabaseClient.from("UniversalApplicationUsages").insert({
+        application: appInformationString,
+        architecture: osInformationString,
+        rand_str: nanoid(),
       });
     } catch (error) {
       // console.log("Supabase insert error", error);
+      addToast({
+        title: "Supabase insert error",
+        description: "Error on inserting data to Supabase",
+        color: "danger",
+        timeout: 2000,
+      });
     }
   },
   createOrLoadDatabase: async () => {

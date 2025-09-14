@@ -1,17 +1,18 @@
 {
   "onlineApplicationVersion": "0.2.0",
-  "release_date": "2025-07-01",
+  "release_date": "2025-09-14",
   "features": [
-    "New yt-dlp version 2025.07.21"
+    "Direct file download using links",
+    "Improved UI for file management",
+    "Files are downloaded to Downloads/OSGUI",
+    "Pause functionality"
   ],
   "fixed_errors": [],
-  "notes": "This is the first but complete application for general use case like downloading videos, audios, playlist",
+  "notes": "Update that added direct file download, fdm like feature for linux , windows and macOS users.",
   "release_url": "https://github.com/AhmedTrooper/OSGUI/releases/",
   "author": "AhmedTrooper",
   "severity": "high",
-  "platforms": [
-    "windows"
-  ],
-  "onlineYtDlpVersion": "2025.07.21",
-  "ytdlpUrl": "https://github.com/yt-dlp/yt-dlp/releases/tag/2025.07.21"
+  "platforms": ["linux", "windows", "macOS"],
+  "onlineYtDlpVersion": "2025.09.05",
+  "ytdlpUrl": "https://github.com/yt-dlp/yt-dlp/releases/tag/2025.09.05"
 }
