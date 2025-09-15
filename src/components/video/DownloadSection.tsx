@@ -90,7 +90,7 @@ export default function DownloadSection() {
                 </h1>
               )}
 
-              { parseBoolean(video.completed) && (
+              {parseBoolean(video.completed) && (
                 <ShieldCheck className={clsx("text-green-600 m-2", {})} />
               )}
 
@@ -102,8 +102,8 @@ export default function DownloadSection() {
                 <Spinner color="white" variant="spinner" className="m-2" />
               )}
 
-              {parseBoolean(video.isPaused) &&
-                 (
+              {!(video.failed || video.completed || video.active) &&
+                parseBoolean(video.isPaused) && (
                   <Play className="m-2 cursor-pointer" />
                 )}
               <div className=" gap-6 w-fit p-1 items-center justify-items-end justify-center justify-self-center self-center grid grid-cols-3">
@@ -153,14 +153,16 @@ export default function DownloadSection() {
                     className="cursor-pointer  active:scale-95 transition-transform duration-100 text-green-600"
                   />
                 )}
-                <Button
-                  color="danger"
-                  onPress={() => setVideoToPause(video.unique_id)}
-                  className=" text-white font-bold flex"
-                >
-                  <span>Pause</span>
-                  <FaPause className="ml-2 mt-1" />
-                </Button>
+                {!video.isPaused && (
+                  <Button
+                    color="danger"
+                    onPress={() => setVideoToPause(video.unique_id)}
+                    className=" text-white font-bold flex"
+                  >
+                    <span>Pause</span>
+                    <FaPause className="ml-2 mt-1" />
+                  </Button>
+                )}
               </div>
             </div>
           ))}
