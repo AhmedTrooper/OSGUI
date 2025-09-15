@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
-const projectUrl = "Project URL";
-const anonkey = "ANON KEY";
+const projectUrl = "";
+const anonkey = "";
 let MySupabaseClient;
 try {
   MySupabaseClient = createClient<any>(projectUrl, anonkey);

@@ -24,12 +24,12 @@ import {
 import { isEmpty } from "lodash";
 import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnumsInterface";
 import { nanoid } from "nanoid";
-import { useUtilityStore } from "./UtilityStore";
+// import { useUtilityStore } from "./UtilityStore";
 import Database from "@tauri-apps/plugin-sql";
-import {
-  failStatusObject,
-  pauseStatus,
-} from "@/interfaces/video/VideoInformationInterface";
+// import {
+//   failStatusObject,
+//   pauseStatus,
+// } from "@/interfaces/video/VideoInformationInterface";
 import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager";
 
 export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
@@ -391,8 +391,8 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
 
         const userInputVideoStore = useUserInputVideoStore.getState();
         const setDownloadsArr = userInputVideoStore.setDownloadsArr;
-        const utilityStore = useUtilityStore.getState();
-        const parseBoolean = utilityStore.parseBoolean;
+        // const utilityStore = useUtilityStore.getState();
+        // const parseBoolean = utilityStore.parseBoolean;
 
         const db = await Database.load("sqlite:osgui.db");
         addToast({
@@ -626,192 +626,178 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
 
         coreDownloadCommand.stderr.on("data", errorHandler);
 
-      //   bestVideoDownloadCommand.on("close", async () => {
-      //     // console.log("Command closed : -> ", data);
+        //   bestVideoDownloadCommand.on("close", async () => {
+        //     // console.log("Command closed : -> ", data);
 
-      //     //    await db.execute(
-      //     //     `UPDATE DownloadList
-      //     //  SET failed = true,
-      //     //        active = true,
-      //     //       isPaused = true,
-      //     //      tracking_message = $1
-      //     //  WHERE unique_id = $2`,
-      //     //     [data.toString().trim(), uniqueId]
-      //     //   );
+        //     //    await db.execute(
+        //     //     `UPDATE DownloadList
+        //     //  SET failed = true,
+        //     //        active = true,
+        //     //       isPaused = true,
+        //     //      tracking_message = $1
+        //     //  WHERE unique_id = $2`,
+        //     //     [data.toString().trim(), uniqueId]
+        //     //   );
 
-      //     const result: failStatusObject[] = await db.select(
-      //       "SELECT failed FROM DownloadList WHERE unique_id = $1",
-      //       [uniqueId]
-      //     );
-      //     // console.log(result);
+        //     const result: failStatusObject[] = await db.select(
+        //       "SELECT failed FROM DownloadList WHERE unique_id = $1",
+        //       [uniqueId]
+        //     );
+        //     // console.log(result);
 
-      //     const failedStatus = (await result[0]["failed"]) as pauseStatus;
-      //     // console.log(failedStatus);
-      //     let parsedFailedStatus = await parseBoolean(failedStatus);
-      //     // console.log(pActive);
-      //     if (parsedFailedStatus) {
-      //       try {
-      //         await db.execute(
-      //           `UPDATE DownloadList
-      //  SET  active = false,
-      //       isPaused = false,
-      //      tracking_message = "falseFoundTrue",
-      //      completed = true
-      //  WHERE unique_id = $1`,
-      //           [uniqueId]
-      //         );
-      //         //setting tracking_message as "falseFoundTrue" string d and based on this, show or hide message box..😑
-      //       } catch (error) {
-      //         // console.log("Error is if", error);
-      //         addToast({
-      //           title: "SQL Failed",
-      //           description: error as string,
-      //           color: "success",
-      //           timeout: 2000,
-      //         });
-      //       }
+        //     const failedStatus = (await result[0]["failed"]) as pauseStatus;
+        //     // console.log(failedStatus);
+        //     let parsedFailedStatus = await parseBoolean(failedStatus);
+        //     // console.log(pActive);
+        //     if (parsedFailedStatus) {
+        //       try {
+        //         await db.execute(
+        //           `UPDATE DownloadList
+        //  SET  active = false,
+        //       isPaused = false,
+        //      tracking_message = "falseFoundTrue",
+        //      completed = true
+        //  WHERE unique_id = $1`,
+        //           [uniqueId]
+        //         );
+        //         //setting tracking_message as "falseFoundTrue" string d and based on this, show or hide message box..😑
+        //       } catch (error) {
+        //         // console.log("Error is if", error);
+        //         addToast({
+        //           title: "SQL Failed",
+        //           description: error as string,
+        //           color: "success",
+        //           timeout: 2000,
+        //         });
+        //       }
 
-      //       await setDownloadsArr(
-      //         await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
-      //       );
-      //     } else {
-      //       try {
-      //         await db.execute(
-      //           `UPDATE DownloadList
-      //  SET  active = false,
-      //       isPaused = false,
-      //       completed = true,
-      //      tracking_message = "falseFoundTrue"
-      //  WHERE unique_id = $1`,
-      //           [uniqueId]
-      //         );
+        //       await setDownloadsArr(
+        //         await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+        //       );
+        //     } else {
+        //       try {
+        //         await db.execute(
+        //           `UPDATE DownloadList
+        //  SET  active = false,
+        //       isPaused = false,
+        //       completed = true,
+        //      tracking_message = "falseFoundTrue"
+        //  WHERE unique_id = $1`,
+        //           [uniqueId]
+        //         );
 
-      //         //setting tracking_message as "falseFoundTrue" string d and based on this, show or hide message box..😑
-      //       } catch (err) {
-      //         addToast({
-      //           title: "SQL Failed",
-      //           description: err as string,
-      //           color: "success",
-      //           timeout: 2000,
-      //         });
-      //         // console.log("Error is else", err);
-      //       }
+        //         //setting tracking_message as "falseFoundTrue" string d and based on this, show or hide message box..😑
+        //       } catch (err) {
+        //         addToast({
+        //           title: "SQL Failed",
+        //           description: err as string,
+        //           color: "success",
+        //           timeout: 2000,
+        //         });
+        //         // console.log("Error is else", err);
+        //       }
 
-      //       await setDownloadsArr(
-      //         await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
-      //       );
-      //     }
-      //   });
+        //       await setDownloadsArr(
+        //         await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+        //       );
+        //     }
+        //   });
 
+        coreDownloadCommand.on("close", async () => {
+          // console.log("At Close stage :", "Pause :",isPaused,"Error :", errorHappened);
+          // console.log("Stream count at command close stage :", streamCount);
 
-
-
-      coreDownloadCommand.on("close", async () => {
-        // console.log("At Close stage :", "Pause :",isPaused,"Error :", errorHappened);
-        // console.log("Stream count at command close stage :", streamCount);
-
-        try {
-          if (!(isPaused || errorHappened)) {
-            try {
-              // console.log(
-              //   "At NoPause,NoError stage :",
-              //   isPaused,
-              //   errorHappened
-              // );
-              await db.execute(
-                `UPDATE DownloadList
+          try {
+            if (!(isPaused || errorHappened)) {
+              try {
+                // console.log(
+                //   "At NoPause,NoError stage :",
+                //   isPaused,
+                //   errorHappened
+                // );
+                await db.execute(
+                  `UPDATE DownloadList
            SET failed = false,
                  active = false,
                 isPaused = false,
                 completed = true,
                tracking_message = $1
            WHERE unique_id = $2`,
-                ["Download completed successfully!", uniqueId]
-              );
-            } catch (error) {
-              //  console.log("Error while updating download list:", error);
-            } finally {
-              setDownloadsArr(
-                await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
-              );
-            }
-          } else if (isPaused) {
-            // console.log("At Paused stage on close :", isPaused, errorHappened);
-            try {
-              await db.execute(
-                `UPDATE DownloadList
+                  ["Download completed successfully!", uniqueId]
+                );
+              } catch (error) {
+                //  console.log("Error while updating download list:", error);
+              } finally {
+                setDownloadsArr(
+                  await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+                );
+              }
+            } else if (isPaused) {
+              // console.log("At Paused stage on close :", isPaused, errorHappened);
+              try {
+                await db.execute(
+                  `UPDATE DownloadList
            SET failed = false,
                  active = false,
                 isPaused = true,
                 completed = false,
                tracking_message = $1
            WHERE unique_id = $2`,
-                ["Download paused by user", uniqueId]
-              );
-            } catch (error) {
-              // console.log("Error while updating download list:", error);
-            } finally {
-              setDownloadsArr(
-                await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
-              );
-            }
-          } else if (errorHappened) {
-            // console.log("At Error stage on close :", isPaused, errorHappened);
-            try {
-              await db.execute(
-                `UPDATE DownloadList
+                  ["Download paused by user", uniqueId]
+                );
+              } catch (error) {
+                // console.log("Error while updating download list:", error);
+              } finally {
+                setDownloadsArr(
+                  await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+                );
+              }
+            } else if (errorHappened) {
+              // console.log("At Error stage on close :", isPaused, errorHappened);
+              try {
+                await db.execute(
+                  `UPDATE DownloadList
            SET failed = true,
                  active = false,
                 isPaused = false,
                 completed = false,
                tracking_message = $1
            WHERE unique_id = $2`,
-                ["Download failed", uniqueId]
-              );
-            } catch (error) {
-              // console.log("Error while updating download list:", error);
-            } finally {
-              setDownloadsArr(
-                await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
-              );
+                  ["Download failed", uniqueId]
+                );
+              } catch (error) {
+                // console.log("Error while updating download list:", error);
+              } finally {
+                setDownloadsArr(
+                  await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+                );
+              }
             }
+          } catch (error) {
+            // console.log("Error while updating download list on close:", error);
+          } finally {
+            setDownloadsArr(
+              await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+            );
+            // console.log(
+            //   await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+            // );
           }
-        } catch (error) {
-          // console.log("Error while updating download list on close:", error);
-        } finally {
-          setDownloadsArr(
-            await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
-          );
-          // console.log(
-          //   await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
-          // );
-        }
-      });
-
-
-
-
-
-
-
-
-
+        });
 
         // coreDownloadCommand.on("error", () => {
         //   // console.log("Command Error : ---> ", data);
         // });
 
-
-
-           coreDownloadCommand.on("error", () => {
-             // console.log("Command Error : ---> ", data);
-             addToast({
-               title: "Command Failed",
-               description: "Make sure yt-dlp is installed and added to PATH",
-               color: "warning",
-               timeout: 2000,
-             });
-           });
+        coreDownloadCommand.on("error", () => {
+          // console.log("Command Error : ---> ", data);
+          addToast({
+            title: "Command Failed",
+            description: "Make sure yt-dlp is installed and added to PATH",
+            color: "warning",
+            timeout: 2000,
+          });
+        });
       } catch (e) {
       } finally {
         // console.log("Command is finished!");
