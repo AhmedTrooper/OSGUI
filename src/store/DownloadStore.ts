@@ -5,12 +5,13 @@ import { create } from "zustand";
 import { nanoid } from "nanoid";
 import Database from "@tauri-apps/plugin-sql";
 import { useUserInputVideoStore } from "./UserInputVideoStore";
-import { useUtilityStore } from "./UtilityStore";
-import {
-  failStatusObject,
-  pauseStatus,
-} from "@/interfaces/video/VideoInformationInterface";
+// import { useUtilityStore } from "./UtilityStore";
+// import {
+//   failStatusObject,
+//   pauseStatus,
+// } from "@/interfaces/video/VideoInformationInterface";
 import { addToast } from "@heroui/react";
+// import { add } from "lodash";
 
 export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
   selectedFormat: null,
@@ -27,18 +28,19 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
     videoTitle: string,
     directURL: boolean = false
   ) => {
+    const downloadDirectory = await downloadDir();
+    const now = new Date();
+    const timestampMs = now.getTime();
+    const uniqueId = nanoid(20);
+    const mainId = timestampMs + nanoid(25);
+
+    const userInputVideoStore = useUserInputVideoStore.getState();
+    const setDownloadsArr = userInputVideoStore.setDownloadsArr;
+    // const utilityStore = useUtilityStore.getState();
+    // const parseBoolean = utilityStore.parseBoolean;
+    let errorHappened = false;
+    let isPaused = false;
     try {
-      const downloadDirectory = await downloadDir();
-      const now = new Date();
-      const timestampMs = now.getTime();
-      const uniqueId = nanoid(20);
-      const mainId = timestampMs + nanoid(25);
-
-      const userInputVideoStore = useUserInputVideoStore.getState();
-      const setDownloadsArr = userInputVideoStore.setDownloadsArr;
-      const utilityStore = useUtilityStore.getState();
-      const parseBoolean = utilityStore.parseBoolean;
-
       const db = await Database.load("sqlite:osgui.db");
       addToast({
         title: "Added",
@@ -46,7 +48,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         color: "success",
         timeout: 400,
       });
-      let bestVideoDownloadCommand = Command.create("ytDlp", [
+      let coreDownloadCommand = Command.create("ytDlp", [
         "-f",
         formatString,
         "-o",
@@ -60,9 +62,9 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       ]);
 
       if (directURL) {
-        bestVideoDownloadCommand = directFileDownloadCommand;
+        coreDownloadCommand = directFileDownloadCommand;
       }
-      const childDataProcess = await bestVideoDownloadCommand.spawn();
+      const childDataProcess = await coreDownloadCommand.spawn();
 
       await db.execute(
         `DELETE FROM DownloadList
@@ -96,21 +98,45 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
 
       const errorHandler = async (data: string) => {
         // console.log("Error while downloading:", data);
-
-        await db.execute(
-          `UPDATE DownloadList
+        errorHappened = true;
+        isPaused = false;
+        console.log(
+          "At Error stage :",
+          "Paused :",
+          isPaused,
+          "Error occurred :",
+          errorHappened
+        );
+        try {
+          await db.execute(
+            `UPDATE DownloadList
        SET failed = true,
-             active = true,
-            isPaused = true,
+             active = false,
+            isPaused = false,
+            completed = false,
            tracking_message = $1
        WHERE unique_id = $2`,
-          [data.toString().trim(), uniqueId]
-        );
+            [data.toString().trim(), uniqueId]
+          );
+        } catch (error) {
+          // console.log("Error while updating download list:", error);
+        } finally {
+          setDownloadsArr(
+            await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+          );
+          console.log(
+            "At Error stage :",
+            "Paused :",
+            isPaused,
+            "Error occurred :",
+            errorHappened
+          );
+        }
       };
 
       const dataHandler = async (data: string) => {
-        const videoToPause = useUserInputVideoStore.getState().videoToPause;
-        if (videoToPause === uniqueId) await childDataProcess.kill();
+        
+
         // console.log(videoToPause, uniqueId, videoToPause === uniqueId);
         // console.log(
         //   "\n\n\n\nStd data start\n\n\n",
@@ -120,99 +146,172 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
 
         //   // Remove the listener immediately
         //   console.log("Starting remove the listner");
-        //  bestVideoDownloadCommand.stdout.removeListener("data", dataHandler);
-        //   bestVideoDownloadCommand.stderr.removeListener("data", errorHandler);
+        //  coreDownloadCommand.stdout.removeListener("data", dataHandler);
+        //   coreDownloadCommand.stderr.removeListener("data", errorHandler);
         //   // console.log("\n".repeat(20), x, "\n".repeat(20));
         //   console.log("Done remove the listner");
 
-        await db.execute(
-          `UPDATE DownloadList
+        try {
+          await db.execute(
+            `UPDATE DownloadList
        SET failed = false,
            isPaused = false,
            active = true,
+           completed = false,
            tracking_message = $1
        WHERE unique_id = $2`,
-          [data.toString().trim(), uniqueId]
-        );
-        setDownloadsArr(
-          await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
-        );
+            [data.toString().trim(), uniqueId]
+          );
+        } catch (error) {
+          // console.log("Error while updating download list:", error);
+        } finally {
+          setDownloadsArr(
+            await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+          );
+          errorHappened = false;
+          isPaused = false;
+        }
+
+        const videoToPause = useUserInputVideoStore.getState().videoToPause;
+        if (videoToPause === uniqueId) {
+          isPaused = true;
+          errorHappened = false;
+          // console.log("Pausing download for id:", uniqueId);
+          useUserInputVideoStore.getState().setVideoToPause(null);
+          try {
+            await db.execute(
+              `UPDATE DownloadList 
+              SET active = false,
+              isPaused = true,
+              completed = false,
+              tracking_message = "Paused by user"
+              WHERE unique_id = $1`,
+              [uniqueId]
+            );
+          } catch (e) {
+            // console.log(e);
+          } finally {
+            setDownloadsArr(
+              await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+            );
+            // console.log(
+            //   "At Paused stage :",
+            //   "Paused :",
+            //   isPaused,
+            //   "Error occurred : ",
+            //   errorHappened
+            // );
+            //  console.log(
+            //    await db.select(
+            //      "SELECT * FROM DownloadList where unique_id=$1",
+            //      [uniqueId]
+            //    )
+            //  );
+            await childDataProcess.kill();
+          }
+        }
 
         // console.log("Called even after listner gone");
       };
 
-      bestVideoDownloadCommand.stdout.on("data", dataHandler);
+      coreDownloadCommand.stdout.on("data", dataHandler);
 
       //   Command error
 
-      bestVideoDownloadCommand.stderr.on("data", errorHandler);
+      coreDownloadCommand.stderr.on("data", errorHandler);
 
-      bestVideoDownloadCommand.on("close", async () => {
-        // console.log("Command closed : -> ", data);
+      coreDownloadCommand.on("close", async () => {
+                      console.log(
+                        "At Close stage :",
+                        isPaused,
+                        errorHappened
+                      );
 
-        //    await db.execute(
-        //     `UPDATE DownloadList
-        //  SET failed = true,
-        //        active = true,
-        //       isPaused = true,
-        //      tracking_message = $1
-        //  WHERE unique_id = $2`,
-        //     [data.toString().trim(), uniqueId]
-        //   );
-
-        const result: failStatusObject[] = await db.select(
-          "SELECT failed FROM DownloadList WHERE unique_id = $1",
-          [uniqueId]
-        );
-        // console.log(result);
-
-        const failedStatus = (await result[0]["failed"]) as pauseStatus;
-        // console.log(failedStatus);
-        let parsedFailedStatus = await parseBoolean(failedStatus);
-        // console.log(pActive);
-        if (parsedFailedStatus) {
-          try {
-            await db.execute(
-              `UPDATE DownloadList
-       SET  active = false,
-            isPaused = false,
-           tracking_message = "falseFoundTrue",
-           completed = true
-       WHERE unique_id = $1`,
-              [uniqueId]
-            );
-            //setting tracking_message as "falseFoundTrue" string d and based on this, show or hide message box..😑
-          } catch (error) {
-            // console.log("Error is if", error);
-          }
-
-          await setDownloadsArr(
+        
+        try {
+          if (!(isPaused || errorHappened)) {
+            try {
+              console.log("At NoPause,NoError stage :", isPaused, errorHappened);
+              await db.execute(
+                `UPDATE DownloadList
+           SET failed = false,
+                 active = false,
+                isPaused = false,
+                completed = true,
+               tracking_message = $1
+           WHERE unique_id = $2`,
+                ["Download completed successfully!", uniqueId]
+              );
+            } catch (error) {
+              //  console.log("Error while updating download list:", error);
+            } finally {
+              setDownloadsArr(
+                await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+              );
+            }
+          } else if (isPaused) {
+            console.log("At Paused stage on close :", isPaused, errorHappened);
+            try {
+              await db.execute(
+                `UPDATE DownloadList
+           SET failed = false,
+                 active = false,
+                isPaused = true,
+                completed = false,
+               tracking_message = $1
+           WHERE unique_id = $2`,
+                ["Download paused by user", uniqueId]
+              );
+            } catch (error) {
+              // console.log("Error while updating download list:", error);
+            } finally {
+              setDownloadsArr(
+                await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+              );
+            }
+          } else if (errorHappened) {
+            console.log("At Error stage on close :", isPaused, errorHappened);
+             try {
+               await db.execute(
+                 `UPDATE DownloadList
+           SET failed = true,
+                 active = false,
+                isPaused = false,
+                completed = false,
+               tracking_message = $1
+           WHERE unique_id = $2`,
+                 ["Download failed", uniqueId]
+               );
+             } catch (error) {
+               // console.log("Error while updating download list:", error);
+             } finally {
+               setDownloadsArr(
+                 await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+               );
+             }
+           }
+        } catch (error) {
+          // console.log("Error while updating download list on close:", error);
+        } finally {
+          setDownloadsArr(
             await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
           );
-        } else {
-          try {
-            await db.execute(
-              `UPDATE DownloadList
-       SET  active = false,
-            isPaused = false,
-            completed = true,
-           tracking_message = "falseFoundTrue"
-       WHERE unique_id = $1`,
-              [uniqueId]
-            );
-
-            //setting tracking_message as "falseFoundTrue" string d and based on this, show or hide message box..😑
-          } catch (err) {
-            // console.log("Error is else", err);
-          }
-
-          await setDownloadsArr(
+          console.log(
             await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
           );
         }
+
+        
       });
-      bestVideoDownloadCommand.on("error", () => {
+
+      coreDownloadCommand.on("error", () => {
         // console.log("Command Error : ---> ", data);
+        addToast({
+          title: "Command Failed",
+          description: "Make sure yt-dlp is installed and added to PATH",
+          color: "warning",
+          timeout: 2000,
+        });
       });
     } catch (e) {
     } finally {

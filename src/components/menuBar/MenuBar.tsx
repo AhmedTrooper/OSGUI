@@ -68,7 +68,7 @@ export default function MenuBar() {
       );
       await getCurrentWindow().close();
     } catch (e) {
-      console.log(e);
+      // console.log(e);
     }
   };
 

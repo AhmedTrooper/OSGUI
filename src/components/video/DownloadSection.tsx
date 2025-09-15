@@ -90,11 +90,11 @@ export default function DownloadSection() {
                 </h1>
               )}
 
-              {!parseBoolean(video.failed) && parseBoolean(video.completed) && (
+              { parseBoolean(video.completed) && (
                 <ShieldCheck className={clsx("text-green-600 m-2", {})} />
               )}
 
-              {parseBoolean(video.failed) && parseBoolean(video.completed) && (
+              {parseBoolean(video.failed)  && (
                 <BadgeX className={clsx("text-red-600 m-2", {})} />
               )}
 
@@ -103,7 +103,7 @@ export default function DownloadSection() {
               )}
 
               {parseBoolean(video.isPaused) &&
-                !parseBoolean(video.completed) && (
+                 (
                   <Play className="m-2 cursor-pointer" />
                 )}
               <div className=" gap-6 w-fit p-1 items-center justify-items-end justify-center justify-self-center self-center grid grid-cols-3">
