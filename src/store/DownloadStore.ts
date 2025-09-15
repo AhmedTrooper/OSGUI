@@ -22,6 +22,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
   selectedVideoStream: null,
   setSelectedVideoStream: (format: string | null) =>
     set({ selectedVideoStream: format }),
+
   downloadHandler: async (
     formatString: string,
     videoUrl: string,
@@ -103,10 +104,9 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       // Data catching on spawn
 
       const errorHandler = async () => {
-       
-      //dummy use to avoid lint error
-         isPaused = false;
-         errorHappened = true;
+        //dummy use to avoid lint error
+        isPaused = false;
+        errorHappened = true;
         // console.log("Error while downloading:", data);
         // console.log("Stream count at Error handler stage :", streamCount);
         try {
@@ -185,7 +185,6 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
 
         const videoToPause = useUserInputVideoStore.getState().videoToPause;
         if (videoToPause === uniqueId) {
-
           isPaused = true;
           errorHappened = false;
           // console.log("Pausing download for id:", uniqueId);
@@ -328,9 +327,10 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
           timeout: 2000,
         });
       });
+
+
     } catch (e) {
-    } finally {
-      // console.log("Command is finished!");
+    
     }
   },
   videoStreamSelect: (vst: string) => {
