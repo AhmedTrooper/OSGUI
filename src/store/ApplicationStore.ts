@@ -70,7 +70,7 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
     } catch (error) {
       addToast({
         title: "Application Version fetching Error!",
-        description: error as string,
+        description: error instanceof Error ? error.message : String(error),
         color: "danger",
         timeout: 1000,
       });
@@ -104,7 +104,7 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
     } catch (error) {
       addToast({
         title: "Yt-dlp check failed",
-        description: error as string,
+        description: error instanceof Error ? error.message : String(error),
         color: "danger",
         timeout: 1000,
       });

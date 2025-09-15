@@ -94,7 +94,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
       );
 
-      let streamCount = 0;
+      // let streamCount = 0;
       /*A counter to track check if event occurs even after child is killed at paused stage
       Result : yes as kill is promiss based and the event loop still has the listeners 
       active until promises are resolved.
@@ -102,7 +102,9 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
 
       // Data catching on spawn
 
-      const errorHandler = async (data: string) => {
+      const errorHandler = async () => {
+       
+      //dummy use to avoid lint error
          isPaused = false;
          errorHappened = true;
         // console.log("Error while downloading:", data);
@@ -126,6 +128,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
           );
           isPaused = false;
           errorHappened = true;
+          //  await childDataProcess.kill();
           // console.log(
           //   "At Error stage :",
           //   "Paused :",
