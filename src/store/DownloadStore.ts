@@ -94,19 +94,17 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
       );
 
+      let streamCount = 0;
+      /*A counter to track check if event occurs even after child is killed at paused stage
+      Result : yes as kill is promiss based and the event loop still has the listeners 
+      active until promises are resolved.
+      */
+
       // Data catching on spawn
 
       const errorHandler = async (data: string) => {
         // console.log("Error while downloading:", data);
-        errorHappened = true;
-        isPaused = false;
-        console.log(
-          "At Error stage :",
-          "Paused :",
-          isPaused,
-          "Error occurred :",
-          errorHappened
-        );
+        // console.log("Stream count at Error handler stage :", streamCount);
         try {
           await db.execute(
             `UPDATE DownloadList
@@ -124,6 +122,8 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
           setDownloadsArr(
             await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
           );
+          isPaused = false;
+          errorHappened = true;
           console.log(
             "At Error stage :",
             "Paused :",
@@ -135,7 +135,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       };
 
       const dataHandler = async (data: string) => {
-        
+        // console.log("Stream count at data handler stage :", ++streamCount);
 
         // console.log(videoToPause, uniqueId, videoToPause === uniqueId);
         // console.log(
@@ -174,10 +174,11 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
 
         const videoToPause = useUserInputVideoStore.getState().videoToPause;
         if (videoToPause === uniqueId) {
+
           isPaused = true;
           errorHappened = false;
           // console.log("Pausing download for id:", uniqueId);
-          useUserInputVideoStore.getState().setVideoToPause(null);
+          // useUserInputVideoStore.getState().setVideoToPause(null); //as child.kill() is async,new event are still coming,so id being not null can be used to identify the video to be paused!
           try {
             await db.execute(
               `UPDATE DownloadList 
@@ -207,7 +208,12 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
             //      [uniqueId]
             //    )
             //  );
+            // console.log(
+            //   "Stream count at data handler pause stage :",
+            //   streamCount
+            // );
             await childDataProcess.kill();
+            // Return keyword did not work to stop stream as data  stream was active in yt-dlp...
           }
         }
 
@@ -221,17 +227,17 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       coreDownloadCommand.stderr.on("data", errorHandler);
 
       coreDownloadCommand.on("close", async () => {
-                      console.log(
-                        "At Close stage :",
-                        isPaused,
-                        errorHappened
-                      );
+        console.log("At Close stage :", isPaused, errorHappened);
+        console.log("Stream count at command close stage :", streamCount);
 
-        
         try {
           if (!(isPaused || errorHappened)) {
             try {
-              console.log("At NoPause,NoError stage :", isPaused, errorHappened);
+              console.log(
+                "At NoPause,NoError stage :",
+                isPaused,
+                errorHappened
+              );
               await db.execute(
                 `UPDATE DownloadList
            SET failed = false,
@@ -271,25 +277,25 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
             }
           } else if (errorHappened) {
             console.log("At Error stage on close :", isPaused, errorHappened);
-             try {
-               await db.execute(
-                 `UPDATE DownloadList
+            try {
+              await db.execute(
+                `UPDATE DownloadList
            SET failed = true,
                  active = false,
                 isPaused = false,
                 completed = false,
                tracking_message = $1
            WHERE unique_id = $2`,
-                 ["Download failed", uniqueId]
-               );
-             } catch (error) {
-               // console.log("Error while updating download list:", error);
-             } finally {
-               setDownloadsArr(
-                 await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
-               );
-             }
-           }
+                ["Download failed", uniqueId]
+              );
+            } catch (error) {
+              // console.log("Error while updating download list:", error);
+            } finally {
+              setDownloadsArr(
+                await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+              );
+            }
+          }
         } catch (error) {
           // console.log("Error while updating download list on close:", error);
         } finally {
@@ -300,8 +306,6 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
             await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
           );
         }
-
-        
       });
 
       coreDownloadCommand.on("error", () => {
