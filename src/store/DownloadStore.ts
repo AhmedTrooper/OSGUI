@@ -103,6 +103,8 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       // Data catching on spawn
 
       const errorHandler = async (data: string) => {
+         isPaused = false;
+         errorHappened = true;
         // console.log("Error while downloading:", data);
         // console.log("Stream count at Error handler stage :", streamCount);
         try {
@@ -114,7 +116,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
             completed = false,
            tracking_message = $1
        WHERE unique_id = $2`,
-            [data.toString().trim(), uniqueId]
+            ["Error occurred!", uniqueId]
           );
         } catch (error) {
           // console.log("Error while updating download list:", error);
@@ -124,15 +126,21 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
           );
           isPaused = false;
           errorHappened = true;
-          console.log(
-            "At Error stage :",
-            "Paused :",
-            isPaused,
-            "Error occurred :",
-            errorHappened
-          );
+          // console.log(
+          //   "At Error stage :",
+          //   "Paused :",
+          //   isPaused,
+          //   "Error occurred :",
+          //   errorHappened
+          // );
         }
       };
+
+      /*
+      New feature unlocked!
+      1.if the internet is gone during download,the data event keeps running,
+      so file download is not paused!
+      */
 
       const dataHandler = async (data: string) => {
         // console.log("Stream count at data handler stage :", ++streamCount);
@@ -227,17 +235,17 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       coreDownloadCommand.stderr.on("data", errorHandler);
 
       coreDownloadCommand.on("close", async () => {
-        console.log("At Close stage :", isPaused, errorHappened);
-        console.log("Stream count at command close stage :", streamCount);
+        // console.log("At Close stage :", "Pause :",isPaused,"Error :", errorHappened);
+        // console.log("Stream count at command close stage :", streamCount);
 
         try {
           if (!(isPaused || errorHappened)) {
             try {
-              console.log(
-                "At NoPause,NoError stage :",
-                isPaused,
-                errorHappened
-              );
+              // console.log(
+              //   "At NoPause,NoError stage :",
+              //   isPaused,
+              //   errorHappened
+              // );
               await db.execute(
                 `UPDATE DownloadList
            SET failed = false,
@@ -256,7 +264,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
               );
             }
           } else if (isPaused) {
-            console.log("At Paused stage on close :", isPaused, errorHappened);
+            // console.log("At Paused stage on close :", isPaused, errorHappened);
             try {
               await db.execute(
                 `UPDATE DownloadList
@@ -276,7 +284,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
               );
             }
           } else if (errorHappened) {
-            console.log("At Error stage on close :", isPaused, errorHappened);
+            // console.log("At Error stage on close :", isPaused, errorHappened);
             try {
               await db.execute(
                 `UPDATE DownloadList
@@ -302,9 +310,9 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
           setDownloadsArr(
             await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
           );
-          console.log(
-            await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
-          );
+          // console.log(
+          //   await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+          // );
         }
       });
 
