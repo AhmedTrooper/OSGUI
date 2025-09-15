@@ -53,12 +53,12 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       });
     } catch (error) {
       // console.log("Supabase insert error", error);
-      addToast({
-        title: "Supabase insert error",
-        description: "Error on inserting data to Supabase",
-        color: "danger",
-        timeout: 2000,
-      });
+      // addToast({
+      //   title: "Supabase insert error",
+      //   description: "Error on inserting data to Supabase",
+      //   color: "danger",
+      //   timeout: 2000,
+      // });
     }
   },
   createOrLoadDatabase: async () => {
