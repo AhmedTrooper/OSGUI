@@ -36,6 +36,10 @@
           "name": "ytDlp",
           "cmd": "yt-dlp",
           "args": true
+        },{
+          "name": "aria2c",
+          "cmd": "aria2c",
+          "args": true
         }
       ]
     },
@@ -45,6 +49,10 @@
         {
           "name": "ytDlp",
           "cmd": "yt-dlp",
+          "args": true
+        },{
+          "name": "aria2c",
+          "cmd": "aria2c",
           "args": true
         }
       ]

@@ -62,9 +62,35 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         `${videoUrl}`,
       ]);
 
+      // const ytdlpWithAria2 = Command.create("ytDlp", [
+      //   "--external-downloader",
+      //   "aria2c",
+      //   "--external-downloader-args",
+      //   "-x 16 -s 16 -k 1M",
+      //   "-o",
+      //   `${downloadDirectory}/OSGUI/%(title)s${formatString}.%(ext)s`,
+      //   `${videoUrl}`,
+      // ]);
+
+      // // aria2 for direct file download
+      // const onlyAria2 = Command.create("aria2c", [
+      //   "-x",
+      //   "16",
+      //   "-s",
+      //   "16",
+      //   "-k",
+      //   "1M",
+      //   "-d",
+      //   `${downloadDirectory}/OSGUI`,
+      //   `${videoUrl}`,
+      // ]);
+
       if (directURL) {
         coreDownloadCommand = directFileDownloadCommand;
       }
+      // coreDownloadCommand = ytdlpWithAria2;
+      // coreDownloadCommand = onlyAria2;
+
       const childDataProcess = await coreDownloadCommand.spawn();
 
       await db.execute(
@@ -212,12 +238,12 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
             //   "Error occurred : ",
             //   errorHappened
             // );
-            //  console.log(
-            //    await db.select(
-            //      "SELECT * FROM DownloadList where unique_id=$1",
-            //      [uniqueId]
-            //    )
-            //  );
+            // console.log(
+            //   await db.select("SELECT * FROM DownloadList where unique_id=$1", [
+            //     uniqueId,
+            //   ])
+            // );
+
             // console.log(
             //   "Stream count at data handler pause stage :",
             //   streamCount
@@ -237,7 +263,13 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
       coreDownloadCommand.stderr.on("data", errorHandler);
 
       coreDownloadCommand.on("close", async () => {
-        // console.log("At Close stage :", "Pause :",isPaused,"Error :", errorHappened);
+        // console.log(
+        //   "At Close stage :",
+        //   "Pause :",
+        //   isPaused,
+        //   "Error :",
+        //   errorHappened
+        // );
         // console.log("Stream count at command close stage :", streamCount);
 
         try {
@@ -259,7 +291,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
                 ["Download completed successfully!", uniqueId]
               );
             } catch (error) {
-              //  console.log("Error while updating download list:", error);
+              // console.log("Error while updating download list:", error);
             } finally {
               setDownloadsArr(
                 await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
@@ -327,11 +359,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
           timeout: 2000,
         });
       });
-
-
-    } catch (e) {
-    
-    }
+    } catch (e) {}
   },
   videoStreamSelect: (vst: string) => {
     const downloadStore = get();
