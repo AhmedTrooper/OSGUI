@@ -6,10 +6,11 @@ import useOsInfoStore from "./store/OsInfoStore";
 import useThemeStore from "./store/ThemeStore";
 import MenuBar from "./components/menuBar/MenuBar";
 import { Outlet } from "react-router-dom";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { AppError } from "./types/global";
 
 function App() {
   const dark = useThemeStore((state) => state.dark);
-  const setDark = useThemeStore((state) => state.setDark);
   const detectOS = useOsInfoStore((state) => state.detectMobileOS);
   const isMobileOS = useOsInfoStore((state) => state.isMobileOS);
   const checkedForApplicationUpdate = useApplicationstore(
@@ -30,9 +31,16 @@ function App() {
   );
   const databaseLoaded = useDatabaseStore((state) => state.databaseLoaded);
 
+  // Handle global errors
+  const handleError = (error: AppError) => {
+    console.error('Global error caught:', error);
+    // You could send this to an error reporting service
+    // or show a global error notification
+  };
+
   useEffect(() => {
     detectOS();
-  }, []);
+  }, [detectOS]);
 
   useEffect(() => {
     const handleContextMenu = (event: MouseEvent) => {
@@ -51,11 +59,11 @@ function App() {
       createOrLoadDatabase();
       setDatabaseLoaded(true);
     }
-  }, [databaseLoaded]);
+  }, [databaseLoaded, createOrLoadDatabase, setDatabaseLoaded]);
 
   useEffect(() => {
     setThemeData();
-  }, [setDark]);
+  }, [setThemeData]);
 
   useEffect(() => {
     if (dark) {
@@ -69,19 +77,27 @@ function App() {
 
   useEffect(() => {
     if (!checkedForApplicationUpdate) fetchAppVersion();
-  }, []);
+  }, [checkedForApplicationUpdate, fetchAppVersion]);
 
   useEffect(() => {
     supabaseQueryInsert();
-  }, []);
+  }, [supabaseQueryInsert]);
 
   return (
-    <div className="flex flex-col select-none max-h-[100vh]  bg-white text-black dark:bg-zinc-900 dark:text-white transition-colors pt-10 overflow-auto custom-scrollbar">
-      {!isMobileOS && <MenuBar />}
-      <main className="flex-1">
-        <Outlet />
-      </main>
-    </div>
+    <ErrorBoundary onError={handleError}>
+      <div className="flex flex-col select-none max-h-[100vh] bg-white text-black dark:bg-zinc-900 dark:text-white transition-colors pt-10 overflow-auto custom-scrollbar">
+        {!isMobileOS && (
+          <ErrorBoundary>
+            <MenuBar />
+          </ErrorBoundary>
+        )}
+        <main className="flex-1">
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
+        </main>
+      </div>
+    </ErrorBoundary>
   );
 }
 

@@ -200,7 +200,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
 
       // return null;
     },
-    readHeavyPlaylistJsonFile: async () => {
+    readHeavyPlaylistJsonFile: async (): Promise<null | undefined> => {
       const heavyPlaylistStore = get();
       const setHeavyPlaylistInformation =
         heavyPlaylistStore.setHeavyPlaylistInformation;
@@ -299,6 +299,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
       }
 
       // console.log("Reached 29");
+      return null;
     },
     heavyPlaylistInformation: null,
     setHeavyPlaylistInformation: (

@@ -2,9 +2,9 @@
 
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -14,16 +14,48 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Strict Type Checking */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
 
+    /* Advanced Options */
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "declaration": false,
+    "removeComments": false,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+
+    /* Module Resolution */
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["*"]
-    }
+      "@/*": ["*"],
+      "@/components/*": ["components/*"],
+      "@/store/*": ["store/*"],
+      "@/interfaces/*": ["interfaces/*"],
+      "@/lib/*": ["lib/*"],
+      "@/routes/*": ["routes/*"],
+      "@/ui/*": ["ui/*"],
+      "@/assets/*": ["assets/*"],
+      "@/utils/*": ["utils/*"],
+      "@/hooks/*": ["hooks/*"],
+      "@/types/*": ["types/*"]
+    },
+
+    /* Experimental */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
-  "include": ["src"],
+  "include": ["src", "tailwind.config.js", "postcss.config.js"],
+  "exclude": ["dist", "build", "node_modules", "src-tauri"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
