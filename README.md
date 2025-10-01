@@ -1,169 +1,164 @@
-# 🚀 YT-DLP GUI - Enterprise-Grade Desktop Application
+# 🎆 YT-DLP GUI - Professional Desktop Application
 
-> **Modern, scalable, and performant desktop application** built with cutting-edge technologies and enterprise-level architectural patterns.
+A comprehensive desktop GUI for `yt-dlp` built with modern web technologies and robust architecture patterns. Features advanced playlist management, format selection, download tracking, and database persistence.
 
-A sophisticated cross-platform desktop GUI for `yt-dlp` featuring advanced state management, comprehensive error handling, performance monitoring, and robust TypeScript architecture. Built with [Tauri v2](https://tauri.app/), [React 18](https://react.dev/), [Zustand](https://github.com/pmndrs/zustand), and [HeroUI](https://www.heroui.com/).
+**Tech Stack:** [Tauri v2](https://tauri.app/) + [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) + [Zustand](https://github.com/pmndrs/zustand) + [HeroUI](https://www.heroui.com/) + [SQLite](https://www.sqlite.org/)
 
-## 🏗️ Architecture & Engineering Excellence
+## 🚀 Key Features
 
-### **Advanced State Management Architecture**
-- **Modular Zustand Stores** with middleware patterns (logging, performance monitoring, error handling)
-- **Type-safe Store Utilities** with async action wrappers, debouncing, and throttling
-- **Computed State Management** with intelligent caching mechanisms
-- **Persistent State** with automatic serialization/deserialization and migration strategies
+### **Video & Playlist Management**
+- **Individual Video Downloads** with format selection and quality options
+- **Complete Playlist Processing** with batch download capabilities  
+- **Selective Playlist Downloads** - choose specific videos from playlists
+- **Real-time Download Tracking** with progress monitoring and status updates
+- **Pause/Resume Functionality** for active downloads
 
-### **Enterprise-Level Error Handling**
-- **Comprehensive Error Boundary System** with recovery strategies and detailed error reporting
-- **Structured Error Types** with severity levels, error codes, and contextual metadata
-- **Graceful Degradation** with fallback UI components and retry mechanisms
-- **Production Error Tracking** with automatic error reporting and performance metrics
+### **Advanced Format Selection**
+- **Intelligent Format Detection** with video/audio stream separation
+- **Quality-based Downloads** (Best, 4K, 2K, 1080p, 720p, Audio-only)
+- **Custom Format Selection** with manual video+audio stream combination
+- **Format Filtering** with media/non-media view options
 
-### **Performance Optimization**
-- **Advanced Bundle Splitting** with manual chunk optimization for vendor libraries
-- **Lazy Loading Components** with intersection observers and code splitting
-- **Performance Monitoring Hooks** with real-time metrics and bottleneck detection
-- **Memory Management** with proper cleanup patterns and ref management
+### **Data Management & Persistence**
+- **SQLite Database Integration** for download history and tracking
+- **Download Queue Management** with database-backed persistence  
+- **System Information Collection** with privacy-focused analytics
+- **Theme Persistence** with localStorage integration
 
-### **Type Safety & Developer Experience**
-- **Comprehensive TypeScript Configuration** with strict type checking and advanced compiler options
-- **Sophisticated Type Utilities** including conditional types, mapped types, and utility types
-- **Database Type Generation** with full Supabase integration and type-safe queries
-- **Custom Hook Library** with reusable patterns for async operations, local storage, and performance monitoring
+## �️ Technical Architecture
 
-## 🎯 Key Features
-
-### **Core Functionality**
-- **Multi-format Video/Audio Downloads** with intelligent format selection and quality optimization
-- **Advanced Playlist Support** with batch processing, progress tracking, and selective downloading
-- **Real-time Download Management** with pause/resume capabilities and concurrent download handling
-- **Intelligent File Organization** with customizable directory structures and naming conventions
-
-### **User Experience**
-- **Adaptive UI Components** with dark/light theme support and responsive design
-- **Keyboard Shortcuts** with customizable hotkeys and accessibility features  
-- **Progress Visualization** with detailed statistics, transfer rates, and time estimates
-- **Smart Error Recovery** with automatic retry mechanisms and user-guided troubleshooting
-
-### **System Integration**
-- **Cross-platform Compatibility** (Windows, macOS, Linux) with native OS integration
-- **Background Processing** with system tray notifications and minimal resource usage
-- **Auto-update Mechanism** with version checking and seamless updates
-- **Analytics & Telemetry** with privacy-focused usage tracking and performance insights
-
-## �️ Technology Stack & Advanced Patterns
-
-### **Frontend Architecture**
+### **State Management with Zustand**
 ```typescript
-// Advanced State Management with Middleware
-const store = create<StoreInterface>()(
-  logger(
-    performanceMiddleware(
-      errorHandler(
-        persist(
-          (set, get) => ({
-            // Type-safe store implementation
-          }),
-          { name: 'app-storage', version: 2 }
-        )
-      )
-    )
-  )
-);
+// Modular store architecture with typed interfaces
+export const useUserInputVideoStore = create<UserInputVideoStoreInterface>((set, get) => ({
+  videoUrl: "",
+  downloadsArr: [],
+  videoInformation: null,
+  fetchVideoInformation: async () => {
+    // JSON extraction via yt-dlp commands
+    const videoCommand = Command.create("ytDlp", ["--dump-json", videoUrl.trim()]);
+    const playlistCommand = Command.create("ytDlp", [
+      "--flat-playlist", "--dump-single-json", "--yes-playlist", videoUrl.trim()
+    ]);
+  },
+}));
 ```
 
-| **Technology** | **Purpose** | **Advanced Usage** |
-|----------------|-------------|-------------------|
-| **React 18** | UI Framework | Concurrent rendering, Suspense boundaries, Error boundaries |
-| **TypeScript 5.6** | Type Safety | Advanced types, conditional types, template literals |
-| **Zustand** | State Management | Middleware composition, store slicing, computed selectors |
-| **Tauri v2** | Desktop Runtime | Rust backend, native APIs, secure command execution |
-| **Vite 6** | Build Tool | Advanced chunking, tree-shaking, development optimization |
-
-### **Backend & System Integration**
-```rust
-// Secure command execution with Tauri
-#[tauri::command]
-async fn download_video(url: String, options: DownloadOptions) -> Result<DownloadResult, String> {
-    // Implementation with proper error handling and security
-}
+### **Database Operations**
+```typescript
+// SQLite integration with Tauri
+await db.execute(`CREATE TABLE IF NOT EXISTS DownloadList (
+  id VARCHAR(255) PRIMARY KEY,
+  unique_id VARCHAR(255) NOT NULL,
+  active BOOLEAN DEFAULT false,
+  completed BOOLEAN DEFAULT false,
+  isPaused BOOLEAN DEFAULT false,
+  format_id VARCHAR(255) NOT NULL,
+  web_url VARCHAR(255),
+  title VARCHAR(255),
+  tracking_message TEXT,
+  playlistVerification TEXT
+);`);
 ```
 
-### **Database & Analytics**
-- **Supabase Integration** with type-safe queries and real-time subscriptions
-- **Local SQLite** with migration strategies and performance optimization  
-- **Usage Analytics** with privacy-focused telemetry and user insights
+### **Advanced Download System**
+```typescript
+// Download handler with command execution
+const coreDownloadCommand = Command.create("ytDlp", [
+  "-f", fileFormat,
+  "-o", `${downloadDirectory}/OSGUI/%(title)s.%(ext)s`,
+  videoUrl
+]);
+const childDataProcess = await coreDownloadCommand.spawn();
+```
 
-## 🖼️ Application Screenshots
+## 🖼️ Application Interface
 
-<details>
-<summary><b>🎨 UI Components & Features</b></summary>
-
-| **Main Interface** | **Playlist Management** | **Advanced Options** |
-|-------------------|------------------------|---------------------|
+| **Video Input & Search** | **Playlist Management** | **Format Selection** |
+|--------------------------|------------------------|---------------------|
 | ![Form](https://raw.githubusercontent.com/AhmedTrooper/OSGUI/main/resources_github/form001.png) | ![Playlist](https://raw.githubusercontent.com/AhmedTrooper/OSGUI/main/resources_github/pllist003.png) | ![Dropdown](https://raw.githubusercontent.com/AhmedTrooper/OSGUI/main/resources_github/slpdown.png) |
 
-| **Download Controls** | **Playlist Selection** | **System Architecture** |
-|----------------------|----------------------|------------------------|
+| **Download Controls** | **Selected Videos** | **System Architecture** |
+|----------------------|-------------------|------------------------|
 | ![Pause](https://raw.githubusercontent.com/AhmedTrooper/OSGUI/main/resources_github/pause.png) | ![Selected Playlist](https://raw.githubusercontent.com/AhmedTrooper/OSGUI/main/resources_github/selectedplaylist.png) | ![DFD01](https://raw.githubusercontent.com/AhmedTrooper/OSGUI/main/resources_github/dfd01.png) |
 
-| **Data Flow Architecture** |
-|---------------------------|
+| **Data Flow Diagram** |
+|----------------------|
 | ![DFD002](https://raw.githubusercontent.com/AhmedTrooper/OSGUI/main/resources_github/dfd002.png) |
 
-> 📁 Complete UI documentation and assets available in [`resources_github/`](https://github.com/AhmedTrooper/OSGUI/tree/main/resources_github)
+> 📁 Complete UI assets in [`resources_github/`](https://github.com/AhmedTrooper/OSGUI/tree/main/resources_github)
 
-</details>
+## 📦 Project Structure & Architecture
 
-## 📋 System Requirements & Dependencies
-
-### **Development Environment**
-```bash
-# Node.js & Package Manager
-node >= 18.0.0
-npm >= 9.0.0
-
-# Rust Toolchain
-rustc >= 1.70.0
-cargo >= 1.70.0
-
-# Platform-specific build tools
-# Windows: Visual Studio Build Tools
-# macOS: Xcode Command Line Tools
-# Linux: build-essential
+```
+OSGUI/
+├── src/
+│   ├── components/                 # React UI Components
+│   │   ├── menuBar/               # Navigation & input components
+│   │   │   ├── MenuBar.tsx        # Main navigation bar
+│   │   │   ├── PlaylistInputSection.tsx  # Playlist URL input
+│   │   │   └── DrawerComponent.tsx # Mobile drawer menu  
+│   │   ├── video/                 # Video-related components
+│   │   │   ├── DownloadSection.tsx    # Download queue display
+│   │   │   ├── FormatSection.tsx      # Format selection UI
+│   │   │   ├── UserInputSection.tsx   # Video URL input
+│   │   │   └── VideoContainer.tsx     # Main video container
+│   │   ├── playlist/              # Playlist management
+│   │   │   ├── HeavyPlaylistFormatSection.tsx    # Full playlist view
+│   │   │   ├── CompletePlaylistDownloadComponent.tsx  # Batch download
+│   │   │   └── SelectedPlaylistDownloadComponent.tsx  # Selective download
+│   │   └── ErrorBoundary.tsx      # Error handling component
+│   ├── store/                     # Zustand State Management  
+│   │   ├── UserInputVideoStore.ts     # Video input & information
+│   │   ├── HeavyPlaylistStore.ts      # Playlist operations
+│   │   ├── DownloadStore.ts           # Download management
+│   │   ├── DatabaseStore.ts           # SQLite operations
+│   │   ├── ApplicationStore.ts        # App lifecycle & updates
+│   │   ├── ThemeStore.ts              # Theme management
+│   │   └── UtilityStore.ts            # Helper functions
+│   ├── interfaces/                # TypeScript Definitions
+│   │   ├── video/                     # Video-related interfaces
+│   │   ├── playlist/                  # Playlist interfaces  
+│   │   ├── database/                  # Database schema
+│   │   └── application/               # App configuration
+│   ├── lib/                       # External Integrations
+│   │   └── SupabaseClient.ts          # Analytics client
+│   └── routes/                    # Application Routing
+│       ├── Home.tsx               # Main application view
+│       └── About.tsx              # About page
+├── src-tauri/                     # Rust Backend
+│   ├── src/
+│   │   ├── main.rs                # Tauri application entry
+│   │   └── lib.rs                 # Core Rust functionality  
+│   └── tauri.conf.json            # Tauri configuration
+└── Configuration Files
+    ├── package.json               # Dependencies & build scripts
+    ├── vite.config.ts             # Build configuration
+    ├── tsconfig.json              # TypeScript configuration
+    └── tailwind.config.js         # Styling configuration
 ```
 
-### **Runtime Dependencies**
-| **Tool** | **Version** | **Purpose** | **Installation** |
-|----------|-------------|-------------|------------------|
-| **yt-dlp** | Latest | Video/Audio extraction | `python -m pip install -U yt-dlp` |
-| **ffmpeg** | 4.0+ | Media processing | Platform-specific package managers |
-| **ffplay** | 4.0+ | Media playback | Included with ffmpeg |
-| **ffprobe** | 4.0+ | Media analysis | Included with ffmpeg |
+## � Installation & Development
 
-> ⚠️ **Critical:** `yt-dlp` must be accessible as `yt-dlp` in system PATH. Alternative names (`ytdlp`, `ytdlpx64`) are **not supported**.
-
-### **Verification Commands**
+### **Prerequisites**
 ```bash
-# Verify all dependencies
-yt-dlp --version    # Should show version (updated bi-weekly)
-ffmpeg -version     # Should show FFmpeg version and build info
-ffplay -version     # Should show FFplay version
-ffprobe -version    # Should show FFprobe version
+# Required runtime dependencies
+yt-dlp --version    # Video extraction tool
+ffmpeg -version     # Media processing (mandatory)
+ffplay -version     # Media playback  
+ffprobe -version    # Media analysis
 
-# Optional: Verify Rust/Node environment
-rustc --version && cargo --version
-node --version && npm --version
+# Development environment  
+node --version      # Node.js 18+
+npm --version       # npm 9+
+rustc --version     # Rust toolchain
 ```
 
-## � Quick Start & Development
-
-### **Installation & Setup**
+### **Setup & Build**
 ```bash
-# Clone the repository
+# Clone and install dependencies
 git clone https://github.com/AhmedTrooper/OSGUI.git
 cd OSGUI
-
-# Install dependencies
 npm install
 
 # Development mode with hot reload
@@ -171,242 +166,138 @@ npm run tauri:dev
 
 # Production build
 npm run tauri:build
+
+# Additional development commands
+npm run dev          # Frontend only
+npm run build        # Build frontend
+npm run type-check   # TypeScript validation
 ```
 
-### **Advanced Development Commands**
+## 🧩 System Requirements
+
+| **Component** | **Requirement** | **Purpose** |
+|---------------|----------------|-------------|
+| **yt-dlp** | Latest version | Video/audio extraction from URLs |
+| **ffmpeg** | 4.0+ | Media processing, format conversion |
+| **ffplay** | Included with ffmpeg | Media playback capabilities |
+| **ffprobe** | Included with ffmpeg | Media file analysis |
+
+> ⚠️ **Critical:** `yt-dlp` must be accessible as `yt-dlp` command in system PATH  
+> 🔄 **Update Frequency:** yt-dlp releases bi-weekly - keep updated for site compatibility
+
+### **Installation Methods**
 ```bash
-# Development with debugging
-npm run dev:debug
+# yt-dlp installation options
+python -m pip install -U yt-dlp                    # Python/pip
+# OR download standalone binary from releases page
 
-# Type checking
-npm run type-check
-
-# Linting & formatting
-npm run lint:fix && npm run format
-
-# Testing suite
-npm run test:coverage
-
-# Bundle analysis
-npm run build:analyze
-
-# Dependency updates
-npm run deps:update
+# FFmpeg installation (platform-specific)
+# Windows: Download from https://ffmpeg.org/
+# macOS: brew install ffmpeg  
+# Linux: apt install ffmpeg / yum install ffmpeg
 ```
 
-## 📁 Project Architecture & Structure
-
-```
-OSGUI/
-├── 🎯 Frontend (React + TypeScript)
-│   ├── src/
-│   │   ├── components/          # Reusable UI components
-│   │   │   ├── ErrorBoundary.tsx    # Advanced error handling
-│   │   │   ├── menuBar/             # Navigation components
-│   │   │   ├── playlist/            # Playlist management
-│   │   │   └── video/               # Video download components
-│   │   ├── hooks/               # Custom React hooks
-│   │   │   └── index.ts             # Performance, async, validation hooks
-│   │   ├── store/               # Zustand state management
-│   │   │   ├── ApplicationStore.ts  # App lifecycle & updates
-│   │   │   ├── DatabaseStore.ts     # Data persistence
-│   │   │   ├── ThemeStore.ts        # UI theme management
-│   │   │   └── utils.ts             # Store utilities & middleware
-│   │   ├── interfaces/          # TypeScript interface definitions
-│   │   │   ├── application/         # Core app interfaces
-│   │   │   ├── database/            # Data model interfaces
-│   │   │   └── video/               # Video-related interfaces
-│   │   ├── lib/                 # External service integrations
-│   │   │   └── SupabaseClient.ts    # Database client with retry logic
-│   │   ├── types/               # Global type definitions
-│   │   │   └── global.ts            # Advanced TypeScript utilities
-│   │   └── routes/              # Application routing
-├── ⚙️ Backend (Tauri + Rust)
-│   └── src-tauri/
-│       ├── src/
-│       │   ├── main.rs              # Application entry point
-│       │   └── lib.rs               # Core Rust functionality
-│       ├── capabilities/            # Security permissions
-│       └── tauri.conf.json         # App configuration
-├── 🔧 Configuration & Tooling
-│   ├── vite.config.ts              # Advanced Vite configuration
-│   ├── tsconfig.json               # Strict TypeScript settings
-│   ├── tailwind.config.js          # UI framework configuration
-│   └── package.json                # Dependencies & scripts
-└── 📚 Documentation & Assets
-    ├── resources_github/           # UI screenshots & documentation
-    └── README.md                   # This file
-```
-
-## 🧠 Advanced Development Patterns
-
-### **Type-Safe State Management**
-```typescript
-// Sophisticated store composition with middleware
-export const useVideoStore = create<VideoStoreInterface>()(
-  logger(
-    performanceMiddleware(
-      persist(
-        (set, get) => ({
-          // Async actions with automatic error handling
-          downloadVideo: createAsyncAction(
-            async (url: string, options: DownloadOptions) => {
-              return await videoService.download(url, options);
-            },
-            get().setLoading,
-            get().setError,
-            get().updateLastUpdated
-          ),
-          // Computed selectors with intelligent caching
-          filteredDownloads: createComputed(
-            [state => state.downloads, state => state.filters],
-            (state) => applyFilters(state.downloads, state.filters)
-          ),
-        }),
-        { name: 'video-store', version: 1 }
-      ),
-      'VideoStore'
-    )
-  )
-);
-```
-
-### **Error Boundary Architecture**
-```typescript
-// Multi-level error recovery with contextual fallbacks
-<ErrorBoundary
-  onError={(error) => errorTrackingService.report(error)}
-  fallback={<GracefulErrorUI />}
->
-  <Suspense fallback={<SkeletonLoader />}>
-    <LazyComponent />
-  </Suspense>
-</ErrorBoundary>
-```
-
-### **Performance Optimization Patterns**
-```typescript
-// Custom hooks for performance monitoring
-const { measureAsync } = usePerformanceMonitor('video-processing', 100);
-
-const processVideo = useCallback(async (file: File) => {
-  return await measureAsync(async () => {
-    // CPU-intensive video processing
-    return await videoProcessor.process(file);
-  });
-}, [measureAsync]);
-```
-
-### **Database Integration Patterns**
-```typescript
-// Type-safe database operations with automatic retries
-export const DatabaseService = {
-  async insertDownload(download: DownloadEntry): Promise<DownloadEntry | null> {
-    return await withRetry(async () => {
-      const { data, error } = await supabase
-        .from('downloads')
-        .insert(download)
-        .select()
-        .single();
-      
-      if (error) throw new DatabaseError(error.message);
-      return data;
-    }, 3, 1000);
-  }
-};
-```
-
-## 🔒 Security & Privacy
-
-### **Data Protection**
-- **Local-first Architecture** - All sensitive data stored locally by default
-- **Secure Command Execution** - Tauri's secure API for system command execution
-- **Privacy-focused Analytics** - Optional, anonymized usage statistics
-- **Content Security Policy** - Strict CSP headers for XSS protection
-
-### **Security Measures**
-- **Input Validation** - Comprehensive URL and file path sanitization  
-- **Process Isolation** - Separate processes for media processing operations
-- **Permission Management** - Granular system permission controls
-- **Secure Updates** - Cryptographically signed application updates
-
-## 🎯 Performance & Scalability
-
-### **Optimization Strategies**
-- **Bundle Splitting** - Intelligent code splitting for faster load times
-- **Lazy Loading** - Component-level code splitting and route-based loading
-- **Memory Management** - Proper cleanup patterns and memory leak prevention
-- **Caching Strategies** - Multi-level caching for UI state and API responses
-
-### **Scalability Features**
-- **Concurrent Downloads** - Parallel processing with configurable limits
-- **Background Processing** - Non-blocking UI with worker thread utilization
-- **Resource Management** - Dynamic resource allocation and cleanup
-- **Modular Architecture** - Loosely coupled components for easy extension
-
-## 🤝 Contributing & Development Guidelines
-
-### **Code Quality Standards**
+### **Verification Commands**
 ```bash
-# Pre-commit hooks ensure code quality
-git add .
-git commit -m "feat: add new feature"
-# Automatically runs: lint, format, type-check, tests
+yt-dlp --version    # Should display current version
+ffmpeg             # Should show help/usage info
+ffplay             # Should show help/usage info  
+ffprobe            # Should show help/usage info
 ```
 
-### **Development Workflow**
-1. **Feature Branches** - Create feature branches from `main`
-2. **Type Safety** - All code must pass TypeScript strict mode
-3. **Testing** - Unit tests required for new functionality  
-4. **Performance** - Performance impact assessment for major changes
-5. **Documentation** - Update documentation for API changes
+## 🎯 Core Functionality
 
-### **Pull Request Requirements**
-- [ ] TypeScript compilation without errors
-- [ ] All tests passing (`npm run test`)
-- [ ] Code formatted (`npm run format`)
-- [ ] Performance impact documented
-- [ ] Security considerations addressed
+### **Video Processing Pipeline**
+1. **URL Input** → Video/Playlist detection via switch toggle
+2. **Information Extraction** → JSON metadata via yt-dlp commands
+3. **Format Analysis** → Audio/Video stream separation and quality detection
+4. **Download Management** → Queue-based processing with database tracking
+5. **Progress Monitoring** → Real-time status updates and completion tracking
 
-## 📊 Performance Metrics & Monitoring
+### **Playlist Management Features**  
+- **Light Playlist Search** - Fast metadata extraction for playlist overview
+- **Heavy Playlist Processing** - Detailed format information for each video
+- **Batch Operations** - Download entire playlists with quality selection
+- **Selective Downloads** - Choose specific videos from playlist entries
+- **Quality Presets** - Best, 4K, 2K, 1080p, 720p, Audio-only options
 
-### **Built-in Monitoring**
+### **Advanced Format Selection**
 ```typescript
-// Real-time performance tracking
-const metrics = {
-  bundleSize: '< 2MB (vendor chunks optimized)',
-  startupTime: '< 500ms (cold start)',
-  memoryUsage: '< 100MB (steady state)',
-  downloadSpeed: 'Network-limited with minimal overhead',
-};
+// Quality enumeration system
+export enum LightPlaylistVideoQuality {
+  BEST = "best",
+  MAX4K = "best[height<=2160]", 
+  MAX2K = "best[height<=1440]",
+  MAX1080P = "best[height<=1080]", 
+  MAX720P = "best[height<=720]",
+  AUDIOONLY = "bestaudio"
+}
 ```
 
-### **Development Tools Integration**
-- **Bundle Analyzer** - Visualize bundle composition and optimization opportunities
-- **Performance Profiler** - Built-in React DevTools and custom performance hooks  
-- **Error Tracking** - Comprehensive error reporting with stack traces
-- **Usage Analytics** - Privacy-focused telemetry for feature usage insights
+### **Database-Driven Download Management**
+- **SQLite Integration** - Local persistence for download history
+- **Download States** - Active, Completed, Failed, Paused tracking
+- **Queue Management** - Add, remove, restart download entries  
+- **Analytics Integration** - Optional Supabase telemetry collection
+- **Data Cleanup** - Bulk operations for download list management
 
-## 📜 License & Attribution
+## 🔧 Development Highlights
 
-**MIT License** - Open source with commercial usage permitted
+### **TypeScript Architecture**
+- **Comprehensive Interface Definitions** for all data structures
+- **Strict Type Checking** with advanced compiler options
+- **Generic Type Utilities** for flexible component patterns
+- **Enum-based Configuration** for quality and state management
 
-### **Acknowledgments**
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - Powerful video/audio downloader
-- [Tauri](https://tauri.app/) - Secure, fast, and lightweight desktop app framework  
-- [React](https://reactjs.org/) - Modern UI development framework
-- [Zustand](https://github.com/pmndrs/zustand) - Lightweight state management solution
+### **State Management Patterns**
+- **Modular Store Architecture** with separation of concerns
+- **Async Action Patterns** for API and command operations  
+- **Computed State Updates** with reactive data flow
+- **Persistence Layer** for theme and application state
+
+### **UI/UX Design**
+- **Responsive Component System** with HeroUI integration
+- **Dark/Light Theme Support** with localStorage persistence
+- **Interactive Download Cards** with progress indicators
+- **Contextual Action Buttons** for download management
+- **Toast Notification System** for user feedback
+
+### **System Integration**
+- **Secure Command Execution** via Tauri's shell plugin
+- **Cross-Platform Compatibility** (Windows, macOS, Linux)
+- **Native File System Access** for download directory management  
+- **Clipboard Integration** for URL input convenience
+- **OS Information Collection** for analytics and debugging
+
+## 📊 Technical Implementation
+
+### **Core Technologies**
+| **Frontend** | **Backend** | **Database** | **Build Tools** |
+|-------------|------------|-------------|---------------|
+| React 18 | Tauri v2 | SQLite | Vite 6 |
+| TypeScript 5.6 | Rust | Supabase | PostCSS |
+| Zustand | Native APIs | Local Storage | Tailwind CSS |
+| HeroUI | Shell Commands | IndexedDB | ESLint |
+
+### **Key Design Patterns**
+- **Command Pattern** - yt-dlp execution with structured commands
+- **Observer Pattern** - Reactive state management with Zustand
+- **Repository Pattern** - Database abstraction with type safety
+- **Factory Pattern** - Download command generation based on formats
+- **Singleton Pattern** - Database connections and client instances
 
 ---
 
 <div align="center">
 
-**Built with ❤️ by [AhmedTrooper](https://github.com/AhmedTrooper)**
+**Modern Desktop Application Development**  
+*Showcasing TypeScript, React, Tauri, and Database Integration*
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/AhmedTrooper/OSGUI)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-blue?style=for-the-badge&logo=typescript)](tsconfig.json)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?style=flat-square&logo=github)](https://github.com/AhmedTrooper/OSGUI)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react)](https://reactjs.org/)
+[![Tauri](https://img.shields.io/badge/Tauri-v2-ffc131?style=flat-square&logo=tauri)](https://tauri.app/)
 
-*Enterprise-grade desktop application showcasing modern development practices*
+**Built by [AhmedTrooper](https://github.com/AhmedTrooper)** • MIT License
 
 </div>
