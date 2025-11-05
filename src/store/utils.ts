@@ -1,9 +1,6 @@
-// Enhanced Zustand store utilities for better patterns and performance
-
 import { StateCreator } from 'zustand';
 import { StoreState, AppError, LoadingState } from '@/types/global';
 
-// Declare global types for dev tools
 declare global {
   interface Window {
     __REDUX_DEVTOOLS_EXTENSION__?: {
@@ -13,7 +10,6 @@ declare global {
   }
 }
 
-// Create a logger middleware for debugging in development
 export const logger = <T extends object>(
   f: StateCreator<T, [], [], T>,
   name?: string
@@ -24,23 +20,19 @@ export const logger = <T extends object>(
         console.group(`🏪 ${name || 'Store'} Update`);
         console.log('Previous State:', get());
       }
-      
       if (replace === true) {
         set(partial as T | ((state: T) => T), true);
       } else {
         set(partial, replace);
       }
-      
       if (import.meta.env.DEV) {
         console.log('New State:', get());
         console.groupEnd();
       }
     };
-
     return f(loggedSet, get, store);
   };
 
-// Performance middleware to track store update performance
 export const performanceMiddleware = <T extends object>(
   f: StateCreator<T, [], [], T>,
   name?: string
@@ -48,24 +40,19 @@ export const performanceMiddleware = <T extends object>(
   (set, get, store) => {
     const timedSet: typeof set = (partial, replace) => {
       const start = Date.now();
-      
       if (replace === true) {
         set(partial as T | ((state: T) => T), true);
       } else {
         set(partial, replace);
       }
-      
       const end = Date.now();
-      
       if (import.meta.env.DEV && end - start > 10) {
         console.warn(`⚡ Slow store update in ${name}: ${end - start}ms`);
       }
     };
-
     return f(timedSet, get, store);
   };
 
-// Error handling middleware
 export const errorHandler = <T extends object>(
   f: StateCreator<T, [], [], T>
 ): StateCreator<T, [], [], T> =>
@@ -79,21 +66,17 @@ export const errorHandler = <T extends object>(
         }
       } catch (error) {
         console.error('Store update error:', error);
-        // You could dispatch to a global error store here
       }
     };
-
     return f(safeSet, get, store);
   };
 
-// Base store state with common loading/error patterns
 export interface BaseStoreState extends StoreState {
   loading: LoadingState;
   error: AppError | null;
   lastUpdated: number;
 }
 
-// Base store actions
 export interface BaseStoreActions {
   setLoading: (loading: LoadingState) => void;
   setError: (error: AppError | null) => void;
@@ -101,7 +84,6 @@ export interface BaseStoreActions {
   reset: () => void;
 }
 
-// Create base store state creator
 export const createBaseStoreSlice = <T extends BaseStoreState & BaseStoreActions>(
   initialState: Omit<T, keyof BaseStoreActions>
 ): StateCreator<T, [], [], BaseStoreActions> => (set) => ({
@@ -116,7 +98,6 @@ export const createBaseStoreSlice = <T extends BaseStoreState & BaseStoreActions
   } as Partial<T>)),
 });
 
-// Async action wrapper with automatic loading states
 export const createAsyncAction = <TArgs extends unknown[], TReturn>(
   action: (...args: TArgs) => Promise<TReturn>,
   setLoading: (loading: LoadingState) => void,
@@ -127,15 +108,12 @@ export const createAsyncAction = <TArgs extends unknown[], TReturn>(
     try {
       setLoading('loading');
       setError(null);
-      
       const result = await action(...args);
-      
       setLoading('success');
       updateLastUpdated();
       return result;
     } catch (error) {
       console.error('Async action failed:', error);
-      
       const appError: AppError = {
         code: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
         message: error instanceof Error ? error.message : String(error),
@@ -143,7 +121,6 @@ export const createAsyncAction = <TArgs extends unknown[], TReturn>(
         recoverable: true,
         ...(error instanceof Error && error.stack && { stack: error.stack }),
       };
-      
       setError(appError);
       setLoading('error');
       return null;
@@ -151,7 +128,6 @@ export const createAsyncAction = <TArgs extends unknown[], TReturn>(
   };
 };
 
-// Debounce utility for store actions
 export const debounce = <T extends unknown[]>(
   func: (...args: T) => void,
   wait: number
@@ -163,7 +139,6 @@ export const debounce = <T extends unknown[]>(
   };
 };
 
-// Throttle utility for store actions
 export const throttle = <T extends unknown[]>(
   func: (...args: T) => void,
   limit: number
@@ -178,48 +153,38 @@ export const throttle = <T extends unknown[]>(
   };
 };
 
-// Store selector helpers
 export const createSelector = <T, R>(
   selector: (state: T) => R
 ) => selector;
 
-// Computed state helper
 export const createComputed = <T extends Record<string, unknown>, R>(
   dependencies: ((state: T) => unknown)[],
   compute: (state: T) => R
 ) => {
   const cache = new Map<string, R>();
-  
   return (state: T): R => {
     const depValues = dependencies.map(dep => dep(state));
     const cacheKey = JSON.stringify(depValues);
-    
     if (cache.has(cacheKey)) {
       return cache.get(cacheKey)!;
     }
-    
     const value = compute(state);
     cache.set(cacheKey, value);
-    
-    // Limit cache size
     if (cache.size > 100) {
       const firstKey = cache.keys().next().value;
       if (firstKey !== undefined) {
         cache.delete(firstKey);
       }
     }
-    
     return value;
   };
 };
 
-// Store persistence utility
 export const createPersistence = <T>(
   name: string,
   version = 1
 ) => {
   const key = `store_${name}_v${version}`;
-  
   return {
     getItem: (): T | null => {
       try {
@@ -230,7 +195,6 @@ export const createPersistence = <T>(
         return null;
       }
     },
-    
     setItem: (state: T): void => {
       try {
         localStorage.setItem(key, JSON.stringify(state));
@@ -238,14 +202,12 @@ export const createPersistence = <T>(
         console.error(`Failed to persist state for ${name}:`, error);
       }
     },
-    
     removeItem: (): void => {
       localStorage.removeItem(key);
     },
   };
 };
 
-// Store validation utility
 export const validateStoreData = <T>(
   data: unknown,
   validator: (data: unknown) => data is T
@@ -257,7 +219,6 @@ export const validateStoreData = <T>(
   return null;
 };
 
-// Type guards for store data validation
 export const isString = (value: unknown): value is string => 
   typeof value === 'string';
 
@@ -279,7 +240,6 @@ export const isArray = <T>(
   return value.every(itemValidator);
 };
 
-// Store dev tools integration
 export const createDevTools = (
   name: string,
   enabled = import.meta.env.DEV
@@ -287,21 +247,17 @@ export const createDevTools = (
   if (!enabled || typeof window === 'undefined' || !window.__REDUX_DEVTOOLS_EXTENSION__) {
     return null;
   }
-  
   return window.__REDUX_DEVTOOLS_EXTENSION__.connect({
     name,
     trace: true,
   });
 };
 
-// Global store registry for debugging
 export const storeRegistry = new Map<string, unknown>();
 
 export const registerStore = <T>(name: string, store: T): void => {
   if (import.meta.env.DEV) {
     storeRegistry.set(name, store);
-    
-    // Make stores globally accessible in development
     if (typeof window !== 'undefined') {
       window.__STORES__ = Object.fromEntries(storeRegistry);
     }

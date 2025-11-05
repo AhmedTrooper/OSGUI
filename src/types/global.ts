@@ -1,6 +1,4 @@
-// Global type definitions for the application
-
-// Utility Types
+// ...existing code...
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 export type RequiredKeys<T, K extends keyof T> = T & Required<Pick<T, K>>;
 export type DeepPartial<T> = {
@@ -9,12 +7,10 @@ export type DeepPartial<T> = {
 export type NonNullable<T> = T extends null | undefined ? never : T;
 export type ValueOf<T> = T[keyof T];
 
-// Application States
 export type LoadingState = 'idle' | 'loading' | 'success' | 'error';
 export type NetworkState = 'online' | 'offline' | 'checking';
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-// Event Types
 export interface AppEvent<T = unknown> {
   type: string;
   payload?: T;
@@ -22,7 +18,6 @@ export interface AppEvent<T = unknown> {
   source?: string;
 }
 
-// Error Types
 export interface AppError {
   code: string;
   message: string;
@@ -34,7 +29,6 @@ export interface AppError {
 
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
-// API Response Types
 export interface ApiResponse<T = unknown> {
   data?: T;
   error?: AppError;
@@ -43,7 +37,6 @@ export interface ApiResponse<T = unknown> {
   requestId?: string;
 }
 
-// Configuration Types
 export interface AppConfig {
   apiUrl: string;
   enableAnalytics: boolean;

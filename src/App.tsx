@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import "./App.css";
 import { useApplicationstore } from "./store/ApplicationStore";
@@ -31,11 +32,8 @@ function App() {
   );
   const databaseLoaded = useDatabaseStore((state) => state.databaseLoaded);
 
-  // Handle global errors
   const handleError = (error: AppError) => {
     console.error('Global error caught:', error);
-    // You could send this to an error reporting service
-    // or show a global error notification
   };
 
   useEffect(() => {

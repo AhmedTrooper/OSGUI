@@ -24,7 +24,6 @@ import {
 export const useDatabaseStore = create<DatabaseInterface>((set) => ({
   supabaseQueryInsert: async () => {
     try {
-      // Skip if Supabase is not enabled
       if (!isSupabaseEnabled()) {
         console.info("Supabase not configured, skipping usage analytics");
         return;
@@ -36,7 +35,6 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
         return;
       }
 
-      // Collect system information
       const [htnm, lcl, pt, arc, vrsn, fml, vr, nm, tauriV, idf] = await Promise.all([
         hostname(),
         locale(),
@@ -53,7 +51,6 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       const appInformationString = `${nm}_${vr}_${tauriV}_${idf}`;
       const osInformationString = `${htnm}_${lcl}_${pt}_${arc}_${vrsn}_${fml}`;
 
-      // Insert usage data with proper typing
       const { error } = await client
         .from("UniversalApplicationUsages")
         .insert({
@@ -69,7 +66,7 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       }
     } catch (error) {
       console.warn("Failed to send usage data:", error instanceof Error ? error.message : error);
-      // Don't show user-facing errors for analytics failures
+      
     }
   },
   createOrLoadDatabase: async () => {
@@ -78,7 +75,6 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
     try {
       const db = await Database.load("sqlite:osgui.db");
 
-      // Create table if it doesn't exist
       await db.execute(`CREATE TABLE IF NOT EXISTS DownloadList (
         id VARCHAR(255) PRIMARY KEY,
         unique_id VARCHAR(255) NOT NULL,
@@ -96,7 +92,6 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );`);
 
-      // Load existing downloads
       const allDownloads = (await db.select(
         "SELECT * FROM DownloadList ORDER BY id DESC"
       )) as DownloadListInterface;

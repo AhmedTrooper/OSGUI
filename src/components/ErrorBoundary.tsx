@@ -42,7 +42,7 @@ export class ErrorBoundary extends Component<Props, State> {
   override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo });
 
-    // Create structured error object
+    
     const appError: AppError = {
       code: error.name || 'UNKNOWN_ERROR',
       message: error.message,
@@ -56,18 +56,18 @@ export class ErrorBoundary extends Component<Props, State> {
       recoverable: this.isRecoverableError(error),
     };
 
-    // Log error
+    
     this.logError(appError);
 
-    // Call onError callback if provided
+    
     this.props.onError?.(appError);
 
-    // Report to error tracking service if available
+    
     this.reportError(appError);
   }
 
   private isRecoverableError(error: Error): boolean {
-    // Define which errors are recoverable
+    
     const recoverableErrors = [
       'ChunkLoadError',
       'NetworkError',
@@ -107,8 +107,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private async reportError(error: AppError) {
     try {
-      // In a real app, you might send this to an error reporting service
-      // like Sentry, LogRocket, or a custom endpoint
+      
       
       const errorReport = {
         id: this.state.errorId,
@@ -120,7 +119,7 @@ export class ErrorBoundary extends Component<Props, State> {
         appVersion: import.meta.env.VITE_APP_VERSION || 'unknown',
       };
 
-      // For now, just log to console in development
+      
       if (import.meta.env.DEV) {
         console.info('Error report:', errorReport);
       }
@@ -162,7 +161,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     navigator.clipboard.writeText(JSON.stringify(errorDetails, null, 2))
       .then(() => {
-        // Show success message
+        
         console.info('Error details copied to clipboard');
       })
       .catch((err) => {
@@ -172,7 +171,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   override render() {
     if (this.state.hasError) {
-      // Custom fallback UI
+      
       if (this.props.fallback) {
         return this.props.fallback;
       }
@@ -260,7 +259,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-// Higher-order component for easy wrapping
+// ...existing code...
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
   errorBoundaryProps?: Omit<Props, 'children'>
@@ -272,7 +271,7 @@ export function withErrorBoundary<P extends object>(
   );
 }
 
-// Hook for error reporting
+// ...existing code...
 export function useErrorHandler() {
   return React.useCallback((error: Error, errorInfo?: { [key: string]: unknown }) => {
     const appError: AppError = {
@@ -286,7 +285,6 @@ export function useErrorHandler() {
 
     console.error('Handled error:', appError);
     
-    // You could dispatch to a global error store here
-    // or send to an error reporting service
+    
   }, []);
 }
