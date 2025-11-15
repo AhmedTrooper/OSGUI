@@ -1,8 +1,7 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@heroui/react";
 import SortContent from "./SortContent";
-import { Filter, Logs } from "lucide-react";
-import FilterDownloads from "./FilterDownloads";
-// ...existing code...
+import { Logs } from "lucide-react";
+// import FilterDownloads from "./FilterDownloads";
 
 export default function DownloadsHeader() {
   return (
@@ -20,7 +19,7 @@ export default function DownloadsHeader() {
           <SortContent />
         </PopoverContent>
       </Popover>
-      
+      {/* <Popover placement="bottom-end">
         <PopoverTrigger>
           <p>
             <Filter className="cursor-pointer text-zinc-500" />
@@ -29,7 +28,7 @@ export default function DownloadsHeader() {
         <PopoverContent>
           <FilterDownloads />
         </PopoverContent>
-      
+      </Popover> */}
       <h1 className="text-3xl font-bold">Download List</h1>
     </div>
   );

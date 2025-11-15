@@ -73,7 +73,7 @@ export default function FormatSection() {
         )}
       </div>
 
-      
+      {/* Non media Part */}
 
       <div
         className={clsx(" overflow-auto mt-4", {
@@ -137,7 +137,7 @@ export default function FormatSection() {
         )}
       </div>
 
-      
+      {/* Media part.... */}
       <div
         className={clsx(" overflow-auto mt-4", {
           "grid grid-cols-2 gap-4 flex-1": !showNonMedia,
@@ -220,7 +220,7 @@ export default function FormatSection() {
           </div>
         )}
 
-        
+        {/* Audio Part  */}
 
         {videoInformation && !isEmpty(videoInformation.formats) && (
           <div

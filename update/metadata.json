@@ -1,6 +1,6 @@
 {
-  "onlineApplicationVersion": "0.4.0",
-  "release_date": "2025-11-05",
+  "onlineApplicationVersion": "0.2.0",
+  "release_date": "2025-09-14",
   "features": [
     "Direct file download using links",
     "Improved UI for file management",
@@ -13,6 +13,6 @@
   "author": "AhmedTrooper",
   "severity": "high",
   "platforms": ["linux", "windows", "macOS"],
-  "onlineYtDlpVersion": "2025.10.22",
-  "ytdlpUrl": "https://github.com/yt-dlp/yt-dlp/releases/tag/2025.10.22"
+  "onlineYtDlpVersion": "2025.09.05",
+  "ytdlpUrl": "https://github.com/yt-dlp/yt-dlp/releases/tag/2025.09.05"
 }

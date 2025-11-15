@@ -86,7 +86,7 @@ export default function VersionComponent() {
         </div>
       )}
 
-      
+      {/* Features.... */}
 
       {!isEmpty(metadataInformation.features) && (
         <div className="shadow-md m-2 shadow-black p-2 rounded-md ">
@@ -109,7 +109,7 @@ export default function VersionComponent() {
         </div>
       )}
 
-      
+      {/* Fixed Bugs...... */}
       {!isEmpty(metadataInformation.fixed_errors) && (
         <div className="shadow-md m-2 shadow-black p-2 rounded-md mt-2">
           <h1 className="text-green-600 font-bold text-xl">Fixed Errors</h1>

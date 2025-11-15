@@ -4,7 +4,8 @@ import { useUserInputVideoStore } from "./UserInputVideoStore";
 import Database from "@tauri-apps/plugin-sql";
 import { DownloadListInterface } from "@/interfaces/video/VideoInformationInterface";
 import { addToast } from "@heroui/react";
-import { getSupabaseClient, isSupabaseEnabled } from "@/lib/SupabaseClient";
+// @ts-ignore
+import MySupabaseClient from "@/lib/SupabaseClient";
 import { nanoid } from "nanoid";
 import {
   platform,
@@ -24,49 +25,40 @@ import {
 export const useDatabaseStore = create<DatabaseInterface>((set) => ({
   supabaseQueryInsert: async () => {
     try {
-      if (!isSupabaseEnabled()) {
-        console.info("Supabase not configured, skipping usage analytics");
-        return;
-      }
+      // addToast({
+      //   title: "Supabase inserting started",
+      //   description: "Inserting OS and usage data to Supabase",
+      //   color: "primary",
+      //   timeout: 2000,
+      // });
+      const htnm = await hostname();
+      const lcl = await locale();
+      const pt = platform();
 
-      const client = getSupabaseClient();
-      if (!client) {
-        console.warn("Supabase client not available");
-        return;
-      }
-
-      const [htnm, lcl, pt, arc, vrsn, fml, vr, nm, tauriV, idf] = await Promise.all([
-        hostname(),
-        locale(),
-        platform(),
-        arch(),
-        version(),
-        family(),
-        getVersion(),
-        getName(),
-        getTauriVersion(),
-        getIdentifier(),
-      ]);
-
+      const arc = arch();
+      const vrsn = version();
+      const fml = family();
+      const vr = await getVersion();
+      const nm = await getName();
+      const tauriV = await getTauriVersion();
+      const idf = await getIdentifier();
       const appInformationString = `${nm}_${vr}_${tauriV}_${idf}`;
+      // Example: MyApp_1.0.0_1.0.0-rc.1_Windows_en-US_x64_10.0.19043_Windows_NT
       const osInformationString = `${htnm}_${lcl}_${pt}_${arc}_${vrsn}_${fml}`;
-
-      const { error } = await client
-        .from("UniversalApplicationUsages")
-        .insert({
-          application: appInformationString,
-          architecture: osInformationString,
-          rand_str: nanoid(),
-        });
-
-      if (error) {
-        console.warn("Supabase insert error:", error.message);
-      } else {
-        console.info("Usage data sent successfully");
-      }
+      // @ts-ignore
+      await MySupabaseClient.from("UniversalApplicationUsages").insert({
+        application: appInformationString,
+        architecture: osInformationString,
+        rand_str: nanoid(),
+      });
     } catch (error) {
-      console.warn("Failed to send usage data:", error instanceof Error ? error.message : error);
-      
+      // console.log("Supabase insert error", error);
+      // addToast({
+      //   title: "Supabase insert error",
+      //   description: "Error on inserting data to Supabase",
+      //   color: "danger",
+      //   timeout: 2000,
+      // });
     }
   },
   createOrLoadDatabase: async () => {
@@ -75,36 +67,37 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
     try {
       const db = await Database.load("sqlite:osgui.db");
 
+      //  await db.execute(`DROP TABLE IF EXISTS DownloadList;`);
+      //  console.log("Table droped")
+
       await db.execute(`CREATE TABLE IF NOT EXISTS DownloadList (
-        id VARCHAR(255) PRIMARY KEY,
-        unique_id VARCHAR(255) NOT NULL,
-        active BOOLEAN NOT NULL DEFAULT false,
-        failed BOOLEAN NOT NULL DEFAULT false,
-        completed BOOLEAN NOT NULL DEFAULT false,
-        isPaused BOOLEAN NOT NULL DEFAULT false,
-        format_id VARCHAR(255) NOT NULL,
-        web_url VARCHAR(255),
-        title VARCHAR(255),
-        tracking_message TEXT,
-        playlistVerification TEXT,
-        playlistTitle TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );`);
+  id VARCHAR(255) PRIMARY KEY,
+  unique_id VARCHAR(255) NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT false,
+  failed BOOLEAN NOT NULL DEFAULT false,
+  completed BOOLEAN NOT NULL DEFAULT false,
+  isPaused BOOLEAN NOT NULL DEFAULT false,
+  format_id VARCHAR(255) NOT NULL,
+  web_url VARCHAR(255),
+  title VARCHAR(255),
+  tracking_message TEXT,
+  playlistVerification TEXT,
+  playlistTitle TEXT
+);`);
 
       const allDownloads = (await db.select(
-        "SELECT * FROM DownloadList ORDER BY id DESC"
+        "SELECT * FROM DownloadList"
       )) as DownloadListInterface;
 
-      setDownloadsArr(allDownloads);
+      // console.log(allDownloads);
+
+      setDownloadsArr(await allDownloads);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error("Database initialization error:", errorMessage);
       addToast({
-        title: "Database Error",
-        description: "Failed to initialize local database: " + errorMessage,
+        title: "SQL Error",
+        description: err as string,
         color: "danger",
-        timeout: 3000,
+        timeout: 1000,
       });
     }
   },
@@ -118,19 +111,18 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       await db.execute("DELETE FROM DownloadList;");
       setDownloadsArr([]);
       addToast({
-        title: "Success",
-        description: "Download list cleared successfully!",
+        title: "Successfull",
+        description: "Download list is empty!",
         color: "success",
         timeout: 2000,
       });
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : String(e);
-      console.error("Error clearing downloads:", errorMessage);
+      // console.log("Error on Downloads clear", e);
       addToast({
         title: "Error",
-        description: "Failed to clear download list: " + errorMessage,
+        description: "Error on Downloads clear",
         color: "danger",
-        timeout: 3000,
+        timeout: 2000,
       });
     }
   },
@@ -142,16 +134,11 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       await db.execute("DELETE FROM DownloadList WHERE unique_id = $1", [
         uniqueId,
       ]);
-      const updatedDownloads = (await db.select(
-        "SELECT * FROM DownloadList ORDER BY id DESC"
-      )) as DownloadListInterface;
-      setDownloadsArr(updatedDownloads);
+      await setDownloadsArr(await db.select("SELECT * FROM DownloadList"));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error("Error removing file:", errorMessage);
       addToast({
         title: "Error",
-        description: "Failed to remove download: " + errorMessage,
+        description: "Single file remove failed",
         color: "danger",
         timeout: 2000,
       });

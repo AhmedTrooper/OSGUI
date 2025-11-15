@@ -464,7 +464,7 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
         });
       }
     },
-    readJsonFile: async (): Promise<null | undefined> => {
+    readJsonFile: async () => {
       try {
         const documentFolder = await documentDir();
         const folderPath = await join(documentFolder, "OSGUI");
@@ -557,8 +557,6 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
 
         setIsLoadingForJsonCreation(false);
       }
-      
-      return null;
     },
 
     // State setters
