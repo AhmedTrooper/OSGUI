@@ -1,4 +1,6 @@
 export interface DownloadStoreInterface {
+  defaultTimeInterval: number;
+  setDefaultTimeInterval: (interval: number) => void;
   selectedFormat: string | null;
   setSelectedFormat: (format: string | null) => void;
   selectedAudioStream: string | null;

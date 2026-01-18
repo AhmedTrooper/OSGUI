@@ -2,6 +2,8 @@
 
 A lightweight desktop GUI for `yt-dlp`, built using [Tauri v2](https://tauri.app/), [React TypeScript](https://react.dev/), [Zustand](https://github.com/pmndrs/zustand), and [HeroUI](https://www.heroui.com/).
 
+![Complete Workflow](resources_github/OSGUI_latest.png)
+
 ## ⚙️ Features
 
 - Clean and minimal UI for downloading videos via `yt-dlp`

@@ -14,6 +14,13 @@ import { addToast } from "@heroui/react";
 // import { add } from "lodash";
 
 export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
+  defaultTimeInterval: localStorage.getItem("getTimeInterval")
+    ? Number(localStorage.getItem("getTimeInterval"))
+    : 1000,
+  setDefaultTimeInterval: (interval: number) => {
+    localStorage.setItem("getTimeInterval", interval.toString());
+    set({ defaultTimeInterval: interval });
+  },
   selectedFormat: null,
   setSelectedFormat: (format: string | null) => set({ selectedFormat: format }),
   selectedAudioStream: null,
@@ -37,12 +44,20 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
 
     const userInputVideoStore = useUserInputVideoStore.getState();
     const setDownloadsArr = userInputVideoStore.setDownloadsArr;
+    const downloadStore = get();
+    const timeInterval = downloadStore.defaultTimeInterval;
     // const utilityStore = useUtilityStore.getState();
     // const parseBoolean = utilityStore.parseBoolean;
     let errorHappened = false;
     let isPaused = false;
+    let intervalId: NodeJS.Timeout;
     try {
       const db = await Database.load("sqlite:osgui.db");
+      intervalId = setInterval(async () => {
+        setDownloadsArr(
+          await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
+        );
+      }, timeInterval);
       addToast({
         title: "Added",
         description: "File added to download list",
@@ -341,6 +356,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         } catch (error) {
           // console.log("Error while updating download list on close:", error);
         } finally {
+          clearInterval(intervalId);
           setDownloadsArr(
             await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
           );
