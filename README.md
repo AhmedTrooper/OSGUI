@@ -11,12 +11,12 @@ A lightweight desktop GUI for `yt-dlp`, built using [Tauri v2](https://tauri.app
 
 **My Solution (Stream Interception Architecture):**
 Instead of relying on unstable OS Process IDs, I architected a **stream-based kill switch**:
-1.  **Inversion of Control:** I implemented a "Kill Queue" state in Zustand (`idsToPause`).
-2.  **Stream Injection:** The download logic injects a check inside the active `stdout` data event loop.
-3.  **Self-Termination:** When a chunk is received, the process checks the queue. If its ID is present, it terminates itself from *within* its own closure.
+1.  **Inversion of Control:** I implemented a specific "Pause State" check inside the active `stdout` data event loop.
+2.  **Stream Injection:** The download logic listens to the live stream chunk-by-chunk.
+3.  **Self-Termination:** When a chunk determines a pause request exists for its ID, the process terminates itself from *within* its own closure, ensuring a clean exit.
 
 **Result:** 100% reliable pausing with zero memory leaks, independent of the operating system.
-> *[View the Source Code for this Logic](src/stores/download/actions.slice.ts)*
+> 👉 *[View the Source Code for this Logic](https://github.com/AhmedTrooper/OSGUI/blob/main/src/store/DownloadStore.ts)*
 
 ---
 
@@ -50,14 +50,21 @@ Instead of relying on unstable OS Process IDs, I architected a **stream-based ki
 
 Please ensure the following tools are installed and accessible from your system `PATH`:
 
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (must be named exactly `yt-dlp.exe` on Windows)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (must be named exactly `yt-dlp.exe` on Windows so running `yt-dlp --version` shows version info — `ytdlp`, `ytdlpx64`, etc. are **not** supported!)
 - [ffmpeg](https://ffmpeg.org/) (mandatory)
 - [ffplay](https://ffmpeg.org/)
 - [ffprobe](https://ffmpeg.org/)
 
-> 🔄 **Important:** `yt-dlp` gets new releases about every 2 weeks. Keep it **up to date**.
+> 🔄 **Important:** `yt-dlp` gets new releases about every 2 weeks. Keep it **up to date** for best site compatibility.  
+> 💡 You can install or update `yt-dlp` using:
+>
+> - **PIP:** `python -m pip install -U yt-dlp`
+> - **Standalone Binary:** Download the latest build from [yt-dlp releases](https://github.com/yt-dlp/yt-dlp/releases)
+>
+> `ffmpeg` is also required for merging, transcoding, and audio extraction.
 
 You can verify installation by running:
+
 ```bash
 yt-dlp --version
 ffmpeg
