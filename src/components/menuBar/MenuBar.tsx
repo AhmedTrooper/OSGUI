@@ -13,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 import Database from "@tauri-apps/plugin-sql";
 import TrashComponent from "./TrashComponent";
 import clsx from "clsx";
-// import DrawerComponent from "./DrawerComponent";
 import { Popover, PopoverContent, PopoverTrigger } from "@heroui/react";
 import TutorialSection from "./TutorialSection";
 import { useApplicationstore } from "@/store/ApplicationStore";
@@ -22,32 +21,29 @@ import VersionComponent from "./VersionComponent";
 export default function MenuBar() {
   const [isFullScreen, setIsFullScreen] = useState<boolean | null>(null);
   const isYtdlpUpdateAvailable = useApplicationstore(
-    (state) => state.isYtdlpUpdateAvailable
+    (state) => state.isYtdlpUpdateAvailable,
   );
   const isApplicationUpdateAvailable = useApplicationstore(
-    (state) => state.isApplicationUpdateAvailable
+    (state) => state.isApplicationUpdateAvailable,
   );
   const navigate = useNavigate();
   const startDraggingWindow = async () => {
     await getCurrentWindow().startDragging();
   };
   const metadataInformation = useApplicationstore(
-    (state) => state.metadataInformation
+    (state) => state.metadataInformation,
   );
 
   const hideWindow = async () => {
     try {
       await getCurrentWindow().minimize();
-    } catch (e) {
-      console.log(e);
-    }
+    } catch (e) {}
   };
 
   const handleFullScreen = async () => {
     try {
       let screenStatus = await getCurrentWindow().isFullscreen();
       setIsFullScreen(screenStatus);
-      console.log(screenStatus);
       if (isFullScreen) {
         await getCurrentWindow().setFullscreen(false);
         setIsFullScreen(false);
@@ -55,21 +51,17 @@ export default function MenuBar() {
         await getCurrentWindow().setFullscreen(true);
         setIsFullScreen(true);
       }
-    } catch (e) {
-      console.log(e);
-    }
+    } catch (e) {}
   };
 
   const handleWindowClose = async () => {
     try {
       const db = await Database.load("sqlite:osgui.db");
       await db.execute(
-        "UPDATE DownloadList SET active = false,isPaused = true"
+        "UPDATE DownloadList SET active = false,isPaused = true",
       );
       await getCurrentWindow().close();
-    } catch (e) {
-      // console.log(e);
-    }
+    } catch (e) {}
   };
 
   return (
@@ -85,15 +77,12 @@ export default function MenuBar() {
           className="cursor-pointer w-5 text-white"
         />
       </div>
-      {/* bg-[#191f1f] dark:bg-zinc-900 */}
       <ul className="window-drag-area col-span-8 grid items-center w-full   grid-cols-12 ">
-        {/* Dragging window section.... */}
         <li
           className="col-span-4  w-full h-full cursor-grabbing"
           onMouseDown={startDraggingWindow}
         ></li>
 
-        {/* Navigation section.... */}
         <li className="grid grid-cols-2 w-fit col-span-4 gap-5 md:gap-15 lg:gap-24 cursor-pointer justify-items-center content-center text-white">
           <p onClick={() => navigate(-1)}>
             <ArrowLeft />
@@ -104,21 +93,9 @@ export default function MenuBar() {
           </p>
         </li>
 
-        <li className={clsx("cursor-pointer col-span-1", {})}>
-          {/* <DrawerComponent /> */}
-        </li>
+        <li className={clsx("cursor-pointer col-span-1", {})}></li>
 
         <li className="col-span-1">
-          {/* <Popover>
-            <PopoverTrigger>
-              <CircleDotDashed
-                className={clsx("cursor-pointer text-green-600", {})}
-              />
-            </PopoverTrigger>
-            <PopoverContent>
-              <h1>You are using latest yt-dlp</h1>
-            </PopoverContent>
-          </Popover> */}
           <Popover>
             <PopoverTrigger>
               <p>

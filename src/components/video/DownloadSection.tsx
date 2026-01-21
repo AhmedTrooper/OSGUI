@@ -26,16 +26,16 @@ export default function DownloadSection() {
   const singleFileRemove = useDatabaseStore((state) => state.singleFileRemove);
   const downloadHandler = useDownloadStore((state) => state.downloadHandler);
   const clipboardWritingHandle = useUserInputVideoStore(
-    (state) => state.clipboardWritingHandle
+    (state) => state.clipboardWritingHandle,
   );
   const playlistVerificationString = useHeavyPlaylistStore(
-    (state) => state.playlistVerificationString
+    (state) => state.playlistVerificationString,
   );
   const lightPlaylistSingleDownloadHandler = useHeavyPlaylistStore(
-    (state) => state.lightPlaylistSingleDownloadHandler
+    (state) => state.lightPlaylistSingleDownloadHandler,
   );
   const setVideoToPause = useUserInputVideoStore(
-    (state) => state.setVideoToPause
+    (state) => state.setVideoToPause,
   );
   return (
     <div className="mt-4  shadow-lg shadow-black h-[80vh] overflow-auto grid gap-4 custom-scrollbar rounded-md">
@@ -47,8 +47,6 @@ export default function DownloadSection() {
         />
       )}
 
-      {/* Video Downloads List... */}
-
       {!isEmpty(downloadsArr) && (
         <div className="  rounded-md m-2  h-fit min-h-[80vh]">
           <DownloadsHeader />
@@ -56,7 +54,7 @@ export default function DownloadSection() {
             <div
               key={index}
               className={clsx(
-                "m-2 w-max-[100px]  shadow-md shadow-black p-2 rounded-md"
+                "m-2 w-max-[100px]  shadow-md shadow-black p-2 rounded-md",
               )}
             >
               <h1 className="text-blue-600 font-bold flex">
@@ -94,7 +92,7 @@ export default function DownloadSection() {
                 <ShieldCheck className={clsx("text-green-600 m-2", {})} />
               )}
 
-              {parseBoolean(video.failed)  && (
+              {parseBoolean(video.failed) && (
                 <BadgeX className={clsx("text-red-600 m-2", {})} />
               )}
 
@@ -119,7 +117,7 @@ export default function DownloadSection() {
                         downloadHandler(
                           video.format_id,
                           video.web_url as string,
-                          video.title as string
+                          video.title as string,
                         )
                       }
                       className="cursor-pointer  active:scale-95 transition-transform duration-100 text-green-600"
@@ -134,7 +132,7 @@ export default function DownloadSection() {
                           video.title as string,
                           video.web_url as string,
                           video.playlistTitle,
-                          video.format_id as LightPlaylistVideoQuality
+                          video.format_id as LightPlaylistVideoQuality,
                         )
                       }
                       className="cursor-pointer  active:scale-95 transition-transform duration-100 text-blue-600"
@@ -147,7 +145,7 @@ export default function DownloadSection() {
                         video.format_id,
                         video.web_url as string,
                         video.title as string,
-                        true
+                        true,
                       )
                     }
                     className="cursor-pointer  active:scale-95 transition-transform duration-100 text-green-600"

@@ -5,13 +5,7 @@ import { create } from "zustand";
 import { nanoid } from "nanoid";
 import Database from "@tauri-apps/plugin-sql";
 import { useUserInputVideoStore } from "./UserInputVideoStore";
-// import { useUtilityStore } from "./UtilityStore";
-// import {
-//   failStatusObject,
-//   pauseStatus,
-// } from "@/interfaces/video/VideoInformationInterface";
 import { addToast } from "@heroui/react";
-// import { add } from "lodash";
 
 export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
   defaultTimeInterval: localStorage.getItem("getTimeInterval")
@@ -77,34 +71,9 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         `${videoUrl}`,
       ]);
 
-      // const ytdlpWithAria2 = Command.create("ytDlp", [
-      //   "--external-downloader",
-      //   "aria2c",
-      //   "--external-downloader-args",
-      //   "-x 16 -s 16 -k 1M",
-      //   "-o",
-      //   `${downloadDirectory}/OSGUI/%(title)s${formatString}.%(ext)s`,
-      //   `${videoUrl}`,
-      // ]);
-
-      // // aria2 for direct file download
-      // const onlyAria2 = Command.create("aria2c", [
-      //   "-x",
-      //   "16",
-      //   "-s",
-      //   "16",
-      //   "-k",
-      //   "1M",
-      //   "-d",
-      //   `${downloadDirectory}/OSGUI`,
-      //   `${videoUrl}`,
-      // ]);
-
       if (directURL) {
         coreDownloadCommand = directFileDownloadCommand;
       }
-      // coreDownloadCommand = ytdlpWithAria2;
-      // coreDownloadCommand = onlyAria2;
 
       const childDataProcess = await coreDownloadCommand.spawn();
 
@@ -136,20 +105,10 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
       );
 
-      // let streamCount = 0;
-      /*A counter to track check if event occurs even after child is killed at paused stage
-      Result : yes as kill is promiss based and the event loop still has the listeners 
-      active until promises are resolved.
-      */
-
-      // Data catching on spawn
-
       const errorHandler = async () => {
         //dummy use to avoid lint error
         isPaused = false;
         errorHappened = true;
-        // console.log("Error while downloading:", data);
-        // console.log("Stream count at Error handler stage :", streamCount);
         try {
           await db.execute(
             `UPDATE DownloadList
@@ -162,47 +121,16 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
             ["Error occurred!", uniqueId]
           );
         } catch (error) {
-          // console.log("Error while updating download list:", error);
         } finally {
           setDownloadsArr(
             await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
           );
           isPaused = false;
           errorHappened = true;
-          //  await childDataProcess.kill();
-          // console.log(
-          //   "At Error stage :",
-          //   "Paused :",
-          //   isPaused,
-          //   "Error occurred :",
-          //   errorHappened
-          // );
         }
       };
 
-      /*
-      New feature unlocked!
-      1.if the internet is gone during download,the data event keeps running,
-      so file download is not paused!
-      */
-
       const dataHandler = async (data: string) => {
-        // console.log("Stream count at data handler stage :", ++streamCount);
-
-        // console.log(videoToPause, uniqueId, videoToPause === uniqueId);
-        // console.log(
-        //   "\n\n\n\nStd data start\n\n\n",
-        //   data,
-        //   "\n\n\nstd end\n\n\n"
-        // );
-
-        //   // Remove the listener immediately
-        //   console.log("Starting remove the listner");
-        //  coreDownloadCommand.stdout.removeListener("data", dataHandler);
-        //   coreDownloadCommand.stderr.removeListener("data", errorHandler);
-        //   // console.log("\n".repeat(20), x, "\n".repeat(20));
-        //   console.log("Done remove the listner");
-
         try {
           await db.execute(
             `UPDATE DownloadList
@@ -215,7 +143,6 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
             [data.toString().trim(), uniqueId]
           );
         } catch (error) {
-          // console.log("Error while updating download list:", error);
         } finally {
           setDownloadsArr(
             await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
@@ -228,8 +155,6 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         if (videoToPause === uniqueId) {
           isPaused = true;
           errorHappened = false;
-          // console.log("Pausing download for id:", uniqueId);
-          // useUserInputVideoStore.getState().setVideoToPause(null); //as child.kill() is async,new event are still coming,so id being not null can be used to identify the video to be paused!
           try {
             await db.execute(
               `UPDATE DownloadList 
@@ -241,60 +166,23 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
               [uniqueId]
             );
           } catch (e) {
-            // console.log(e);
           } finally {
             setDownloadsArr(
               await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
             );
-            // console.log(
-            //   "At Paused stage :",
-            //   "Paused :",
-            //   isPaused,
-            //   "Error occurred : ",
-            //   errorHappened
-            // );
-            // console.log(
-            //   await db.select("SELECT * FROM DownloadList where unique_id=$1", [
-            //     uniqueId,
-            //   ])
-            // );
-
-            // console.log(
-            //   "Stream count at data handler pause stage :",
-            //   streamCount
-            // );
             await childDataProcess.kill();
-            // Return keyword did not work to stop stream as data  stream was active in yt-dlp...
           }
         }
-
-        // console.log("Called even after listner gone");
       };
 
       coreDownloadCommand.stdout.on("data", dataHandler);
 
-      //   Command error
-
       coreDownloadCommand.stderr.on("data", errorHandler);
 
       coreDownloadCommand.on("close", async () => {
-        // console.log(
-        //   "At Close stage :",
-        //   "Pause :",
-        //   isPaused,
-        //   "Error :",
-        //   errorHappened
-        // );
-        // console.log("Stream count at command close stage :", streamCount);
-
         try {
           if (!(isPaused || errorHappened)) {
             try {
-              // console.log(
-              //   "At NoPause,NoError stage :",
-              //   isPaused,
-              //   errorHappened
-              // );
               await db.execute(
                 `UPDATE DownloadList
            SET failed = false,
@@ -360,14 +248,10 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
           setDownloadsArr(
             await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
           );
-          // console.log(
-          //   await db.select("SELECT * FROM DownloadList ORDER BY id DESC")
-          // );
         }
       });
 
       coreDownloadCommand.on("error", () => {
-        // console.log("Command Error : ---> ", data);
         addToast({
           title: "Command Failed",
           description: "Make sure yt-dlp is installed and added to PATH",
@@ -375,7 +259,7 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
           timeout: 2000,
         });
       });
-    } catch (e) {}
+    } catch (e) { }
   },
   videoStreamSelect: (vst: string) => {
     const downloadStore = get();
@@ -410,7 +294,6 @@ export const useDownloadStore = create<DownloadStoreInterface>((set, get) => ({
         let formatString = `${selectedVideoStream.trim()}+${ast.trim()}`.trim();
         setSelectedFormat(formatString);
       } else {
-        // console.log("Video stream not found");
         setSelectedFormat(ast.trim());
       }
     } catch (error) {

@@ -25,12 +25,6 @@ import {
 export const useDatabaseStore = create<DatabaseInterface>((set) => ({
   supabaseQueryInsert: async () => {
     try {
-      // addToast({
-      //   title: "Supabase inserting started",
-      //   description: "Inserting OS and usage data to Supabase",
-      //   color: "primary",
-      //   timeout: 2000,
-      // });
       const htnm = await hostname();
       const lcl = await locale();
       const pt = platform();
@@ -52,13 +46,6 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
         rand_str: nanoid(),
       });
     } catch (error) {
-      // console.log("Supabase insert error", error);
-      // addToast({
-      //   title: "Supabase insert error",
-      //   description: "Error on inserting data to Supabase",
-      //   color: "danger",
-      //   timeout: 2000,
-      // });
     }
   },
   createOrLoadDatabase: async () => {
@@ -66,9 +53,6 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
     const setDownloadsArr = UserInputVideoStore.setDownloadsArr;
     try {
       const db = await Database.load("sqlite:osgui.db");
-
-      //  await db.execute(`DROP TABLE IF EXISTS DownloadList;`);
-      //  console.log("Table droped")
 
       await db.execute(`CREATE TABLE IF NOT EXISTS DownloadList (
   id VARCHAR(255) PRIMARY KEY,
@@ -88,8 +72,6 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
       const allDownloads = (await db.select(
         "SELECT * FROM DownloadList"
       )) as DownloadListInterface;
-
-      // console.log(allDownloads);
 
       setDownloadsArr(await allDownloads);
     } catch (err) {
@@ -117,7 +99,6 @@ export const useDatabaseStore = create<DatabaseInterface>((set) => ({
         timeout: 2000,
       });
     } catch (e) {
-      // console.log("Error on Downloads clear", e);
       addToast({
         title: "Error",
         description: "Error on Downloads clear",

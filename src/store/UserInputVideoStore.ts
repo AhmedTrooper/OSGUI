@@ -253,7 +253,6 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
           timeout: 1000,
         });
       } catch (err) {
-        // console.log(err);
         addToast({
           title: "Paste failed",
           description: err as string,
@@ -293,7 +292,6 @@ export const useUserInputVideoStore = create<UserInputVideoStoreInterface>(
           timeout: 1000,
         });
       } catch (error) {
-        // console.log(error);
         addToast({
           title: "Clear error",
           description: "Couln't clear clipboard",

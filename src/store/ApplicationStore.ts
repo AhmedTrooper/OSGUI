@@ -86,14 +86,11 @@ export const useApplicationstore = create<ApplicationInterface>((set, get) => ({
     let localYtdlp: string | null = null;
     let onlineYtdlp: string | null = null;
     try {
-      // console.log("Yt-dlp is started fetching!");
       const cmd = Command.create("ytDlp", ["--version"]);
       const result = await cmd.execute();
       const response = await fetch(ApplicationStore.metadataUrl);
-      // console.log(response);
       if (response.status === 200) {
         const data = (await response.json()) as MetadataInterface;
-        // console.log(data);
         ApplicationStore.setMetadataInformation(data);
         ApplicationStore.setOnlineYtdlpversion(data.onlineYtDlpVersion);
         onlineYtdlp = data.onlineYtDlpVersion;

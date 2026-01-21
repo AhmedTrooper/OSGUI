@@ -15,25 +15,25 @@ import OpenDialogSection from "./OpenDialogSection";
 
 export default function FormatSection() {
   let videoInformation = useUserInputVideoStore(
-    (state) => state.videoInformation
+    (state) => state.videoInformation,
   );
   let showNonMedia = useUserInputVideoStore((state) => state.showNonMedia);
   let setShowNonMedia = useUserInputVideoStore(
-    (state) => state.setShowNonMedia
+    (state) => state.setShowNonMedia,
   );
 
   const downloadHandler = useDownloadStore((state) => state.downloadHandler);
   const videoStreamSelect = useDownloadStore(
-    (state) => state.videoStreamSelect
+    (state) => state.videoStreamSelect,
   );
   const audioStreamSelect = useDownloadStore(
-    (state) => state.audioStreamSelect
+    (state) => state.audioStreamSelect,
   );
   const selectedAudioStream = useDownloadStore(
-    (state) => state.selectedAudioStream
+    (state) => state.selectedAudioStream,
   );
   const selectedVideoStream = useDownloadStore(
-    (state) => state.selectedVideoStream
+    (state) => state.selectedVideoStream,
   );
   const selectedFormat = useDownloadStore((state) => state.selectedFormat);
 
@@ -72,8 +72,6 @@ export default function FormatSection() {
           </Button>
         )}
       </div>
-
-      {/* Non media Part */}
 
       <div
         className={clsx(" overflow-auto mt-4", {
@@ -124,7 +122,7 @@ export default function FormatSection() {
                       downloadHandler(
                         video.format_id as string,
                         videoInformation.webpage_url as string,
-                        videoInformation.title as string
+                        videoInformation.title as string,
                       )
                     }
                   >
@@ -137,7 +135,6 @@ export default function FormatSection() {
         )}
       </div>
 
-      {/* Media part.... */}
       <div
         className={clsx(" overflow-auto mt-4", {
           "grid grid-cols-2 gap-4 flex-1": !showNonMedia,
@@ -305,7 +302,7 @@ export default function FormatSection() {
                 downloadHandler(
                   videoInformation.format_id as string,
                   videoInformation.webpage_url as string,
-                  videoInformation.title as string
+                  videoInformation.title as string,
                 )
               }
             >
@@ -329,7 +326,7 @@ export default function FormatSection() {
                   downloadHandler(
                     selectedFormat as string,
                     videoInformation.webpage_url as string,
-                    videoInformation.title as string
+                    videoInformation.title as string,
                   )
                 }
               >

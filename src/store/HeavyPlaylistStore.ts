@@ -24,12 +24,7 @@ import {
 import { isEmpty } from "lodash";
 import { LightPlaylistVideoQuality } from "@/interfaces/playlist/QualityEnumsInterface";
 import { nanoid } from "nanoid";
-// import { useUtilityStore } from "./UtilityStore";
 import Database from "@tauri-apps/plugin-sql";
-// import {
-//   failStatusObject,
-//   pauseStatus,
-// } from "@/interfaces/video/VideoInformationInterface";
 import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager";
 
 export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
@@ -54,7 +49,6 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
       set({ isLoadingForPlaylistJsonCreation: s }),
 
     fetchHeavyPlaylistInformation: async () => {
-      // console.log("Playlist information fetch true");
       const playlistStore = get();
       const userInputVideoStore = useUserInputVideoStore.getState();
       playlistStore.setHeavyPlaylistInformation(null);
@@ -78,39 +72,25 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
       setVideoInformationFetchFailed(false);
       setDialogSectionVisible(false);
       playlistStore.setHeavyPlaylistFormatSectionVisible(false);
-      // playlistStore.setVideoInformation(null);
 
       // Create output folder if not exists
       const documentFolder = await documentDir();
       const folderPath = await join(documentFolder, "OSGUI");
       let noError = true;
 
-      // console.log("Reached 1");
-
       try {
         await readDir(folderPath); // throws if not exist
-        // console.log("Reached 2");
       } catch {
         await mkdir("OSGUI", {
           baseDir: BaseDirectory.Document,
           recursive: true,
         });
-        // console.log("Reached 3");
       }
 
       const filePath = await join(folderPath, "playlist.json");
       let jsonOutput = "";
-      // console.log("Reached 4");
 
       // Create ytDlp command
-
-      // const command = Command.create("ytDlp", [
-      //   "--dump-single-json",
-      //   "--yes-playlist",
-      //   "--no-warnings",
-      //   "--ignore-errors",
-      //   playlistUrl,
-      // ]);
 
       const command = Command.create("ytDlp", [
         "--flat-playlist",
@@ -125,15 +105,10 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
         // Wrap spawn and events in a Promise to await until "close"
         await new Promise<void>((resolve) => {
           command.stdout.on("data", (line) => {
-            // console.log("Reached 67");
             jsonOutput += line;
-            // console.log("Data is : ", line);
-            // jsonArray.push(JSON.parse(line));
           });
-          // console.log("Reached 5");
 
           command.stderr.on("data", (data) => {
-            // console.log("Reached 6", data);
             noError = false;
             addToast({
               title: "Error occurred on Data Fetch",
@@ -145,23 +120,17 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
           });
 
           command.on("close", async () => {
-            // console.log("Reached 7");
             if (noError) {
-              // console.log("Started json writing");
               // Save the dumped JSON to file
               await writeTextFile(filePath, jsonOutput, {
                 baseDir: BaseDirectory.Document,
               });
 
-              // console.log("Json is reading started ->->\n\n\n:", jsonOutput);
 
               // Read JSON into UI
-              // console.log("Tyson 78");
               const readHeavyPlaylistJsonFile = get().readHeavyPlaylistJsonFile;
               await readHeavyPlaylistJsonFile();
-              // console.log("Tyson 89");
             } else {
-              // console.log("Reached 9");
               setIsLoadingForJsonCreation(false);
             }
             resolve();
@@ -169,11 +138,8 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
 
           command.spawn(); // Start command
 
-          // console.log("Reached 10");
         });
-        // console.log("Reached 11");
       } catch (error) {
-        // console.log("Reached 12");
         // Catch errors outside the command events
         addToast({
           title: "Error saving video info",
@@ -195,10 +161,8 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
           timeout: 2000,
         });
 
-        // console.log("Reached 31");
       }
 
-      // return null;
     },
     readHeavyPlaylistJsonFile: async () => {
       const heavyPlaylistStore = get();
@@ -207,7 +171,6 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
       const setPlaylistFetchLoading =
         heavyPlaylistStore.setPlaylistFetchLoading;
       try {
-        // console.log("Reached 20");
         const documentFolder = await documentDir();
         const folderPath = await join(documentFolder, "OSGUI");
         const filePath = await join(folderPath, "playlist.json");
@@ -217,10 +180,8 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
 
         const setHeavyPlaylistFormatSectionVisible =
           playlistStore.setHeavyPlaylistFormatSectionVisible;
-        //   const setVideoInformation = playlistStore.setVideoInformation;
 
         if (!fileExists) {
-          // console.log("Reached 21");
           addToast({
             title: "playlistMetaData.json not found",
             description: "playlistMetaData.json does not exist at: " + filePath,
@@ -231,7 +192,6 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
           return null;
         }
 
-        // console.log("Reached 21");
 
         const jsonString = await readTextFile(filePath);
         const jsonData = JSON.parse(
@@ -240,12 +200,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
         setHeavyPlaylistInformation(jsonData);
         setHeavyPlaylistFormatSectionVisible(true);
         heavyPlaylistStore.setLightEntriesArr(jsonData.entries);
-        //   setVideoInformation(jsonData as VideoInformationInterface);
-        // console.log("Reached 22");
-
-        // console.log("Json is reading started ->->\n\n\n:", jsonData);
       } catch (err) {
-        // console.log("Reached 23");
         const playlistStore = get();
         const setPlaylistFetchFailed = playlistStore.setPlaylistFetchFailed;
         const setIsLoadingForPlaylistJsonCreation =
@@ -254,7 +209,6 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
         setPlaylistFetchFailed(true);
         setIsLoadingForPlaylistJsonCreation(false);
 
-        // console.error("Error reading video.json:", err);
         addToast({
           title: "Error reading video.json",
           description: err as string,
@@ -262,9 +216,7 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
           timeout: 1000,
         });
         setPlaylistFetchLoading(false);
-        // console.log("Reached 24");
       } finally {
-        // console.log("Reached 25");
         const playlistStore = get();
         const userInputVideoStore = useUserInputVideoStore.getState();
 
@@ -273,7 +225,6 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
         const videoInformationFetchFailed = playlistStore.playlistFetchFailed;
 
         if (!videoInformationFetchFailed) {
-          // console.log("Reached 26");
           userInputVideoStore.setDialogSectionVisible(true);
           addToast({
             title: "Successful",
@@ -282,7 +233,6 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
             timeout: 1000,
           });
         } else {
-          // console.log("Reached 27");
           addToast({
             title: "Error",
             description:
@@ -292,13 +242,11 @@ export const useHeavyPlaylistStore = create<HeavyPlaylistStoreInterface>(
           });
         }
 
-        // console.log("Reached 28");
 
         setIsLoadingForJsonCreation(false);
         playlistStore.setPlaylistFetchLoading(false);
       }
 
-      // console.log("Reached 29");
     },
     heavyPlaylistInformation: null,
     setHeavyPlaylistInformation: (

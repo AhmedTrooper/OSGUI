@@ -13,10 +13,6 @@ export const useVideoUtility = create<VideoUtilityInterface>((set, get) => ({
     set({ modifiedDownloadsArr: arr }),
   filterDownloadsArr: (filters: DownloadsFilter) => {
     const userIntent = filters;
-    // const userInputVideoStore = useUserInputVideoStore.getState();
-    // const downloadsArr = userInputVideoStore.downloadsArr;
-    // const setDownloadsArr = userInputVideoStore.setDownloadsArr;
-    // let tempDownloadsArr = [...downloadsArr];
 
     try {
       switch (userIntent) {
@@ -80,9 +76,8 @@ export const useVideoUtility = create<VideoUtilityInterface>((set, get) => ({
       setDownloadsArr(tempDownloadsArr);
       addToast({
         title: "Sorted",
-        description: `List is sorted by title ${
-          sorts === TitleSort.titleAsc ? "ASC" : "DESC"
-        }`,
+        description: `List is sorted by title ${sorts === TitleSort.titleAsc ? "ASC" : "DESC"
+          }`,
         color: "success",
         timeout: 2000,
       });
