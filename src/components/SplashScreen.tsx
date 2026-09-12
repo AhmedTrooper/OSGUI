@@ -13,7 +13,7 @@ const systemPrefersDark = (): boolean => {
 export default function SplashScreen(): JSX.Element {
   const theme = useUIStore.state.theme;
   const [progress, setProgress] = createSignal(0);
-  const [appVersion, setAppVersion] = createSignal("0.1.0");
+  const [appVersion, setAppVersion] = createSignal("0.1.1");
   const [tauriVersion, setTauriVersion] = createSignal("2.x");
 
   createEffect(() => {

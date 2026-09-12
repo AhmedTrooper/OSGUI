@@ -381,7 +381,7 @@ async fn start_axum_server(app_handle: AppHandle, db_conn: Arc<Mutex<Connection>
                 Json(serde_json::json!({
                     "status": "ok",
                     "message": "Synclime Local API server is healthy and online",
-                    "version": "0.1.0"
+                    "version": env!("CARGO_PKG_VERSION")
                 }))
             }),
         )

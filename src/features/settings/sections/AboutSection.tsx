@@ -59,7 +59,7 @@ const BROWSER_OS_INFO: OSInfo = {
 
 export function AboutSection(): JSX.Element {
   const [osInfo, setOsInfo] = createSignal<OSInfo>(BROWSER_OS_INFO);
-  const [appInfo, setAppInfo] = createSignal<AppInfo>({ name: "synclime", version: "0.1.0" });
+  const [appInfo, setAppInfo] = createSignal<AppInfo>({ name: "synclime", version: "0.1.1" });
   const [checkLoading, setCheckLoading] = createSignal(false);
   const [updatesData, setUpdatesData] = createSignal<UpdatesSchema | null>(null);
   const [updatesLoading, setUpdatesLoading] = createSignal(true);

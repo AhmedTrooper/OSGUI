@@ -48,7 +48,7 @@ const FALLBACK_UPDATES: UpdatesSchema = {
 const EXTENSIONS_DOCS_URL = "https://github.com/AhmedTrooper/Synclime/blob/main/extentions.md";
 
 export function ExtensionsSection(): JSX.Element {
-  const [currentVersion, setCurrentVersion] = createSignal("0.1.0");
+  const [currentVersion, setCurrentVersion] = createSignal("0.1.1");
   const [updatesData, setUpdatesData] = createSignal<UpdatesSchema | null>(null);
   const [loading, setLoading] = createSignal(true);
   const [errorMsg, setErrorMsg] = createSignal("");

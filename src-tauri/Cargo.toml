@@ -1,6 +1,6 @@
 [package]
 name = "synclime"
-version = "0.1.0"
+version = "0.1.1"
 description = "High-performance media extraction pipeline powered by yt-dlp, FFmpeg, and dynamic JS runtimes."
 authors = ["you"]
 edition = "2021"
