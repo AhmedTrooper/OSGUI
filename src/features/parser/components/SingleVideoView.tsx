@@ -164,49 +164,62 @@ function StreamPickerPanel(props: StreamPickerPanelProps): JSX.Element {
   const accentIcon = (): string => (props.accent === "blue" ? "text-blue-500" : "text-emerald-500");
 
   return (
-    <div class="flex flex-col gap-2.5 min-w-0">
-      <div class="flex items-center gap-2 text-zinc-400 dark:text-zinc-500 px-0.5">
-        {props.icon}
-        <span class="text-[10px] font-bold uppercase tracking-wider">{props.title}</span>
+    <div class="flex flex-col gap-2 min-w-0">
+      <div class="flex items-center justify-between gap-2 text-zinc-400 dark:text-zinc-500 px-0.5">
+        <div class="flex items-center gap-2">
+          {props.icon}
+          <span class="text-[10px] font-bold uppercase tracking-wider">{props.title}</span>
+        </div>
+        <span class="text-[10px] font-mono text-zinc-400">({props.streams.length} formats)</span>
       </div>
 
-      <div class="hidden sm:grid sm:grid-cols-2 gap-2.5 min-w-0">
-        <For each={props.streams}>
-          {(format) => {
-            const isSelected = (): boolean => props.selected() === format.format_id;
-            return (
-              <div
-                class={cn(
-                  "border cursor-pointer select-none transition-colors rounded p-2.5 flex flex-row items-center justify-between gap-2 text-left min-w-0",
-                  isSelected()
-                    ? accentRing()
-                    : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:border-zinc-300 dark:hover:border-zinc-800",
-                )}
-                onClick={() => props.onSelect(format.format_id)}
-              >
-                <div class="flex flex-col gap-0.5 min-w-0 text-left">
-                  <span class="text-[11px] font-bold text-zinc-900 dark:text-zinc-200 leading-tight block truncate">
-                    {props.labelOf(format)} ({format.ext})
-                  </span>
-                  <span class="text-[9px] text-zinc-500 dark:text-zinc-400 font-mono block truncate">
-                    {props.metaOf(
-                      format,
-                      props.formatSize(format.filesize ?? format.filesize_approx),
-                    )}
-                  </span>
-                </div>
-                <Show when={isSelected()}>
-                  <CheckCircle2 class={cn("w-3.5 h-3.5 flex-shrink-0", accentIcon())} />
-                </Show>
+      <div class="hidden sm:block min-w-0">
+        <div class="h-60 overflow-y-auto pr-1.5 p-2 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl custom-scrollbar">
+          <Show
+            when={props.streams.length > 0}
+            fallback={
+              <div class="h-full flex items-center justify-center py-8">
+                <span class="text-[11px] italic text-zinc-500 dark:text-zinc-400">
+                  {props.emptyLabel}
+                </span>
               </div>
-            );
-          }}
-        </For>
-        <Show when={props.streams.length === 0}>
-          <span class="text-[11px] italic text-zinc-500 dark:text-zinc-400 px-0.5">
-            {props.emptyLabel}
-          </span>
-        </Show>
+            }
+          >
+            <div class="grid grid-cols-2 gap-2">
+              <For each={props.streams}>
+                {(format) => {
+                  const isSelected = (): boolean => props.selected() === format.format_id;
+                  return (
+                    <div
+                      class={cn(
+                        "border cursor-pointer select-none transition-colors rounded-lg p-2.5 flex flex-row items-center justify-between gap-2 text-left min-w-0",
+                        isSelected()
+                          ? accentRing()
+                          : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700",
+                      )}
+                      onClick={() => props.onSelect(format.format_id)}
+                    >
+                      <div class="flex flex-col gap-0.5 min-w-0 text-left">
+                        <span class="text-[11px] font-bold text-zinc-900 dark:text-zinc-200 leading-tight block truncate">
+                          {props.labelOf(format)} ({format.ext})
+                        </span>
+                        <span class="text-[9px] text-zinc-500 dark:text-zinc-400 font-mono block truncate">
+                          {props.metaOf(
+                            format,
+                            props.formatSize(format.filesize ?? format.filesize_approx),
+                          )}
+                        </span>
+                      </div>
+                      <Show when={isSelected()}>
+                        <CheckCircle2 class={cn("w-3.5 h-3.5 flex-shrink-0", accentIcon())} />
+                      </Show>
+                    </div>
+                  );
+                }}
+              </For>
+            </div>
+          </Show>
+        </div>
       </div>
 
       <div class="block sm:hidden w-full">
@@ -240,41 +253,45 @@ interface PresetPickerPanelProps {
 
 function PresetPickerPanel(props: PresetPickerPanelProps): JSX.Element {
   return (
-    <div class="flex flex-col gap-2.5 min-w-0 animate-fade-in">
+    <div class="flex flex-col gap-2 min-w-0 animate-fade-in">
       <div class="flex items-center gap-2 text-zinc-400 dark:text-zinc-500 px-0.5">
         {props.icon}
         <span class="text-[10px] font-bold uppercase tracking-wider">{props.title}</span>
       </div>
 
-      <div class="hidden sm:grid sm:grid-cols-1 gap-2.5 min-w-0">
-        <For each={props.presets}>
-          {(preset) => {
-            const isSelected = (): boolean => props.selected() === preset.value;
-            return (
-              <div
-                class={cn(
-                  "border cursor-pointer select-none transition-colors rounded p-2.5 flex flex-row items-center justify-between gap-2 text-left min-w-0",
-                  isSelected()
-                    ? "border-blue-500 dark:border-blue-400 bg-blue-50/20 dark:bg-blue-500/5 shadow-sm"
-                    : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:border-zinc-300 dark:hover:border-zinc-800",
-                )}
-                onClick={() => props.onSelect(preset.value)}
-              >
-                <div class="flex flex-col gap-0.5 min-w-0 text-left">
-                  <span class="text-[11px] font-bold text-zinc-900 dark:text-zinc-200 leading-tight block">
-                    {preset.label}
-                  </span>
-                  <span class="text-[9px] text-zinc-500 dark:text-zinc-400 font-mono block truncate">
-                    {preset.value}
-                  </span>
-                </div>
-                <Show when={isSelected()}>
-                  <CheckCircle2 class="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                </Show>
-              </div>
-            );
-          }}
-        </For>
+      <div class="hidden sm:block min-w-0">
+        <div class="h-[508px] overflow-y-auto pr-1.5 p-2 bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl custom-scrollbar">
+          <div class="grid grid-cols-1 gap-2">
+            <For each={props.presets}>
+              {(preset) => {
+                const isSelected = (): boolean => props.selected() === preset.value;
+                return (
+                  <div
+                    class={cn(
+                      "border cursor-pointer select-none transition-colors rounded-lg p-2.5 flex flex-row items-center justify-between gap-2 text-left min-w-0",
+                      isSelected()
+                        ? "border-blue-500 dark:border-blue-400 bg-blue-50/20 dark:bg-blue-500/5 shadow-sm"
+                        : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700",
+                    )}
+                    onClick={() => props.onSelect(preset.value)}
+                  >
+                    <div class="flex flex-col gap-0.5 min-w-0 text-left">
+                      <span class="text-[11px] font-bold text-zinc-900 dark:text-zinc-200 leading-tight block">
+                        {preset.label}
+                      </span>
+                      <span class="text-[9px] text-zinc-500 dark:text-zinc-400 font-mono block truncate">
+                        {preset.value}
+                      </span>
+                    </div>
+                    <Show when={isSelected()}>
+                      <CheckCircle2 class="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                    </Show>
+                  </div>
+                );
+              }}
+            </For>
+          </div>
+        </div>
       </div>
 
       <div class="block sm:hidden w-full">
@@ -343,17 +360,24 @@ interface SubtitlePanelProps {
 function SubtitlePanel(props: SubtitlePanelProps): JSX.Element {
   return (
     <div class="flex flex-col gap-2 min-w-0">
-      <div class="flex items-center gap-1.5 px-0.5 text-zinc-400 dark:text-zinc-500">
-        <Globe class="w-3.5 h-3.5 text-emerald-500" />
-        <h3 class="text-[10px] font-bold uppercase tracking-wider">Language Subtitles</h3>
+      <div class="flex items-center justify-between px-0.5 text-zinc-400 dark:text-zinc-500">
+        <div class="flex items-center gap-1.5">
+          <Globe class="w-3.5 h-3.5 text-emerald-500" />
+          <h3 class="text-[10px] font-bold uppercase tracking-wider">Language Subtitles</h3>
+        </div>
+        <Show when={props.displaySubOptions.length > 0}>
+          <span class="text-[10px] font-mono text-zinc-400">
+            ({props.displaySubOptions.length})
+          </span>
+        </Show>
       </div>
 
-      <div class="border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40 rounded-md p-3.5 min-w-0">
-        <div class="flex flex-col gap-3.5 min-w-0">
+      <div class="border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40 rounded-xl p-3 min-w-0">
+        <div class="flex flex-col gap-3 min-w-0">
           <Show
             when={props.displaySubOptions.length > 0}
             fallback={
-              <div class="text-center py-4 flex flex-col items-center gap-1.5">
+              <div class="text-center py-6 flex flex-col items-center gap-1.5">
                 <Globe class="w-5 h-5 text-zinc-500 dark:text-zinc-400" />
                 <span class="text-[10px] text-zinc-500 dark:text-zinc-400 italic">
                   No subtitles found.
@@ -365,14 +389,14 @@ function SubtitlePanel(props: SubtitlePanelProps): JSX.Element {
               <label class="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                 Select Languages {props.hasPredefined && "(Pre-Given List)"}
               </label>
-              <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1.5 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded min-w-0">
+              <div class="flex flex-wrap gap-1.5 h-48 overflow-y-auto p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg min-w-0 custom-scrollbar content-start">
                 <For each={props.displaySubOptions}>
                   {(option) => {
                     const isChecked = (): boolean => props.selectedSubs().includes(option.lang);
                     return (
                       <label
                         class={cn(
-                          "flex items-center gap-1.5 text-[10px] font-semibold px-2 py-1 rounded border cursor-pointer transition-colors shadow-sm",
+                          "flex items-center gap-1.5 text-[10px] font-semibold px-2 py-1 rounded border cursor-pointer transition-colors shadow-xs",
                           isChecked()
                             ? "bg-purple-500/10 border-purple-500 text-purple-700 dark:text-purple-400 font-extrabold"
                             : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-purple-500",
@@ -397,7 +421,7 @@ function SubtitlePanel(props: SubtitlePanelProps): JSX.Element {
               <button
                 onClick={props.downloadSubtitle}
                 disabled={props.selectedSubs().length === 0}
-                class="flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 font-bold border border-zinc-200 dark:border-zinc-700 w-full py-2 rounded shadow-sm disabled:opacity-50 min-h-[34px] px-2 text-[10px] uppercase tracking-wider cursor-pointer"
+                class="flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 font-bold border border-zinc-200 dark:border-zinc-700 w-full py-2 rounded-lg shadow-sm disabled:opacity-50 min-h-[34px] px-2 text-[10px] uppercase tracking-wider cursor-pointer transition-colors"
                 type="button"
               >
                 Download Subtitle
