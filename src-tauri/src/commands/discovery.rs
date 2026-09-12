@@ -1,9 +1,17 @@
-use crate::engine::structures::{parse_extraction_payload, DiscoveryResult};
+//! Asset metadata discovery commands.
+//!
+//! `discover_asset_metadata` shells out to `yt-dlp --dump-single-json
+//! --flat-playlist` and feeds the output into the resilient decoder
+//! in [`crate::engine::structures`]. `insert_parsed_file` is the
+//! companion that records a successful parse into the `SQLite` cache.
+
+use crate::engine::structures::DiscoveryResult;
 use crate::AppEngineState;
 use rusqlite::{params, Connection};
+use std::path::PathBuf;
 use std::process::Stdio;
 use tauri::AppHandle;
-use tauri::Manager; // FIXED: Brought the Manager trait into scope to activate .state() lookups
+use tauri::Manager;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
@@ -29,8 +37,9 @@ pub struct InsertParsedFilePayload {
     pub site_config_slug: Option<String>,
 }
 
-// this function saves a parsed file to database so we don't lose it
+/// Save (insert or replace) a parsed file row.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn insert_parsed_file(
     state: tauri::State<'_, AppEngineState>,
     payload: InsertParsedFilePayload,
@@ -51,29 +60,25 @@ pub async fn insert_parsed_file(
 
     let conn = state.db_conn.lock();
     match crate::database::operations::save_parsed_file(&conn, &row) {
-        Ok(_) => Ok(crate::commands::queue::CommandResponse {
+        Ok(()) => Ok(crate::commands::queue::CommandResponse {
             success: true,
             message: "Parsed file registered in SQLite successfully.".to_string(),
         }),
         Err(e) => Ok(crate::commands::queue::CommandResponse {
             success: false,
-            message: e.0,
+            message: e.to_string(),
         }),
     }
 }
 
-struct OptionalSiteConfig {
+/// Resolved cookie + proxy credentials for a `site_configs` row.
+struct SiteConfigCredentials {
     cookie_data: Option<String>,
     proxy_string: Option<String>,
 }
 
-// this function finds cookies and proxy settings for a website from database
-fn resolve_selected_site_configs(conn: &Connection, slug: &str) -> OptionalSiteConfig {
-    let mut config = OptionalSiteConfig {
-        cookie_data: None,
-        proxy_string: None,
-    };
-
+/// Resolve the cookie blob and proxy string attached to a `site_configs` slug.
+fn resolve_site_credentials(conn: &Connection, slug: &str) -> SiteConfigCredentials {
     let query = "
         SELECT c.cookie_data, pr.proxy_string
         FROM site_configs s
@@ -85,111 +90,168 @@ fn resolve_selected_site_configs(conn: &Connection, slug: &str) -> OptionalSiteC
     if let Ok(mut stmt) = conn.prepare(query) {
         if let Ok(mut rows) = stmt.query(params![slug]) {
             if let Ok(Some(row)) = rows.next() {
-                config.cookie_data = row.get(0).ok();
-                config.proxy_string = row.get(1).ok();
+                return SiteConfigCredentials {
+                    cookie_data: row.get(0).ok(),
+                    proxy_string: row.get(1).ok(),
+                };
             }
         }
     }
-    config
+    SiteConfigCredentials {
+        cookie_data: None,
+        proxy_string: None,
+    }
 }
 
-// this function runs yt-dlp to find info about a video or playlist link
+/// RAII guard: deletes the temporary Netscape cookie file when the
+/// owning scope exits.
+struct CookieFileCleanup(Option<PathBuf>);
+
+impl Drop for CookieFileCleanup {
+    fn drop(&mut self) {
+        if let Some(path) = &self.0 {
+            if std::fs::remove_file(path).is_ok() {
+                println!(
+                    "[SYNCLIME BACKEND] Secure temporary cookies file successfully deleted: {}",
+                    path.display()
+                );
+            } else {
+                println!(
+                    "[SYNCLIME BACKEND] WARNING: Failed to delete secure temporary cookies file: {}",
+                    path.display()
+                );
+            }
+        }
+    }
+}
+
+/// Write the cookie blob to a per-call file and return its path along
+/// with a guard that removes it when the scope exits.
+fn materialize_cookie_file(app_dir: Option<&std::path::Path>, cookies: &str) -> Option<PathBuf> {
+    let app_dir = app_dir?;
+    let unique_id = chrono::Utc::now().timestamp_nanos_opt().unwrap_or(0);
+    let file_path = app_dir.join(format!("synclime_cookie_{unique_id}.txt"));
+
+    #[cfg(unix)]
+    let wrote = {
+        use std::os::unix::fs::OpenOptionsExt;
+        std::fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .mode(0o600)
+            .open(&file_path)
+            .ok()
+            .and_then(|mut f| std::io::Write::write_all(&mut f, cookies.as_bytes()).ok())
+            .is_some()
+    };
+
+    #[cfg(not(unix))]
+    let wrote = std::fs::write(&file_path, cookies).is_ok();
+
+    if wrote {
+        println!("[SYNCLIME BACKEND] Secure Netscape cookies file created:");
+        println!("  - Path: {}", file_path.display());
+        println!("  - Size: {} bytes", cookies.len());
+        Some(file_path)
+    } else {
+        println!(
+            "[SYNCLIME BACKEND] ERROR: Failed to write secure temporary cookie file at {}",
+            file_path.display()
+        );
+        None
+    }
+}
+
+/// Resolve the [`SiteConfigCredentials`] for `site_config_slug`, logging
+/// the outcome for visibility in the worker console.
+fn resolve_site_credentials_with_log(
+    state: &AppEngineState,
+    site_config_slug: Option<&str>,
+) -> SiteConfigCredentials {
+    site_config_slug.map_or_else(
+        || {
+            println!("[SYNCLIME BACKEND] No site configuration selected (direct connection)");
+            SiteConfigCredentials {
+                cookie_data: None,
+                proxy_string: None,
+            }
+        },
+        |slug| {
+            let conn = state.db_conn.lock();
+            let credentials = resolve_site_credentials(&conn, slug);
+            println!("[SYNCLIME BACKEND] Resolved site configuration for slug '{slug}'");
+            println!(
+                "  - Proxy resolved: {}",
+                credentials.proxy_string.as_deref().unwrap_or("(none)")
+            );
+            let cookie_chars = credentials.cookie_data.as_deref().map_or(0, str::len);
+            println!("  - Cookies resolved: {cookie_chars} characters");
+            credentials
+        },
+    )
+}
+
+/// Build the `yt-dlp` argv list, wire in optional cookie/proxy flags,
+/// and return the unspawned `Command` and the (optional) cookie path
+/// guard that owns the cleanup.
+fn build_ytdlp_command(
+    site_credentials: &SiteConfigCredentials,
+    state: &AppEngineState,
+    target_url: &str,
+) -> (Command, Option<PathBuf>, CookieFileCleanup) {
+    let mut cmd = Command::new("yt-dlp");
+    cmd.arg("--dump-single-json").arg("--flat-playlist");
+
+    if let Some(ref proxy) = site_credentials.proxy_string {
+        cmd.arg("--proxy").arg(proxy);
+    }
+
+    let temp_cookie_path = site_credentials
+        .cookie_data
+        .as_deref()
+        .and_then(|cookies| materialize_cookie_file(state.db_path.parent(), cookies));
+
+    let cookie_guard = CookieFileCleanup(temp_cookie_path.clone());
+
+    if let Some(p) = &temp_cookie_path {
+        cmd.arg("--cookies").arg(p);
+    }
+
+    cmd.arg(target_url);
+    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+
+    println!("[SYNCLIME BACKEND] Spawning parsing command:");
+    println!(
+        "  - Extractor command: yt-dlp --dump-single-json --flat-playlist{}",
+        if site_credentials.proxy_string.is_some() {
+            " --proxy <proxy_url>"
+        } else {
+            ""
+        }
+    );
+    if let Some(p) = &temp_cookie_path {
+        println!("  - Using temporary cookies file: {}", p.display());
+    }
+    println!("  - Target URL: '{target_url}'");
+
+    (cmd, temp_cookie_path, cookie_guard)
+}
+
+/// Discovery: shell out to `yt-dlp --dump-single-json --flat-playlist`
+/// and parse the streamed stdout into a [`DiscoveryResponse`].
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn discover_asset_metadata(
     app_handle: AppHandle,
     target_url: String,
     site_config_slug: Option<String>,
 ) -> Result<DiscoveryResponse, String> {
     let state = app_handle.state::<AppEngineState>();
+    let site_credentials = resolve_site_credentials_with_log(&state, site_config_slug.as_deref());
 
-    let site_config = if let Some(ref slug) = site_config_slug {
-        let conn = state.db_conn.lock();
-        let cfg = resolve_selected_site_configs(&conn, slug);
-        println!("[SYNCLIME BACKEND] Resolved site configuration for slug '{}'", slug);
-        println!("  - Proxy resolved: {:?}", cfg.proxy_string);
-        println!("  - Cookies resolved: {} characters", cfg.cookie_data.as_ref().map(|c| c.len()).unwrap_or(0));
-        cfg
-    } else {
-        println!("[SYNCLIME BACKEND] No site configuration selected (direct connection)");
-        OptionalSiteConfig {
-            cookie_data: None,
-            proxy_string: None,
-        }
-    };
-
-    let mut cmd = Command::new("yt-dlp");
-    cmd.arg("--dump-single-json");
-    cmd.arg("--flat-playlist");
-
-    if let Some(ref proxy) = site_config.proxy_string {
-        cmd.arg("--proxy").arg(proxy);
-    }
-
-    let mut temp_cookie_path = None;
-    if let Some(ref cookies) = site_config.cookie_data {
-        if let Some(app_dir) = state.db_path.parent() {
-            let unique_id = chrono::Utc::now().timestamp_nanos_opt().unwrap_or(0);
-            let unique_name = format!("synclime_cookie_{}.txt", unique_id);
-            let file_path = app_dir.join(unique_name);
-            
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::OpenOptionsExt;
-                let mut options = std::fs::OpenOptions::new();
-                options.create(true).write(true).truncate(true).mode(0o600);
-                if let Ok(mut file) = options.open(&file_path) {
-                    use std::io::Write;
-                    let _ = file.write_all(cookies.as_bytes());
-                    cmd.arg("--cookies").arg(&file_path);
-                    temp_cookie_path = Some(file_path.clone());
-                    println!("[SYNCLIME BACKEND] Secure Netscape cookies file created (Unix 0600):");
-                    println!("  - Path: {:?}", file_path);
-                    println!("  - Size: {} bytes", cookies.len());
-                } else {
-                    println!("[SYNCLIME BACKEND] ERROR: Failed to open secure temporary cookie file at {:?}", file_path);
-                }
-            }
-            #[cfg(not(unix))]
-            {
-                if std::fs::write(&file_path, cookies).is_ok() {
-                    cmd.arg("--cookies").arg(&file_path);
-                    temp_cookie_path = Some(file_path.clone());
-                    println!("[SYNCLIME BACKEND] Secure Netscape cookies file created (non-Unix):");
-                    println!("  - Path: {:?}", file_path);
-                    println!("  - Size: {} bytes", cookies.len());
-                } else {
-                    println!("[SYNCLIME BACKEND] ERROR: Failed to write secure temporary cookie file at {:?}", file_path);
-                }
-            }
-        }
-    }
-
-    struct CookieFileCleanup(Option<std::path::PathBuf>);
-    impl Drop for CookieFileCleanup {
-        fn drop(&mut self) {
-            if let Some(ref path) = self.0 {
-                if std::fs::remove_file(path).is_ok() {
-                    println!("[SYNCLIME BACKEND] Secure temporary cookies file successfully deleted: {:?}", path);
-                } else {
-                    println!("[SYNCLIME BACKEND] WARNING: Failed to delete secure temporary cookies file: {:?}", path);
-                }
-            }
-        }
-    }
-    let _cleanup_guard = CookieFileCleanup(temp_cookie_path.clone());
-
-    cmd.arg(&target_url);
-    cmd.stdout(Stdio::piped());
-    cmd.stderr(Stdio::piped());
-
-    println!("[SYNCLIME BACKEND] Spawning parsing command:");
-    println!("  - Extractor command: yt-dlp --dump-single-json --flat-playlist{}",
-        if site_config.proxy_string.is_some() { " --proxy <proxy_url>" } else { "" }
-    );
-    if let Some(ref p) = temp_cookie_path {
-        println!("  - Using temporary cookies file: {:?}", p);
-    }
-    println!("  - Target URL: '{}'", target_url);
+    let (mut cmd, _temp_cookie_path, _cookie_guard) =
+        build_ytdlp_command(&site_credentials, &state, &target_url);
 
     let mut child = match cmd.spawn() {
         Ok(c) => c,
@@ -197,80 +259,72 @@ pub async fn discover_asset_metadata(
             return Ok(DiscoveryResponse {
                 success: false,
                 payload: None,
-                error_message: Some(format!(
-                    "Failed to initialize extraction sub-engine: {}",
-                    err
-                )),
-            })
+                error_message: Some(format!("Failed to initialize extraction sub-engine: {err}")),
+            });
         }
     };
 
-    let stdout_pipe = match child.stdout.take() {
-        Some(out) => out,
-        None => {
-            return Ok(DiscoveryResponse {
-                success: false,
-                payload: None,
-                error_message: Some(
-                    "Failed to hook standard output allocation handle.".to_string(),
-                ),
-            })
-        }
+    let Some(stdout_pipe) = child.stdout.take() else {
+        return Ok(DiscoveryResponse {
+            success: false,
+            payload: None,
+            error_message: Some("Failed to hook standard output allocation handle.".to_string()),
+        });
     };
-
     let stderr_pipe = child.stderr.take();
 
     let mut reader = BufReader::new(stdout_pipe).lines();
     let mut raw_json_accumulator = String::new();
-
     while let Ok(Some(line)) = reader.next_line().await {
         raw_json_accumulator.push_str(&line);
     }
-
     let _ = child.wait().await;
 
-    if raw_json_accumulator.is_empty() {
-        let mut stderr_msg = String::new();
-        if let Some(stderr) = stderr_pipe {
-            let mut err_reader = BufReader::new(stderr).lines();
-            let mut err_lines = Vec::new();
-            while let Ok(Some(line)) = err_reader.next_line().await {
-                let clean = line.trim();
-                if !clean.is_empty() {
-                    err_lines.push(clean.to_string());
-                }
-            }
-            if !err_lines.is_empty() {
-                stderr_msg = err_lines.last().cloned().unwrap_or_default();
-                if stderr_msg.is_empty() {
-                    stderr_msg = err_lines.join(" ");
-                }
+    if !raw_json_accumulator.is_empty() {
+        let raw_json_for_decode = raw_json_accumulator.clone();
+        return match crate::engine::structures::parse_extraction_payload(&raw_json_for_decode) {
+            Ok(discovery_variant) => Ok(DiscoveryResponse {
+                success: true,
+                payload: Some(discovery_variant),
+                error_message: None,
+            }),
+            Err(parse_err) => Ok(DiscoveryResponse {
+                success: false,
+                payload: None,
+                error_message: Some(parse_err),
+            }),
+        };
+    }
+
+    // Process produced empty stdout; surface whatever was on stderr.
+    let stderr_msg = if let Some(stderr) = stderr_pipe {
+        let mut err_reader = BufReader::new(stderr).lines();
+        let mut err_lines: Vec<String> = Vec::new();
+        while let Ok(Some(line)) = err_reader.next_line().await {
+            let clean = line.trim();
+            if !clean.is_empty() {
+                err_lines.push(clean.to_string());
             }
         }
-
-        let final_err = if stderr_msg.is_empty() {
-            "Extraction sub-engine returned a completely empty stream buffer data block.".to_string()
+        let last = err_lines.last().cloned().unwrap_or_default();
+        if last.is_empty() {
+            err_lines.join(" ")
         } else {
-            stderr_msg.trim().to_string()
-        };
+            last
+        }
+    } else {
+        String::new()
+    };
 
-        return Ok(DiscoveryResponse {
-            success: false,
-            payload: None,
-            error_message: Some(final_err),
-        });
-    }
+    let final_err = if stderr_msg.is_empty() {
+        "Extraction sub-engine returned a completely empty stream buffer data block.".to_string()
+    } else {
+        stderr_msg.trim().to_string()
+    };
 
-    match parse_extraction_payload(&raw_json_accumulator) {
-        Ok(discovery_variant) => Ok(DiscoveryResponse {
-            success: true,
-            payload: Some(discovery_variant),
-            error_message: None,
-        }),
-        Err(parse_err) => Ok(DiscoveryResponse {
-            success: false,
-            payload: None,
-            error_message: Some(parse_err),
-        }),
-    }
+    Ok(DiscoveryResponse {
+        success: false,
+        payload: None,
+        error_message: Some(final_err),
+    })
 }

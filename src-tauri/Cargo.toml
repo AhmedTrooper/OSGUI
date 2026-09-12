@@ -38,3 +38,27 @@ tauri-plugin-notification = "2"
 tauri-plugin-os = "2"
 tauri-plugin-process = "2"
 tauri-plugin-store = "2"
+thiserror = "2"
+anyhow = "1"
+
+[lints.rust]
+unsafe_code = "forbid"
+unused_must_use = "deny"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+# Tauri commands pass one argument per frontend field by convention.
+too_many_arguments = "allow"
+# A handful of public DTOs intentionally mirror the frontend snake/camel
+# casing — the wire format is the contract, not the Rust name.
+module_name_repetitions = "allow"
+# `must_use_candidate` triggers on every `HashMap::insert`, `Vec::push`,
+# `Command::arg`, etc. Far too noisy to be useful here.
+must_use_candidate = "allow"
+# Lots of `slug` / `job_slug` / `parsed_file_slug` pairs exist by design.
+similar_names = "allow"
+# Tauri commands are required to be `async` even when they do not await;
+# e.g. most of the commands in `src/commands/`. Suppress the noisy lint.
+unused_async = "allow"

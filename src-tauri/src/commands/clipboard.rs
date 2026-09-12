@@ -1,3 +1,9 @@
+//! URL ingestion commands.
+//!
+//! Currently exposes a single command that validates a pasted string
+//! and strips common marketing/tracking query parameters before it
+//! ever reaches the discovery or queue pipelines.
+
 use crate::AppEngineState;
 use tauri::State;
 
@@ -8,10 +14,12 @@ pub struct IngestionResult {
     pub message: String,
 }
 
-// this function cleans the link and deletes tracking things that spy on you
+/// Strip well-known tracking parameters (`utm_*`, `si`, `feature`)
+/// from a URL while preserving every other query pair.
 fn strip_tracking_parameters(target_url: &str) -> String {
-    match url::Url::parse(target_url) {
-        Ok(mut parsed_url) => {
+    url::Url::parse(target_url).map_or_else(
+        |_| target_url.to_string(),
+        |mut parsed_url| {
             let clean_pairs: Vec<(String, String)> = parsed_url
                 .query_pairs()
                 .filter(|(key, _)| {
@@ -35,13 +43,13 @@ fn strip_tracking_parameters(target_url: &str) -> String {
                 }
             }
             parsed_url.to_string()
-        }
-        Err(_) => target_url.to_string(),
-    }
+        },
+    )
 }
 
-// this function checks if you pasted a real website link and fixes it
+/// Validate and sanitise a pasted URL.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn process_clipboard_paste(
     raw_input: String,
     _state: State<'_, AppEngineState>,
@@ -51,7 +59,7 @@ pub async fn process_clipboard_paste(
     if trimmed.is_empty() {
         return Ok(IngestionResult {
             success: false,
-            sanitized_url: "".to_string(),
+            sanitized_url: String::new(),
             message: "Clipboard target data is completely empty.".to_string(),
         });
     }
@@ -67,7 +75,7 @@ pub async fn process_clipboard_paste(
         }
         Err(_) => Ok(IngestionResult {
             success: false,
-            sanitized_url: "".to_string(),
+            sanitized_url: String::new(),
             message:
                 "Provided text does not match valid web address protocols (e.g., missing https://)."
                     .to_string(),

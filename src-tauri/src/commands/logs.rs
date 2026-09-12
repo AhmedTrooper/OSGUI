@@ -1,3 +1,5 @@
+//! Read and write access to the `error_logs` and `parse_logs` tables.
+
 use crate::AppEngineState;
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
@@ -26,16 +28,15 @@ pub struct ParseLog {
     pub bytes_returned: i64,
 }
 
-// this function gets all errors that happened so you can read them
+/// List every error log, newest first.
 #[tauri::command]
-pub async fn get_error_logs(
-    state: State<'_, AppEngineState>,
-) -> Result<Vec<ErrorLog>, String> {
+#[allow(clippy::unused_async)]
+pub async fn get_error_logs(state: State<'_, AppEngineState>) -> Result<Vec<ErrorLog>, String> {
     let conn = state.db_conn.lock();
 
     let mut stmt = conn
         .prepare("SELECT slug, download_job_slug, command_executed, error_message, is_resolved, timestamp FROM error_logs ORDER BY timestamp DESC")
-        .map_err(|e| format!("Failed to prepare query: {}", e))?;
+        .map_err(|e| format!("Failed to prepare query: {e}"))?;
 
     let iter = stmt
         .query_map([], |row| {
@@ -48,27 +49,24 @@ pub async fn get_error_logs(
                 timestamp: row.get(5)?,
             })
         })
-        .map_err(|e| format!("Query failed: {}", e))?;
+        .map_err(|e| format!("Query failed: {e}"))?;
 
     let mut logs = Vec::new();
-    for item in iter {
-        if let Ok(log) = item {
-            logs.push(log);
-        }
+    for log in iter.flatten() {
+        logs.push(log);
     }
     Ok(logs)
 }
 
-// this function gets all log files for parsed stuff from the database
+/// List every parse log, newest first.
 #[tauri::command]
-pub async fn get_parse_logs(
-    state: State<'_, AppEngineState>,
-) -> Result<Vec<ParseLog>, String> {
+#[allow(clippy::unused_async)]
+pub async fn get_parse_logs(state: State<'_, AppEngineState>) -> Result<Vec<ParseLog>, String> {
     let conn = state.db_conn.lock();
 
     let mut stmt = conn
         .prepare("SELECT slug, parsed_file_slug, status, started_at, finished_at, duration_ms, command_executed, exit_code, bytes_returned FROM parse_logs ORDER BY started_at DESC")
-        .map_err(|e| format!("Failed to prepare query: {}", e))?;
+        .map_err(|e| format!("Failed to prepare query: {e}"))?;
 
     let iter = stmt
         .query_map([], |row| {
@@ -84,19 +82,19 @@ pub async fn get_parse_logs(
                 bytes_returned: row.get(8)?,
             })
         })
-        .map_err(|e| format!("Query failed: {}", e))?;
+        .map_err(|e| format!("Query failed: {e}"))?;
 
     let mut logs = Vec::new();
-    for item in iter {
-        if let Ok(log) = item {
-            logs.push(log);
-        }
+    for log in iter.flatten() {
+        logs.push(log);
     }
     Ok(logs)
 }
 
-// this function writes a new error in the database to remember it
+/// Insert a new error log; routes the foreign key to the
+/// `app_fallback` row when the referenced job no longer exists.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn insert_error_log(
     state: State<'_, AppEngineState>,
     download_job_slug: String,
@@ -105,10 +103,11 @@ pub async fn insert_error_log(
 ) -> Result<(), String> {
     let conn = state.db_conn.lock();
 
-    let mut exists = false;
-    if let Ok(mut stmt) = conn.prepare("SELECT 1 FROM download_jobs WHERE slug = ?1") {
-        exists = stmt.exists(params![download_job_slug]).unwrap_or(false);
-    }
+    let exists = conn
+        .prepare("SELECT 1 FROM download_jobs WHERE slug = ?1")
+        .ok()
+        .and_then(|mut stmt| stmt.exists(params![download_job_slug]).ok())
+        .unwrap_or(false);
 
     let resolved_slug = if exists {
         download_job_slug
@@ -122,13 +121,16 @@ pub async fn insert_error_log(
     conn.execute(
         "INSERT INTO error_logs (slug, download_job_slug, command_executed, error_message, is_resolved, timestamp) VALUES (?1, ?2, ?3, ?4, 0, ?5);",
         params![slug, resolved_slug, command_executed, error_message, timestamp],
-    ).map_err(|e| format!("Failed to insert error log: {}", e))?;
+    )
+    .map_err(|e| format!("Failed to insert error log: {e}"))?;
 
     Ok(())
 }
 
-// this function writes a new parse log in the database
+/// Insert a new parse log; routes the foreign key to the
+/// `app_fallback` row when the referenced parsed file no longer exists.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn insert_parse_log(
     state: State<'_, AppEngineState>,
     parsed_file_slug: String,
@@ -142,10 +144,11 @@ pub async fn insert_parse_log(
 ) -> Result<(), String> {
     let conn = state.db_conn.lock();
 
-    let mut exists = false;
-    if let Ok(mut stmt) = conn.prepare("SELECT 1 FROM parsed_files WHERE slug = ?1") {
-        exists = stmt.exists(params![parsed_file_slug]).unwrap_or(false);
-    }
+    let exists = conn
+        .prepare("SELECT 1 FROM parsed_files WHERE slug = ?1")
+        .ok()
+        .and_then(|mut stmt| stmt.exists(params![parsed_file_slug]).ok())
+        .unwrap_or(false);
 
     let resolved_slug = if exists {
         parsed_file_slug
@@ -158,23 +161,20 @@ pub async fn insert_parse_log(
     conn.execute(
         "INSERT INTO parse_logs (slug, parsed_file_slug, status, started_at, finished_at, duration_ms, command_executed, exit_code, bytes_returned) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9);",
         params![slug, resolved_slug, status, started_at, finished_at, duration_ms, command_executed, exit_code, bytes_returned],
-    ).map_err(|e| format!("Failed to insert parse log: {}", e))?;
+    )
+    .map_err(|e| format!("Failed to insert parse log: {e}"))?;
 
     Ok(())
 }
 
-// this function deletes all error logs and parse logs from database
+/// Truncate both log tables.
 #[tauri::command]
-pub async fn clear_all_logs(
-    state: State<'_, AppEngineState>,
-) -> Result<(), String> {
+#[allow(clippy::unused_async)]
+pub async fn clear_all_logs(state: State<'_, AppEngineState>) -> Result<(), String> {
     let conn = state.db_conn.lock();
-
     conn.execute("DELETE FROM error_logs", [])
-        .map_err(|e| format!("Failed to clear error logs: {}", e))?;
-
+        .map_err(|e| format!("Failed to clear error logs: {e}"))?;
     conn.execute("DELETE FROM parse_logs", [])
-        .map_err(|e| format!("Failed to clear parse logs: {}", e))?;
-
+        .map_err(|e| format!("Failed to clear parse logs: {e}"))?;
     Ok(())
 }

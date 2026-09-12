@@ -1,15 +1,16 @@
-use rusqlite::{params, Connection};
+//! Pure `SQLite` data-access functions.
+//!
+//! All public functions take a borrowed [`rusqlite::Connection`] so
+//! the caller controls locking. Returns [`DbError`] which is the
+//! `thiserror`-based enum defined in [`crate::error`]; Tauri command
+//! callers `.map_err(|e| e.to_string())` at the IPC boundary.
 
-#[derive(Debug)]
-pub struct DbError(pub String);
+use rusqlite::{params, Connection, Row};
 
-impl From<rusqlite::Error> for DbError {
-    fn from(err: rusqlite::Error) -> Self {
-        DbError(err.to_string())
-    }
-}
+use crate::error::{DbError, DbResult};
 
-/// Structural representation of a parsed asset entry row
+/// Structural representation of an asset row returned by the
+/// `yt-dlp --dump-single-json` extraction path.
 pub struct ParsedFileRow {
     pub slug: String,
     pub url: String,
@@ -24,7 +25,7 @@ pub struct ParsedFileRow {
     pub site_config_slug: Option<String>,
 }
 
-/// Structural representation of a queue item row
+/// Structural representation of a download-job row.
 pub struct DownloadJobRow {
     pub slug: String,
     pub parsed_file_slug: Option<String>,
@@ -48,8 +49,14 @@ pub struct DownloadJobRow {
     pub updated_at: String,
 }
 
-/// Secure Database Gateway: Saves an analytical file tracking manifest to SQLite safely
-pub fn save_parsed_file(conn: &Connection, row: &ParsedFileRow) -> Result<(), DbError> {
+/// Tiny ergonomic helper: fetch a typed column from a row, converting
+/// any `rusqlite::Error` into our [`DbError`] automatically.
+fn col<T: rusqlite::types::FromSql>(row: &Row<'_>, idx: usize) -> DbResult<T> {
+    row.get(idx).map_err(DbError::from)
+}
+
+/// Insert or replace a `parsed_files` row keyed by `slug`.
+pub fn save_parsed_file(conn: &Connection, row: &ParsedFileRow) -> DbResult<()> {
     let query = "
         INSERT OR REPLACE INTO parsed_files (
             slug, url, title, sanitized_title, is_playlist,
@@ -58,7 +65,7 @@ pub fn save_parsed_file(conn: &Connection, row: &ParsedFileRow) -> Result<(), Db
         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11);
     ";
 
-    match conn.execute(
+    conn.execute(
         query,
         params![
             row.slug,
@@ -73,14 +80,12 @@ pub fn save_parsed_file(conn: &Connection, row: &ParsedFileRow) -> Result<(), Db
             row.created_at,
             row.site_config_slug
         ],
-    ) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(DbError(e.to_string())),
-    }
+    )?;
+    Ok(())
 }
 
-/// Transactional Queue Handler: Injects a brand new download execution thread line to SQLite
-pub fn create_download_job(conn: &Connection, job: &DownloadJobRow) -> Result<(), DbError> {
+/// Insert (or ignore on conflict) a new `download_jobs` row.
+pub fn create_download_job(conn: &Connection, job: &DownloadJobRow) -> DbResult<()> {
     let query = "
         INSERT OR IGNORE INTO download_jobs (
             slug, parsed_file_slug, file_type, associated_media_job_slug,
@@ -91,7 +96,7 @@ pub fn create_download_job(conn: &Connection, job: &DownloadJobRow) -> Result<()
         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20);
     ";
 
-    match conn.execute(
+    conn.execute(
         query,
         params![
             job.slug,
@@ -115,14 +120,12 @@ pub fn create_download_job(conn: &Connection, job: &DownloadJobRow) -> Result<()
             job.created_at,
             job.updated_at
         ],
-    ) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(DbError(e.to_string())),
-    }
+    )?;
+    Ok(())
 }
 
-/// Queue Scheduling Token Lookup: Pulls the absolute highest-priority pending task lines out of SQLite
-pub fn get_next_pending_job(conn: &Connection) -> Result<Option<DownloadJobRow>, DbError> {
+/// Fetch the next `pending` job, ordered by priority then age.
+pub fn get_next_pending_job(conn: &Connection) -> DbResult<Option<DownloadJobRow>> {
     let query = "
         SELECT
             slug, parsed_file_slug, file_type, associated_media_job_slug,
@@ -136,95 +139,51 @@ pub fn get_next_pending_job(conn: &Connection) -> Result<Option<DownloadJobRow>,
         LIMIT 1;
     ";
 
-    let mut stmt = match conn.prepare(query) {
-        Ok(s) => s,
-        Err(e) => return Err(DbError(e.to_string())),
-    };
+    let mut stmt = conn.prepare(query)?;
+    let mut rows = stmt.query([])?;
 
-    let mut rows = match stmt.query([]) {
-        Ok(r) => r,
-        Err(e) => return Err(DbError(e.to_string())),
-    };
-
-    match rows.next() {
-        Ok(Some(row)) => {
-            let fetched_job = DownloadJobRow {
-                slug: match row.get(0) {
-                    Ok(val) => val,
-                    Err(e) => return Err(DbError(e.to_string())),
-                },
-                parsed_file_slug: row.get(1).ok(),
-                file_type: match row.get(2) {
-                    Ok(val) => val,
-                    Err(e) => return Err(DbError(e.to_string())),
-                },
-                associated_media_job_slug: row.get(3).ok(),
-                is_direct_url: match row.get(4) {
-                    Ok(val) => val,
-                    Err(e) => return Err(DbError(e.to_string())),
-                },
-                direct_url: row.get(5).ok(),
-                is_from_playlist: match row.get(6) {
-                    Ok(val) => val,
-                    Err(e) => return Err(DbError(e.to_string())),
-                },
-                current_part: match row.get(7) {
-                    Ok(val) => val,
-                    Err(e) => return Err(DbError(e.to_string())),
-                },
-                total_parts: match row.get(8) {
-                    Ok(val) => val,
-                    Err(e) => return Err(DbError(e.to_string())),
-                },
-                base_download_path: match row.get(9) {
-                    Ok(val) => val,
-                    Err(e) => return Err(DbError(e.to_string())),
-                },
-                custom_download_path: row.get(10).ok(),
-                cookie_profile_slug: row.get(11).ok(),
-                proxy_profile_slug: row.get(12).ok(),
-                status: match row.get(13) {
-                    Ok(val) => val,
-                    Err(e) => return Err(DbError(e.to_string())),
-                },
-                format_string: match row.get(14) {
-                    Ok(val) => val,
-                    Err(e) => return Err(DbError(e.to_string())),
-                },
-                audio_format: row.get(15).ok(),
-                video_format: row.get(16).ok(),
-                selected_subtitles: row.get(17).ok(),
-                created_at: match row.get(18) {
-                    Ok(val) => val,
-                    Err(e) => return Err(DbError(e.to_string())),
-                },
-                updated_at: match row.get(19) {
-                    Ok(val) => val,
-                    Err(e) => return Err(DbError(e.to_string())),
-                },
-            };
-            Ok(Some(fetched_job))
-        }
-        Ok(None) => Ok(None),
-        Err(e) => Err(DbError(e.to_string())),
+    match rows.next()? {
+        Some(row) => Ok(Some(DownloadJobRow {
+            slug: col(row, 0)?,
+            parsed_file_slug: row.get(1)?,
+            file_type: col(row, 2)?,
+            associated_media_job_slug: row.get(3)?,
+            is_direct_url: col(row, 4)?,
+            direct_url: row.get(5)?,
+            is_from_playlist: col(row, 6)?,
+            current_part: col(row, 7)?,
+            total_parts: col(row, 8)?,
+            base_download_path: col(row, 9)?,
+            custom_download_path: row.get(10)?,
+            cookie_profile_slug: row.get(11)?,
+            proxy_profile_slug: row.get(12)?,
+            status: col(row, 13)?,
+            format_string: col(row, 14)?,
+            audio_format: row.get(15)?,
+            video_format: row.get(16)?,
+            selected_subtitles: row.get(17)?,
+            created_at: col(row, 18)?,
+            updated_at: col(row, 19)?,
+        })),
+        None => Ok(None),
     }
 }
 
-/// Secure Queue Operation: Drops a single download job tracker from SQLite
-pub fn delete_download_job(conn: &Connection, job_slug: &str) -> Result<(), DbError> {
-    match conn.execute(
+/// Delete a single `download_jobs` row by slug.
+pub fn delete_download_job(conn: &Connection, job_slug: &str) -> DbResult<()> {
+    conn.execute(
         "DELETE FROM download_jobs WHERE slug = ?1;",
         params![job_slug],
-    ) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(DbError(e.to_string())),
-    }
+    )?;
+    Ok(())
 }
 
-/// Secure Queue Operation: Drops all download tracker jobs completely
-pub fn clear_all_download_jobs(conn: &Connection) -> Result<(), DbError> {
-    match conn.execute("DELETE FROM download_jobs WHERE status IN ('completed', 'error');", []) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(DbError(e.to_string())),
-    }
+/// Delete every `completed` or `error` job. Pending / downloading /
+/// paused jobs are preserved so the user can resume after a crash.
+pub fn clear_all_download_jobs(conn: &Connection) -> DbResult<()> {
+    conn.execute(
+        "DELETE FROM download_jobs WHERE status IN ('completed', 'error');",
+        [],
+    )?;
+    Ok(())
 }

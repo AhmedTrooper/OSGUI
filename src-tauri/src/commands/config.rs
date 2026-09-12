@@ -1,3 +1,7 @@
+//! CRUD commands for cookie profiles, proxy profiles, site configs
+//! and the user-selected download path. Everything persists into the
+//! local `SQLite` database; nothing here spawns subprocesses.
+
 use crate::AppEngineState;
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
@@ -13,8 +17,9 @@ pub struct CookieProfile {
     pub updated_at: String,
 }
 
-// this function makes a new cookies profile for websites
+/// Add a new cookie profile scoped to a single domain.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn add_cookie_profile(
     state: State<'_, AppEngineState>,
     title: String,
@@ -29,20 +34,23 @@ pub async fn add_cookie_profile(
     conn.execute(
         "INSERT INTO cookie_profiles (slug, title, domain, cookie_data, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
         params![slug, title, domain, cookie_data, now, now],
-    ).map_err(|e| format!("Failed to insert cookie profile: {}", e))?;
+    )
+    .map_err(|e| format!("Failed to insert cookie profile: {e}"))?;
 
     Ok(slug)
 }
 
-// this function gets all cookies profiles you made
+/// List all cookie profiles, newest first.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn get_cookie_profiles(
     state: State<'_, AppEngineState>,
 ) -> Result<Vec<CookieProfile>, String> {
     let conn = state.db_conn.lock();
 
-    let mut stmt = conn.prepare("SELECT slug, title, domain, cookie_data, created_at, updated_at FROM cookie_profiles ORDER BY created_at DESC")
-        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+    let mut stmt = conn
+        .prepare("SELECT slug, title, domain, cookie_data, created_at, updated_at FROM cookie_profiles ORDER BY created_at DESC")
+        .map_err(|e| format!("Failed to prepare statement: {e}"))?;
 
     let iter = stmt
         .query_map([], |row| {
@@ -55,20 +63,18 @@ pub async fn get_cookie_profiles(
                 updated_at: row.get(5)?,
             })
         })
-        .map_err(|e| format!("Query failed: {}", e))?;
+        .map_err(|e| format!("Query failed: {e}"))?;
 
     let mut profiles = Vec::new();
-    for p in iter {
-        if let Ok(profile) = p {
-            profiles.push(profile);
-        }
+    for profile in iter.flatten() {
+        profiles.push(profile);
     }
-
     Ok(profiles)
 }
 
-// this function updates cookie text for a profile
+/// Overwrite the cookie blob on an existing profile.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn update_cookie_data(
     state: State<'_, AppEngineState>,
     slug: String,
@@ -81,50 +87,47 @@ pub async fn update_cookie_data(
         "UPDATE cookie_profiles SET cookie_data = ?1, updated_at = ?2 WHERE slug = ?3",
         params![cookie_data, now, slug],
     )
-    .map_err(|e| format!("Failed to update cookie profile: {}", e))?;
-
+    .map_err(|e| format!("Failed to update cookie profile: {e}"))?;
     Ok(())
 }
 
-// this function deletes a cookies profile from database
+/// Delete a single cookie profile.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn delete_cookie_profile(
     state: State<'_, AppEngineState>,
     slug: String,
 ) -> Result<(), String> {
     let conn = state.db_conn.lock();
-
     conn.execute("DELETE FROM cookie_profiles WHERE slug = ?1", params![slug])
-        .map_err(|e| format!("Failed to delete cookie profile: {}", e))?;
-
+        .map_err(|e| format!("Failed to delete cookie profile: {e}"))?;
     Ok(())
 }
 
-// this function deletes many cookies profiles at once
+/// Delete many cookie profiles in one transaction.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn batch_delete_cookie_profiles(
     state: State<'_, AppEngineState>,
     slugs: Vec<String>,
 ) -> Result<(), String> {
     let mut conn = state.db_conn.lock();
-
     let tx = conn
         .transaction()
-        .map_err(|e| format!("Transaction failed: {}", e))?;
+        .map_err(|e| format!("Transaction failed: {e}"))?;
 
     {
         let mut stmt = tx
             .prepare("DELETE FROM cookie_profiles WHERE slug = ?1")
-            .map_err(|e| format!("Prepare failed: {}", e))?;
+            .map_err(|e| format!("Prepare failed: {e}"))?;
 
         for slug in slugs {
             stmt.execute(params![slug])
-                .map_err(|e| format!("Failed to delete cookie profile '{}': {}", slug, e))?;
+                .map_err(|e| format!("Failed to delete cookie profile '{slug}': {e}"))?;
         }
     }
 
-    tx.commit().map_err(|e| format!("Commit failed: {}", e))?;
-
+    tx.commit().map_err(|e| format!("Commit failed: {e}"))?;
     Ok(())
 }
 
@@ -137,8 +140,9 @@ pub struct ProxyProfile {
     pub updated_at: String,
 }
 
-// this function makes a new proxy profile to change your IP
+/// Add a new proxy profile.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn add_proxy_profile(
     state: State<'_, AppEngineState>,
     title: String,
@@ -148,24 +152,26 @@ pub async fn add_proxy_profile(
     let now = chrono::Utc::now().to_rfc3339();
 
     let conn = state.db_conn.lock();
-
     conn.execute(
         "INSERT INTO proxy_profiles (slug, title, proxy_string, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5)",
         params![slug, title, proxy_string, now, now],
-    ).map_err(|e| format!("Failed to insert proxy profile: {}", e))?;
+    )
+    .map_err(|e| format!("Failed to insert proxy profile: {e}"))?;
 
     Ok(slug)
 }
 
-// this function gets all proxy profiles from database
+/// List all proxy profiles, newest first.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn get_proxy_profiles(
     state: State<'_, AppEngineState>,
 ) -> Result<Vec<ProxyProfile>, String> {
     let conn = state.db_conn.lock();
 
-    let mut stmt = conn.prepare("SELECT slug, title, proxy_string, created_at, updated_at FROM proxy_profiles ORDER BY created_at DESC")
-        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+    let mut stmt = conn
+        .prepare("SELECT slug, title, proxy_string, created_at, updated_at FROM proxy_profiles ORDER BY created_at DESC")
+        .map_err(|e| format!("Failed to prepare statement: {e}"))?;
 
     let iter = stmt
         .query_map([], |row| {
@@ -177,20 +183,18 @@ pub async fn get_proxy_profiles(
                 updated_at: row.get(4)?,
             })
         })
-        .map_err(|e| format!("Query failed: {}", e))?;
+        .map_err(|e| format!("Query failed: {e}"))?;
 
     let mut profiles = Vec::new();
-    for p in iter {
-        if let Ok(profile) = p {
-            profiles.push(profile);
-        }
+    for profile in iter.flatten() {
+        profiles.push(profile);
     }
-
     Ok(profiles)
 }
 
-// this function updates the proxy IP address text
+/// Overwrite the proxy string on an existing profile.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn update_proxy_data(
     state: State<'_, AppEngineState>,
     slug: String,
@@ -203,50 +207,47 @@ pub async fn update_proxy_data(
         "UPDATE proxy_profiles SET proxy_string = ?1, updated_at = ?2 WHERE slug = ?3",
         params![proxy_string, now, slug],
     )
-    .map_err(|e| format!("Failed to update proxy profile: {}", e))?;
-
+    .map_err(|e| format!("Failed to update proxy profile: {e}"))?;
     Ok(())
 }
 
-// this function deletes a proxy profile from database
+/// Delete a single proxy profile.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn delete_proxy_profile(
     state: State<'_, AppEngineState>,
     slug: String,
 ) -> Result<(), String> {
     let conn = state.db_conn.lock();
-
     conn.execute("DELETE FROM proxy_profiles WHERE slug = ?1", params![slug])
-        .map_err(|e| format!("Failed to delete proxy profile: {}", e))?;
-
+        .map_err(|e| format!("Failed to delete proxy profile: {e}"))?;
     Ok(())
 }
 
-// this function deletes many proxy profiles at the same time
+/// Delete many proxy profiles in one transaction.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn batch_delete_proxy_profiles(
     state: State<'_, AppEngineState>,
     slugs: Vec<String>,
 ) -> Result<(), String> {
     let mut conn = state.db_conn.lock();
-
     let tx = conn
         .transaction()
-        .map_err(|e| format!("Transaction failed: {}", e))?;
+        .map_err(|e| format!("Transaction failed: {e}"))?;
 
     {
         let mut stmt = tx
             .prepare("DELETE FROM proxy_profiles WHERE slug = ?1")
-            .map_err(|e| format!("Prepare failed: {}", e))?;
+            .map_err(|e| format!("Prepare failed: {e}"))?;
 
         for slug in slugs {
             stmt.execute(params![slug])
-                .map_err(|e| format!("Failed to delete proxy profile '{}': {}", slug, e))?;
+                .map_err(|e| format!("Failed to delete proxy profile '{slug}': {e}"))?;
         }
     }
 
-    tx.commit().map_err(|e| format!("Commit failed: {}", e))?;
-
+    tx.commit().map_err(|e| format!("Commit failed: {e}"))?;
     Ok(())
 }
 
@@ -262,8 +263,10 @@ pub struct SiteConfig {
     pub updated_at: String,
 }
 
-// this function adds a new website setting with cookies and proxy
+/// Add a site config, linking optional cookie and proxy profiles.
+#[allow(clippy::too_many_arguments)]
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn add_site_config(
     state: State<'_, AppEngineState>,
     title: String,
@@ -276,22 +279,24 @@ pub async fn add_site_config(
     let now = chrono::Utc::now().to_rfc3339();
 
     let conn = state.db_conn.lock();
-
     conn.execute(
         "INSERT INTO site_configs (slug, title, domain, cookie_profile_slug, proxy_profile_slug, is_default, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-        params![slug, title, domain, cookie_profile_slug, proxy_profile_slug, if is_default { 1 } else { 0 }, now, now],
-    ).map_err(|e| format!("Failed to insert site config: {}", e))?;
+        params![slug, title, domain, cookie_profile_slug, proxy_profile_slug, i32::from(is_default), now, now],
+    )
+    .map_err(|e| format!("Failed to insert site config: {e}"))?;
 
     Ok(slug)
 }
 
-// this function gets all website settings from database
+/// List all site configs, newest first.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn get_site_configs(state: State<'_, AppEngineState>) -> Result<Vec<SiteConfig>, String> {
     let conn = state.db_conn.lock();
 
-    let mut stmt = conn.prepare("SELECT slug, title, domain, cookie_profile_slug, proxy_profile_slug, is_default, created_at, updated_at FROM site_configs ORDER BY created_at DESC")
-        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+    let mut stmt = conn
+        .prepare("SELECT slug, title, domain, cookie_profile_slug, proxy_profile_slug, is_default, created_at, updated_at FROM site_configs ORDER BY created_at DESC")
+        .map_err(|e| format!("Failed to prepare statement: {e}"))?;
 
     let iter = stmt
         .query_map([], |row| {
@@ -306,20 +311,18 @@ pub async fn get_site_configs(state: State<'_, AppEngineState>) -> Result<Vec<Si
                 updated_at: row.get(7)?,
             })
         })
-        .map_err(|e| format!("Query failed: {}", e))?;
+        .map_err(|e| format!("Query failed: {e}"))?;
 
     let mut configs = Vec::new();
-    for c in iter {
-        if let Ok(cfg) = c {
-            configs.push(cfg);
-        }
+    for cfg in iter.flatten() {
+        configs.push(cfg);
     }
-
     Ok(configs)
 }
 
-// this function changes the cookies and proxy for a website setting
+/// Re-target the cookie and proxy profiles on a site config.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn update_site_config(
     state: State<'_, AppEngineState>,
     slug: String,
@@ -332,27 +335,27 @@ pub async fn update_site_config(
     conn.execute(
         "UPDATE site_configs SET cookie_profile_slug = ?1, proxy_profile_slug = ?2, updated_at = ?3 WHERE slug = ?4",
         params![cookie_profile_slug, proxy_profile_slug, now, slug],
-    ).map_err(|e| format!("Failed to update site config: {}", e))?;
-
+    )
+    .map_err(|e| format!("Failed to update site config: {e}"))?;
     Ok(())
 }
 
-// this function deletes a website setting from database
+/// Delete a single site config.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn delete_site_config(
     state: State<'_, AppEngineState>,
     slug: String,
 ) -> Result<(), String> {
     let conn = state.db_conn.lock();
-
     conn.execute("DELETE FROM site_configs WHERE slug = ?1", params![slug])
-        .map_err(|e| format!("Failed to delete site config: {}", e))?;
-
+        .map_err(|e| format!("Failed to delete site config: {e}"))?;
     Ok(())
 }
 
-// this function saves where you want to download files on your computer
+/// Persist the global download-path preference.
 #[tauri::command]
+#[allow(clippy::unused_async)]
 pub async fn update_download_path(
     state: State<'_, AppEngineState>,
     path: String,
@@ -363,30 +366,27 @@ pub async fn update_download_path(
         "INSERT OR REPLACE INTO app_settings (key, value) VALUES ('download_path', ?1)",
         params![path],
     )
-    .map_err(|e| format!("Failed to update download path: {}", e))?;
-
+    .map_err(|e| format!("Failed to update download path: {e}"))?;
     Ok(())
 }
 
-// this function gets the folder path where files are saved
+/// Read the global download-path preference; returns an empty string
+/// when the user has never set one.
 #[tauri::command]
-pub async fn get_download_path(
-    state: State<'_, AppEngineState>,
-) -> Result<String, String> {
+#[allow(clippy::unused_async)]
+pub async fn get_download_path(state: State<'_, AppEngineState>) -> Result<String, String> {
     let conn = state.db_conn.lock();
 
     let mut stmt = conn
         .prepare("SELECT value FROM app_settings WHERE key = 'download_path'")
-        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+        .map_err(|e| format!("Failed to prepare statement: {e}"))?;
 
-    let mut rows = stmt
-        .query([])
-        .map_err(|e| format!("Query failed: {}", e))?;
+    let mut rows = stmt.query([]).map_err(|e| format!("Query failed: {e}"))?;
 
     if let Some(row) = rows.next().map_err(|e| e.to_string())? {
         let path: String = row.get(0).map_err(|e| e.to_string())?;
         Ok(path)
     } else {
-        Ok("".to_string())
+        Ok(String::new())
     }
 }

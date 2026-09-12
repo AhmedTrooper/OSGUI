@@ -1,3 +1,7 @@
+//! Serde models for `yt-dlp --dump-single-json` output, plus a
+//! resilient decoder that picks between single-video and playlist
+//! payloads.
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -68,7 +72,7 @@ pub struct VideoMetadata {
     pub subtitles: Option<HashMap<String, serde_json::Value>>,
     pub automatic_captions: Option<HashMap<String, serde_json::Value>>,
     pub chapters: Option<Vec<Chapter>>,
-    pub _type: Option<String>,
+    pub r#type: Option<String>,
 }
 
 // ==========================================
@@ -86,7 +90,7 @@ pub struct PlaylistThumbnail {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PlaylistEntry {
-    pub _type: Option<String>,
+    pub r#type: Option<String>,
     pub ie_key: Option<String>,
     pub id: String,
     pub url: String,
@@ -124,28 +128,25 @@ pub struct GenericPlaylistMetadata {
 
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
+#[allow(clippy::large_enum_variant)]
 pub enum DiscoveryResult {
     SingleVideo(VideoMetadata),
     MultiTrackPlaylist(GenericPlaylistMetadata),
 }
 
+/// Decode a raw `yt-dlp` JSON blob into either a single-video or a
+/// playlist payload. The classifier inspects a handful of well-known
+/// discriminator keys rather than trusting `_type` alone, because
+/// some extractors omit or misreport it.
 pub fn parse_extraction_payload(raw_json: &str) -> Result<DiscoveryResult, String> {
-    let probed_value: serde_json::Value = match serde_json::from_str(raw_json) {
-        Ok(parsed_map) => parsed_map,
-        Err(err) => {
-            return Err(format!(
-                "Invalid JSON payload stream structural layout: {}",
-                err
-            ))
-        }
-    };
+    let probed_value: serde_json::Value = serde_json::from_str(raw_json)
+        .map_err(|err| format!("Invalid JSON payload stream structural layout: {err}"))?;
 
     // --- PLAYLIST OR CHECK CONDITIONS ---
     let is_playlist_tag = probed_value
         .get("_type")
         .and_then(|t| t.as_str())
-        .map(|s| s == "playlist")
-        .unwrap_or(false);
+        .is_some_and(|s| s == "playlist");
 
     let has_entries_array = probed_value
         .get("entries")
@@ -158,8 +159,7 @@ pub fn parse_extraction_payload(raw_json: &str) -> Result<DiscoveryResult, Strin
     let is_video_tag = probed_value
         .get("_type")
         .and_then(|t| t.as_str())
-        .map(|s| s == "video")
-        .unwrap_or(false);
+        .is_some_and(|s| s == "video");
 
     let has_formats_array = probed_value
         .get("formats")
@@ -167,34 +167,26 @@ pub fn parse_extraction_payload(raw_json: &str) -> Result<DiscoveryResult, Strin
         .is_some();
 
     // --- EVALUATION INTERPRETER ROUTER ---
-    // If any playlist property returns true, evaluate it as a multi-track structure line immediately
+    // If any playlist property returns true, evaluate it as a
+    // multi-track structure line immediately.
     if is_playlist_tag || has_entries_array || has_playlist_count {
-        match serde_json::from_str::<GenericPlaylistMetadata>(raw_json) {
-            Ok(playlist_struct) => Ok(DiscoveryResult::MultiTrackPlaylist(playlist_struct)),
-            Err(err) => Err(format!(
-                "Resilient parsing rejected playlist model mapping: {}",
-                err
-            )),
-        }
+        serde_json::from_str::<GenericPlaylistMetadata>(raw_json)
+            .map(DiscoveryResult::MultiTrackPlaylist)
+            .map_err(|err| format!("Resilient parsing rejected playlist model mapping: {err}"))
     }
-    // Otherwise, check if it contains explicit video parameters
+    // Otherwise, check if it contains explicit video parameters.
     else if is_video_tag || has_formats_array {
-        match serde_json::from_str::<VideoMetadata>(raw_json) {
-            Ok(video_struct) => Ok(DiscoveryResult::SingleVideo(video_struct)),
-            Err(err) => Err(format!(
-                "Resilient parsing rejected video model mapping: {}",
-                err
-            )),
-        }
+        serde_json::from_str::<VideoMetadata>(raw_json)
+            .map(DiscoveryResult::SingleVideo)
+            .map_err(|err| format!("Resilient parsing rejected video model mapping: {err}"))
     }
-    // Ultimate Fallback: Try decoding as a direct video asset
+    // Ultimate Fallback: Try decoding as a direct video asset.
     else {
-        match serde_json::from_str::<VideoMetadata>(raw_json) {
-            Ok(video_struct) => Ok(DiscoveryResult::SingleVideo(video_struct)),
-            Err(_) => Err(
+        serde_json::from_str::<VideoMetadata>(raw_json)
+            .map(DiscoveryResult::SingleVideo)
+            .map_err(|_| {
                 "Unrecognized yt-dlp structural scheme. Unable to safely map data definitions."
-                    .to_string(),
-            ),
-        }
+                    .to_string()
+            })
     }
 }
