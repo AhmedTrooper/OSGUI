@@ -1,5 +1,6 @@
 import { onMount, createSignal, For, Show, onCleanup, type JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
+import { Tooltip } from "@kobalte/core/tooltip";
 import {
   Inbox,
   Trash2,
@@ -45,7 +46,6 @@ export default function InboxRoute(): JSX.Element {
         setLoading(false);
       }
     } else {
-      // Browser preview: synthetic demo data
       setTimeout(() => {
         const now = Date.now();
         const samples: InboxItem[] = [
@@ -152,40 +152,74 @@ export default function InboxRoute(): JSX.Element {
       {/* Header */}
       <div class="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-white/10">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-lg shadow-sm">
-            <Inbox class="w-5 h-5 animate-pulse" />
-          </div>
-          <div>
-            <h1 class="text-base font-bold text-zinc-900 dark:text-white tracking-tight leading-tight flex items-center gap-2">
-              Inbox Queue
-              <Show when={pendingCount() > 0}>
-                <span class="px-2 py-0.5 text-[10px] font-extrabold bg-amber-500 text-white rounded-full animate-bounce">
+          <Tooltip openDelay={200} placement="bottom">
+            <Tooltip.Trigger
+              as="div"
+              class="w-10 h-10 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-lg shadow-sm cursor-default inline-flex"
+            >
+              <Inbox class="w-5 h-5 animate-pulse" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Inbox Queue
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
+          <Show when={pendingCount() > 0}>
+            <Tooltip openDelay={200} placement="right">
+              <Tooltip.Trigger
+                as="span"
+                class="cursor-default px-2 py-0.5 text-[10px] font-extrabold bg-amber-500 text-white rounded-full animate-bounce"
+              >
+                {pendingCount()}
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
                   {pendingCount()} New
-                </span>
-              </Show>
-            </h1>
-            <p class="text-[10px] text-zinc-400">
-              Manage pending assets sent directly from your browser extension
-            </p>
-          </div>
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
+          </Show>
         </div>
-        <button
-          onClick={() => {
-            void fetchInbox();
-          }}
-          class="p-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 rounded-lg transition-colors border border-zinc-200 dark:border-zinc-800"
-          title="Refresh Inbox Queue"
-        >
-          <RefreshCw class={`w-4 h-4 ${loading() ? "animate-spin text-blue-500" : ""}`} />
-        </button>
+        <Tooltip openDelay={200} placement="left">
+          <Tooltip.Trigger
+            as="button"
+            onClick={() => {
+              void fetchInbox();
+            }}
+            class="p-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 rounded-lg transition-colors border border-zinc-200 dark:border-zinc-800"
+            type="button"
+          >
+            <RefreshCw class={`w-4 h-4 ${loading() ? "animate-spin text-blue-500" : ""}`} />
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+              <Tooltip.Arrow />
+              Refresh Inbox Queue
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        </Tooltip>
       </div>
 
       {/* Filter / Search bar */}
       <div class="flex flex-col sm:flex-row gap-3">
         <div class="relative flex-1">
-          <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500">
-            <Search class="w-4 h-4" />
-          </div>
+          <Tooltip openDelay={200} placement="right">
+            <Tooltip.Trigger
+              as="div"
+              class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 cursor-default inline-flex"
+            >
+              <Search class="w-4 h-4" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Search received links
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
           <input
             type="text"
             placeholder="Search received links and domains..."
@@ -202,7 +236,17 @@ export default function InboxRoute(): JSX.Element {
         fallback={
           <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/40 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-3">
             <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p class="text-zinc-400 text-xs font-semibold">Scanning SQLite pipeline database...</p>
+            <Tooltip openDelay={200} placement="bottom">
+              <Tooltip.Trigger as="span" class="cursor-default text-zinc-400 text-xs font-semibold">
+                ·
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  Scanning SQLite pipeline database...
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
           </div>
         }
       >
@@ -218,20 +262,20 @@ export default function InboxRoute(): JSX.Element {
             when={filteredItems().length > 0}
             fallback={
               <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/40 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4">
-                <div class="w-12 h-12 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 rounded-full">
-                  <Inbox class="w-6 h-6" />
-                </div>
-                <div class="space-y-1">
-                  <h3 class="font-bold text-zinc-900 dark:text-white text-sm">No items in inbox</h3>
-                  <p class="text-zinc-400 text-[11px] max-w-xs leading-relaxed">
-                    Your inbox is currently empty. Use the browser extension or send a POST request
-                    to
-                    <code class="mx-1 px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded font-mono text-[10px] text-blue-600 dark:text-blue-400">
-                      http://localhost:14221/add
-                    </code>
-                    to populate this queue.
-                  </p>
-                </div>
+                <Tooltip openDelay={200} placement="bottom">
+                  <Tooltip.Trigger
+                    as="div"
+                    class="w-12 h-12 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 rounded-full cursor-default inline-flex"
+                  >
+                    <Inbox class="w-6 h-6" />
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                      <Tooltip.Arrow />
+                      No items in inbox
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip>
               </div>
             }
           >
@@ -250,14 +294,36 @@ export default function InboxRoute(): JSX.Element {
 
                         {/* Date details */}
                         <div class="flex items-center gap-3 text-zinc-400 dark:text-zinc-500 text-[10px] font-medium">
-                          <span class="flex items-center gap-1">
-                            <Calendar class="w-3 h-3" />
-                            {formatDate(item.created_at)}
-                          </span>
-                          <span class="flex items-center gap-1">
-                            <Clock class="w-3 h-3" />
-                            {formatTime(item.created_at)}
-                          </span>
+                          <Tooltip openDelay={200} placement="right">
+                            <Tooltip.Trigger
+                              as="span"
+                              class="cursor-default flex items-center gap-1"
+                            >
+                              <Calendar class="w-3 h-3" />
+                              {formatDate(item.created_at)}
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                <Tooltip.Arrow />
+                                Date Received
+                              </Tooltip.Content>
+                            </Tooltip.Portal>
+                          </Tooltip>
+                          <Tooltip openDelay={200} placement="right">
+                            <Tooltip.Trigger
+                              as="span"
+                              class="cursor-default flex items-center gap-1"
+                            >
+                              <Clock class="w-3 h-3" />
+                              {formatTime(item.created_at)}
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                <Tooltip.Arrow />
+                                Time Received
+                              </Tooltip.Content>
+                            </Tooltip.Portal>
+                          </Tooltip>
                         </div>
                       </div>
 
@@ -272,21 +338,38 @@ export default function InboxRoute(): JSX.Element {
 
                     {/* Right: Actions */}
                     <div class="flex items-center gap-2.5 sm:self-center">
-                      <button
-                        onClick={(e) => {
-                          void handleDelete(item.slug, e);
-                        }}
-                        class="p-2 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/5 dark:hover:bg-red-500/10 rounded-lg transition-colors border border-transparent hover:border-red-500/10"
-                        title="Remove link"
-                      >
-                        <Trash2 class="w-4 h-4" />
-                      </button>
-                      <div
-                        class="p-2 text-zinc-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 hover:bg-blue-500/5 dark:hover:bg-blue-500/10 rounded-lg transition-colors border border-transparent group-hover:border-blue-500/10"
-                        title="View action panel"
-                      >
-                        <ArrowRight class="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform" />
-                      </div>
+                      <Tooltip openDelay={200} placement="left">
+                        <Tooltip.Trigger
+                          as="button"
+                          onClick={(e) => {
+                            void handleDelete(item.slug, e);
+                          }}
+                          class="p-2 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/5 dark:hover:bg-red-500/10 rounded-lg transition-colors border border-transparent hover:border-red-500/10"
+                          type="button"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Remove link
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
+                      <Tooltip openDelay={200} placement="left">
+                        <Tooltip.Trigger
+                          as="div"
+                          class="p-2 text-zinc-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 hover:bg-blue-500/5 dark:hover:bg-blue-500/10 rounded-lg transition-colors border border-transparent group-hover:border-blue-500/10 cursor-pointer inline-flex"
+                        >
+                          <ArrowRight class="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform" />
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            View action panel
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                     </div>
                   </div>
                 )}
@@ -301,44 +384,79 @@ export default function InboxRoute(): JSX.Element {
         {/* Connection Diagnostics Card */}
         <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/30 p-5 rounded-xl shadow-sm space-y-4">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-lg">
-              <RefreshCw
-                class={`w-4.5 h-4.5 ${healthStatus() === "checking" ? "animate-spin" : ""}`}
-              />
-            </div>
-            <div class="text-left">
-              <h3 class="text-xs font-bold text-zinc-950 dark:text-white uppercase tracking-wider">
-                Local Server Diagnostics
-              </h3>
-              <p class="text-[10px] text-zinc-400">Validate local companion API connectivity</p>
-            </div>
+            <Tooltip openDelay={200} placement="right">
+              <Tooltip.Trigger
+                as="div"
+                class="w-9 h-9 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-lg cursor-default inline-flex"
+              >
+                <RefreshCw
+                  class={`w-4.5 h-4.5 ${healthStatus() === "checking" ? "animate-spin" : ""}`}
+                />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  Local Server Diagnostics
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
           </div>
 
           <div class="text-xs space-y-3 bg-zinc-50 dark:bg-zinc-950 p-3 rounded-lg border border-zinc-200/50 dark:border-zinc-800/50">
             <div class="flex items-center justify-between">
-              <span class="text-zinc-500 font-medium">Bound Port:</span>
+              <Tooltip openDelay={200} placement="right">
+                <Tooltip.Trigger as="span" class="cursor-default text-zinc-500 font-medium">
+                  ·
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                    <Tooltip.Arrow />
+                    Bound Port
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip>
               <code class="bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-[10px] px-2 py-0.5 rounded font-mono font-extrabold">
                 {activePort()}
               </code>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-zinc-500 font-medium">Diagnostic:</span>
+              <Tooltip openDelay={200} placement="right">
+                <Tooltip.Trigger as="span" class="cursor-default text-zinc-500 font-medium">
+                  ·
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                    <Tooltip.Arrow />
+                    Diagnostic
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip>
               <Show when={healthStatus() === "idle"}>
-                <span class="text-zinc-400 font-bold uppercase text-[9px]">Unchecked</span>
+                <Tooltip openDelay={200} placement="left">
+                  <Tooltip.Trigger
+                    as="span"
+                    class="cursor-default text-zinc-400 font-bold uppercase text-[9px]"
+                  >
+                    UC
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                      <Tooltip.Arrow />
+                      Unchecked
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip>
               </Show>
               <Show when={healthStatus() === "checking"}>
-                <span class="text-blue-500 font-bold uppercase text-[9px] animate-pulse">
-                  Testing...
-                </span>
+                <span class="text-blue-500 font-bold uppercase text-[9px] animate-pulse">···</span>
               </Show>
               <Show when={healthStatus() === "online"}>
                 <span class="inline-flex items-center gap-1 text-emerald-500 font-bold uppercase text-[9px]">
                   <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
-                  ONLINE
                 </span>
               </Show>
               <Show when={healthStatus() === "offline"}>
-                <span class="text-red-500 font-bold uppercase text-[9px]">OFFLINE</span>
+                <span class="text-red-500 font-bold uppercase text-[9px]">●</span>
               </Show>
             </div>
 
@@ -349,22 +467,43 @@ export default function InboxRoute(): JSX.Element {
             </Show>
           </div>
 
-          <button
-            onClick={() => {
-              void testConnection();
-            }}
-            disabled={healthStatus() === "checking"}
-            class="w-full flex items-center justify-center gap-1.5 py-2 px-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
-          >
-            <span>Test API Connection</span>
-          </button>
+          <Tooltip openDelay={200} placement="top">
+            <Tooltip.Trigger
+              as="button"
+              onClick={() => {
+                void testConnection();
+              }}
+              disabled={healthStatus() === "checking"}
+              class="w-full flex items-center justify-center gap-1.5 py-2 px-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
+              type="button"
+            >
+              <RefreshCw
+                class={`w-3.5 h-3.5 ${healthStatus() === "checking" ? "animate-spin" : ""}`}
+              />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Test API Connection
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </div>
 
         {/* Quick Tutorial Card */}
         <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/30 p-5 rounded-xl shadow-sm space-y-3 text-left">
           <div class="flex items-center gap-2 text-zinc-800 dark:text-zinc-200 font-bold text-[10px] uppercase tracking-wider">
-            <Sparkles class="w-4.5 h-4.5 text-purple-500" />
-            <span>Developer POST Payload Schema</span>
+            <Tooltip openDelay={200} placement="right">
+              <Tooltip.Trigger as="span" class="cursor-default inline-flex items-center">
+                <Sparkles class="w-4.5 h-4.5 text-purple-500" />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  Developer POST Payload Schema
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
           </div>
 
           <div class="space-y-2">
@@ -384,8 +523,17 @@ Content-Type: application/json
             </div>
 
             <div class="text-[9px] text-zinc-400 flex items-start gap-1 font-sans">
-              <Info class="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5" />
-              <span>Returns success response with generated inbox item unique slug.</span>
+              <Tooltip openDelay={200} placement="right">
+                <Tooltip.Trigger as="span" class="cursor-default inline-flex items-center">
+                  <Info class="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                    <Tooltip.Arrow />
+                    Returns success response with generated inbox item unique slug.
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip>
             </div>
           </div>
         </div>
@@ -401,23 +549,54 @@ interface StatusBadgeProps {
 function StatusBadge(props: StatusBadgeProps): JSX.Element {
   if (props.status === "pending") {
     return (
-      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping" />
-        Pending
-      </span>
+      <Tooltip openDelay={200} placement="right">
+        <Tooltip.Trigger
+          as="span"
+          class="cursor-default inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+        >
+          <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping" />
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+            <Tooltip.Arrow />
+            Pending
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip>
     );
   }
   if (props.status === "parsed") {
     return (
-      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-        Parsed
-      </span>
+      <Tooltip openDelay={200} placement="right">
+        <Tooltip.Trigger
+          as="span"
+          class="cursor-default inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+        >
+          <span class="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+            <Tooltip.Arrow />
+            Parsed
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip>
     );
   }
   return (
-    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-      <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-      Downloaded
-    </span>
+    <Tooltip openDelay={200} placement="right">
+      <Tooltip.Trigger
+        as="span"
+        class="cursor-default inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+      >
+        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+          <Tooltip.Arrow />
+          Downloaded
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip>
   );
 }

@@ -10,6 +10,7 @@ import {
   GlobeLock,
   HardDrive,
   LayoutGrid,
+  ClipboardPaste,
 } from "lucide-solid";
 import { useUIStore } from "@/store/useUIStore";
 import { useParseStore } from "@/store/useParseStore";
@@ -62,9 +63,9 @@ export default function Home(): JSX.Element {
 
   const handlePasteClipboard = async (): Promise<void> => {
     try {
-      const text = await navigator.clipboard.readText();
+      const text = await ipc.readClipboardText();
       if (text) {
-        setUrl(text);
+        setUrl(text.trim());
       }
     } catch (e) {
       console.warn("Failed to read clipboard:", e);
@@ -368,29 +369,52 @@ export default function Home(): JSX.Element {
       {/* Native-feeling Title Panel / Toolbar Header */}
       <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800/80 gap-3">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20 shadow-sm">
-            <FileDown class="w-5 h-5" />
-          </div>
-          <div class="text-left">
-            <h1 class="text-sm font-black text-zinc-900 dark:text-white tracking-tight leading-tight uppercase">
-              Task Controller
-            </h1>
-            <p class="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
-              Initialize multithreaded media pipeline downloads
-            </p>
-          </div>
+          <Tooltip openDelay={200} placement="bottom">
+            <Tooltip.Trigger
+              as="div"
+              class="w-10 h-10 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20 shadow-sm cursor-default inline-flex"
+            >
+              <FileDown class="w-5 h-5" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Task Controller
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </div>
 
         {/* Engine Diagnostics Pills */}
         <div class="flex items-center gap-2 overflow-x-auto py-1 scrollbar-hide">
-          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded-full whitespace-nowrap">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Aria2 Daemon Active</span>
-          </div>
-          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded-full whitespace-nowrap">
-            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-            <span>SQLite Connected</span>
-          </div>
+          <Tooltip openDelay={200} placement="left">
+            <Tooltip.Trigger
+              as="div"
+              class="cursor-default flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded-full whitespace-nowrap"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Aria2 Daemon Active
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
+          <Tooltip openDelay={200} placement="left">
+            <Tooltip.Trigger
+              as="div"
+              class="cursor-default flex items-center gap-1.5 px-2.5 py-1 bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded-full whitespace-nowrap"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                SQLite Connected
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </div>
       </div>
 
@@ -409,18 +433,38 @@ export default function Home(): JSX.Element {
                 {/* Asset URL Section */}
                 <div class="space-y-2 text-left">
                   <div class="flex items-center justify-between">
-                    <label class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                      Resource URL / Address Link
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void handlePasteClipboard();
-                      }}
-                      class="flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors cursor-pointer"
-                    >
-                      <span>Paste Clipboard</span>
-                    </button>
+                    <Tooltip openDelay={200} placement="right">
+                      <Tooltip.Trigger
+                        as="label"
+                        class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
+                      >
+                        ·
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Resource URL / Address Link
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
+                    <Tooltip openDelay={200} placement="left">
+                      <Tooltip.Trigger
+                        as="button"
+                        type="button"
+                        onClick={() => {
+                          void handlePasteClipboard();
+                        }}
+                        class="flex items-center justify-center p-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors cursor-pointer"
+                      >
+                        <ClipboardPaste class="w-3.5 h-3.5" />
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Paste Clipboard
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
                   </div>
 
                   <div class="relative flex items-center group">
@@ -433,17 +477,53 @@ export default function Home(): JSX.Element {
                       placeholder="Paste media link, video URL, playlist or custom document..."
                       value={url()}
                       onInput={(e) => setUrl(e.currentTarget.value)}
+                      onPaste={(e) => {
+                        // Use the Tauri clipboard bridge on paste so URLs
+                        // can carry tracking parameters that browser paste
+                        // events strip (and so behaviour is consistent
+                        // across webview / desktop).
+                        e.preventDefault();
+                        const clipboardData = e.clipboardData;
+                        const pasted = clipboardData ? clipboardData.getData("text") : "";
+                        if (pasted.trim()) {
+                          setUrl(pasted.trim());
+                        } else {
+                          void handlePasteClipboard();
+                        }
+                      }}
                       disabled={loading()}
                       class="w-full pl-10 pr-10 py-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-zinc-950 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-500/5 transition-all outline-none text-xs sm:text-sm text-zinc-900 dark:text-white shadow-inner font-sans font-medium"
                     />
 
-                    <Show when={url()}>
-                      <Tooltip openDelay={200}>
+                    <Show
+                      when={url()}
+                      fallback={
+                        <Tooltip openDelay={200} placement="left">
+                          <Tooltip.Trigger
+                            as="button"
+                            type="button"
+                            onClick={() => {
+                              void handlePasteClipboard();
+                            }}
+                            class="absolute right-3 p-1.5 rounded-md text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 hover:bg-blue-500/10 dark:hover:bg-blue-500/20 transition-colors cursor-pointer"
+                          >
+                            <ClipboardPaste class="w-3.5 h-3.5" />
+                          </Tooltip.Trigger>
+                          <Tooltip.Portal>
+                            <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                              <Tooltip.Arrow />
+                              Paste from Clipboard
+                            </Tooltip.Content>
+                          </Tooltip.Portal>
+                        </Tooltip>
+                      }
+                    >
+                      <Tooltip openDelay={200} placement="left">
                         <Tooltip.Trigger
                           as="button"
                           type="button"
                           onClick={() => setUrl("")}
-                          class="absolute right-3.5 p-1 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                          class="absolute right-3 p-1 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
                         >
                           <X class="w-3.5 h-3.5" />
                         </Tooltip.Trigger>
@@ -460,9 +540,20 @@ export default function Home(): JSX.Element {
 
                 {/* Task Execution Mode (Segment Selector Grid) */}
                 <div class="space-y-2 text-left">
-                  <label class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                    Task Execution Strategy
-                  </label>
+                  <Tooltip openDelay={200} placement="right">
+                    <Tooltip.Trigger
+                      as="label"
+                      class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
+                    >
+                      ·
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                        <Tooltip.Arrow />
+                        Task Execution Strategy
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Mode 1: Metadata Extraction */}
                     <button
@@ -526,9 +617,20 @@ export default function Home(): JSX.Element {
 
                 {/* Site Profile Picker */}
                 <div class="space-y-2 text-left">
-                  <label class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                    Site Access Rule / Authentication Proxy
-                  </label>
+                  <Tooltip openDelay={200} placement="right">
+                    <Tooltip.Trigger
+                      as="label"
+                      class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
+                    >
+                      ·
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                        <Tooltip.Arrow />
+                        Site Access Rule / Authentication Proxy
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip>
                   <CustomSelect
                     value={selectedSiteSlug()}
                     onChange={setSelectedSiteSlug}
@@ -571,24 +673,20 @@ export default function Home(): JSX.Element {
                           <Show when={directDownload()} fallback={<Play class="w-4 h-4" />}>
                             <FileDown class="w-4 h-4" />
                           </Show>
-                          <span>
-                            {directDownload()
-                              ? "Initialize Direct Download"
-                              : "Analyze Resource Parameters"}
-                          </span>
                         </>
                       }
                     >
                       <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Extracting Resource Parameters...</span>
                     </Show>
                   </Tooltip.Trigger>
                   <Tooltip.Portal>
                     <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
                       <Tooltip.Arrow />
-                      {directDownload()
-                        ? "Queue direct download stream"
-                        : "Analyze resolution formats and subtitles"}
+                      {loading()
+                        ? "Extracting Resource Parameters..."
+                        : directDownload()
+                          ? "Initialize Direct Download"
+                          : "Analyze Resource Parameters"}
                     </Tooltip.Content>
                   </Tooltip.Portal>
                 </Tooltip>
@@ -601,10 +699,20 @@ export default function Home(): JSX.Element {
         <div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-4 text-left">
           {/* Active Config Connection */}
           <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/10 p-4.5 rounded-2xl space-y-3.5 backdrop-blur-md">
-            <h3 class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between">
-              <span>Access Environment</span>
-              <GlobeLock class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-            </h3>
+            <Tooltip openDelay={200} placement="right">
+              <Tooltip.Trigger
+                as="h3"
+                class="cursor-default text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between"
+              >
+                <GlobeLock class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  Access Environment
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
 
             <Show
               when={selectedSiteSlug()}
@@ -629,25 +737,58 @@ export default function Home(): JSX.Element {
                 return (
                   <div class="space-y-3 font-sans font-medium text-[11px] text-zinc-600 dark:text-zinc-400">
                     <div class="flex items-center justify-between">
-                      <span class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">
-                        Selected Profile
-                      </span>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="span"
+                          class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase"
+                        >
+                          ·
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Selected Profile
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <span class="font-extrabold text-blue-600 dark:text-blue-400 truncate max-w-[150px]">
                         {activeCfg()?.title}
                       </span>
                     </div>
                     <div class="flex items-center justify-between font-mono">
-                      <span class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase font-sans">
-                        Target Domain
-                      </span>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="span"
+                          class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase font-sans"
+                        >
+                          ·
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Target Domain
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <span class="truncate max-w-[150px] font-semibold text-zinc-700 dark:text-zinc-300">
                         {activeCfg()?.domain}
                       </span>
                     </div>
                     <div class="flex items-center justify-between">
-                      <span class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">
-                        Cookies Integration
-                      </span>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="span"
+                          class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase"
+                        >
+                          ·
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Cookies Integration
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <div class="flex items-center gap-1.5">
                         <span
                           class={`w-1.5 h-1.5 rounded-full ${activeCfg()?.cookie_profile_slug ? "bg-emerald-500" : "bg-zinc-400"}`}
@@ -658,9 +799,20 @@ export default function Home(): JSX.Element {
                       </div>
                     </div>
                     <div class="flex items-center justify-between">
-                      <span class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">
-                        Proxy Access
-                      </span>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="span"
+                          class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase"
+                        >
+                          ·
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Proxy Access
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <div class="flex items-center gap-1.5">
                         <span
                           class={`w-1.5 h-1.5 rounded-full ${activeCfg()?.proxy_profile_slug ? "bg-emerald-500" : "bg-zinc-400"}`}
@@ -678,34 +830,75 @@ export default function Home(): JSX.Element {
 
           {/* Quick Engine Diagnostics */}
           <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/10 p-4.5 rounded-2xl space-y-3 backdrop-blur-md">
-            <h3 class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between">
-              <span>System Core Services</span>
-              <span class="text-[9px] text-zinc-400 dark:text-zinc-500 font-bold font-mono">
-                1.0.0-PRO
-              </span>
-            </h3>
+            <Tooltip openDelay={200} placement="right">
+              <Tooltip.Trigger
+                as="h3"
+                class="cursor-default text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between"
+              >
+                <HardDrive class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  System Core Services (1.0.0-PRO)
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
 
             <div class="space-y-2.5 font-sans font-medium text-[11px]">
               <div class="flex items-center justify-between text-xs">
-                <span class="text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold">
-                  Tauri Rust Core Server
-                </span>
+                <Tooltip openDelay={200} placement="right">
+                  <Tooltip.Trigger
+                    as="span"
+                    class="cursor-default text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold"
+                  >
+                    ·
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                      <Tooltip.Arrow />
+                      Tauri Rust Core Server
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip>
                 <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
                   ACTIVE
                 </span>
               </div>
               <div class="flex items-center justify-between text-xs">
-                <span class="text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold">
-                  Metadata Engine (yt-dlp)
-                </span>
+                <Tooltip openDelay={200} placement="right">
+                  <Tooltip.Trigger
+                    as="span"
+                    class="cursor-default text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold"
+                  >
+                    ·
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                      <Tooltip.Arrow />
+                      Metadata Engine (yt-dlp)
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip>
                 <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
                   READY
                 </span>
               </div>
               <div class="flex items-center justify-between text-xs">
-                <span class="text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold">
-                  Multi-Thread Daemon (aria2)
-                </span>
+                <Tooltip openDelay={200} placement="right">
+                  <Tooltip.Trigger
+                    as="span"
+                    class="cursor-default text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold"
+                  >
+                    ·
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                      <Tooltip.Arrow />
+                      Multi-Thread Daemon (aria2)
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip>
                 <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
                   STANDBY
                 </span>
@@ -716,21 +909,41 @@ export default function Home(): JSX.Element {
           {/* Library and Queue Stats Quick widgets */}
           <div class="grid grid-cols-2 gap-3.5">
             <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/10 p-3.5 rounded-2xl backdrop-blur-md">
-              <div class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                Queue Jobs
-              </div>
-              <div class="text-xl font-black text-zinc-800 dark:text-white tracking-tight mt-1 flex items-center gap-2">
-                <HardDrive class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-                <span>{useQueueStore.state.queue.length}</span>
+              <Tooltip openDelay={200} placement="right">
+                <Tooltip.Trigger
+                  as="div"
+                  class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
+                >
+                  <HardDrive class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                    <Tooltip.Arrow />
+                    Queue Jobs
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip>
+              <div class="text-xl font-black text-zinc-800 dark:text-white tracking-tight mt-1">
+                {useQueueStore.state.queue.length}
               </div>
             </div>
             <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/10 p-3.5 rounded-2xl backdrop-blur-md">
-              <div class="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                Saved Cache
-              </div>
-              <div class="text-xl font-black text-zinc-800 dark:text-white tracking-tight mt-1 flex items-center gap-2">
-                <LayoutGrid class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-                <span>{useParseStore.state.parsedFiles.length}</span>
+              <Tooltip openDelay={200} placement="right">
+                <Tooltip.Trigger
+                  as="div"
+                  class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
+                >
+                  <LayoutGrid class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                    <Tooltip.Arrow />
+                    Saved Cache
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip>
+              <div class="text-xl font-black text-zinc-800 dark:text-white tracking-tight mt-1">
+                {useParseStore.state.parsedFiles.length}
               </div>
             </div>
           </div>
