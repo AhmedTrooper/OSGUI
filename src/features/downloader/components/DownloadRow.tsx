@@ -1,4 +1,5 @@
 import { Show, createMemo, createSignal, type JSX } from "solid-js";
+import { Tooltip } from "@kobalte/core/tooltip";
 import { Play, Pause, FolderOpen, Trash, Copy, Check } from "lucide-solid";
 import { useQueueStore } from "@/store/useQueueStore";
 import type { DownloadStatus } from "@/core/types/database.types";
@@ -72,13 +73,28 @@ export function DownloadRow(props: DownloadRowProps): JSX.Element {
           <span class="text-[9px] sm:text-[10px] text-zinc-500 dark:text-zinc-400 font-mono w-5 sm:w-8 flex-shrink-0">
             {Math.round(progress())}%
           </span>
-          <span
-            class={`text-[8px] sm:text-[10px] uppercase tracking-wide truncate flex-shrink-0 ${
-              isError() ? "text-red-500" : "text-zinc-500"
-            }`}
-          >
-            {status()}
-          </span>
+          <Tooltip openDelay={200} placement="right">
+            <Tooltip.Trigger
+              as="span"
+              class={`cursor-default text-[8px] sm:text-[10px] uppercase tracking-wide truncate flex-shrink-0 ${
+                isError() ? "text-red-500" : "text-zinc-500"
+              }`}
+            >
+              {status()}
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                {status() === "completed"
+                  ? "Completed"
+                  : status() === "error"
+                    ? "Error"
+                    : status() === "downloading"
+                      ? "Downloading"
+                      : "Paused"}
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </div>
         <Show when={message() !== ""}>
           <span
@@ -94,52 +110,84 @@ export function DownloadRow(props: DownloadRowProps): JSX.Element {
 
       <div class="flex items-center gap-1 flex-shrink-0">
         <Show when={status() !== "completed"}>
-          <button
-            onClick={() => props.onPauseToggle()}
-            class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors"
-            title={pauseToggleTitle(status())}
-            type="button"
-          >
-            <Show
-              when={status() === "paused" || status() === "error"}
-              fallback={<Pause class="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />}
+          <Tooltip openDelay={200} placement="left">
+            <Tooltip.Trigger
+              as="button"
+              onClick={() => props.onPauseToggle()}
+              class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors"
+              type="button"
             >
-              <Play class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-            </Show>
-          </button>
+              <Show
+                when={status() === "paused" || status() === "error"}
+                fallback={<Pause class="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />}
+              >
+                <Play class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+              </Show>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                {pauseToggleTitle(status())}
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </Show>
         <Show when={status() === "completed"}>
-          <button
-            onClick={() => props.onReveal()}
-            class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-blue-600 dark:text-blue-400 transition-colors"
-            title="Reveal in File Explorer"
-            type="button"
-          >
-            <FolderOpen class="w-3.5 h-3.5" />
-          </button>
+          <Tooltip openDelay={200} placement="left">
+            <Tooltip.Trigger
+              as="button"
+              onClick={() => props.onReveal()}
+              class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-blue-600 dark:text-blue-400 transition-colors"
+              type="button"
+            >
+              <FolderOpen class="w-3.5 h-3.5" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Reveal in File Explorer
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </Show>
         <Show when={job()?.url}>
-          <button
-            onClick={() => {
-              void handleCopy();
-            }}
-            class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors"
-            title={copied() ? "Copied!" : "Copy Source URL"}
+          <Tooltip openDelay={200} placement="left">
+            <Tooltip.Trigger
+              as="button"
+              onClick={() => {
+                void handleCopy();
+              }}
+              class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors"
+              type="button"
+            >
+              <Show when={copied()} fallback={<Copy class="w-3.5 h-3.5" />}>
+                <Check class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+              </Show>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                {copied() ? "Copied!" : "Copy Source URL"}
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
+        </Show>
+        <Tooltip openDelay={200} placement="left">
+          <Tooltip.Trigger
+            as="button"
+            onClick={() => props.onDelete()}
+            class="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors"
             type="button"
           >
-            <Show when={copied()} fallback={<Copy class="w-3.5 h-3.5" />}>
-              <Check class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-            </Show>
-          </button>
-        </Show>
-        <button
-          onClick={() => props.onDelete()}
-          class="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors"
-          title="Delete Job"
-          type="button"
-        >
-          <Trash class="w-3.5 h-3.5" />
-        </button>
+            <Trash class="w-3.5 h-3.5" />
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+              <Tooltip.Arrow />
+              Delete Job
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        </Tooltip>
       </div>
     </div>
   );

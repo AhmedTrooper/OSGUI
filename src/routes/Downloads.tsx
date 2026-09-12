@@ -1,4 +1,5 @@
 import { onMount, createMemo, For, Show, type JSX } from "solid-js";
+import { Tooltip } from "@kobalte/core/tooltip";
 import { useUIStore } from "@/store/useUIStore";
 import { useQueueStore } from "@/store/useQueueStore";
 import { ipc } from "@/utils/ipc";
@@ -166,16 +167,38 @@ export default function Downloads(): JSX.Element {
                 when={node.job}
                 fallback={
                   <div class="flex items-center gap-3 bg-blue-500/5 dark:bg-blue-500/5 p-3 rounded-xl border border-blue-500/10 w-full min-w-0 shadow-sm mb-2 mt-1">
-                    <div class="p-2 bg-blue-600/10 text-blue-600 dark:text-blue-400 rounded-lg flex-shrink-0">
-                      <Folder class="w-4 h-4" />
-                    </div>
+                    <Tooltip openDelay={200} placement="right">
+                      <Tooltip.Trigger
+                        as="div"
+                        class="p-2 bg-blue-600/10 text-blue-600 dark:text-blue-400 rounded-lg flex-shrink-0 cursor-default inline-flex"
+                      >
+                        <Folder class="w-4 h-4" />
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Video Subtitles
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
                     <div class="flex flex-col min-w-0">
                       <span class="font-semibold text-xs sm:text-sm text-zinc-800 dark:text-zinc-200 leading-tight line-clamp-1">
                         {node.name}
                       </span>
-                      <span class="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400">
-                        Video Subtitles ({node.children.length} active)
-                      </span>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="span"
+                          class="cursor-default text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400"
+                        >
+                          {node.children.length}
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Active subtitle tracks
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                     </div>
                   </div>
                 }
@@ -198,16 +221,38 @@ export default function Downloads(): JSX.Element {
             }
           >
             <div class="flex items-center gap-3 bg-purple-500/10 dark:bg-purple-500/10 p-3 sm:p-4 rounded-xl border border-purple-500/20 w-full min-w-0 shadow-sm mb-2 mt-2">
-              <div class="p-2 bg-purple-500 text-white rounded-lg shadow-sm flex-shrink-0">
-                <Folder class="w-4 h-4" />
-              </div>
+              <Tooltip openDelay={200} placement="right">
+                <Tooltip.Trigger
+                  as="div"
+                  class="p-2 bg-purple-500 text-white rounded-lg shadow-sm flex-shrink-0 cursor-default inline-flex"
+                >
+                  <Folder class="w-4 h-4" />
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                    <Tooltip.Arrow />
+                    Playlist Group
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip>
               <div class="flex flex-col min-w-0">
                 <span class="font-bold text-xs sm:text-sm text-zinc-900 dark:text-white leading-tight line-clamp-1">
                   {node.name}
                 </span>
-                <span class="text-[10px] sm:text-xs text-purple-600 dark:text-purple-400 font-semibold uppercase tracking-wider">
-                  Playlist Group ({node.children.length} items)
-                </span>
+                <Tooltip openDelay={200} placement="right">
+                  <Tooltip.Trigger
+                    as="span"
+                    class="cursor-default text-[10px] sm:text-xs text-purple-600 dark:text-purple-400 font-semibold uppercase tracking-wider"
+                  >
+                    {node.children.length}
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                      <Tooltip.Arrow />
+                      Items in playlist
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip>
               </div>
             </div>
           </Show>
@@ -246,23 +291,40 @@ export default function Downloads(): JSX.Element {
     <div class="flex flex-col gap-6 w-full max-w-4xl mx-auto h-full py-2">
       <div class="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-white/10">
         <div class="flex items-center gap-2.5">
-          <div class="p-1.5 bg-indigo-500 rounded-md text-white shadow-sm">
-            <DownloadCloud class="w-4 h-4" />
-          </div>
-          <h1 class="text-base font-bold text-zinc-900 dark:text-white tracking-tight">
-            Active Downloads
-          </h1>
+          <Tooltip openDelay={200} placement="bottom">
+            <Tooltip.Trigger
+              as="div"
+              class="p-1.5 bg-indigo-500 rounded-md text-white shadow-sm cursor-default inline-flex"
+            >
+              <DownloadCloud class="w-4 h-4" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Active Downloads
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </div>
         <Show when={useQueueStore.state.queue.length > 0}>
-          <button
-            onClick={() => {
-              void handleClearAll();
-            }}
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 font-semibold transition-colors text-[11px] uppercase tracking-wider"
-          >
-            <Trash2 class="w-3.5 h-3.5" />
-            Clear Finished
-          </button>
+          <Tooltip openDelay={200} placement="left">
+            <Tooltip.Trigger
+              as="button"
+              onClick={() => {
+                void handleClearAll();
+              }}
+              class="flex items-center justify-center p-2 rounded-md bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors"
+              type="button"
+            >
+              <Trash2 class="w-3.5 h-3.5" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Clear Finished
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </Show>
       </div>
 
@@ -271,13 +333,17 @@ export default function Downloads(): JSX.Element {
           when={useQueueStore.state.queue.length > 0}
           fallback={
             <div class="flex flex-col items-center justify-center py-20 text-center gap-2">
-              <DownloadCloud class="w-8 h-8 text-zinc-300 dark:text-zinc-700 mb-2" />
-              <h3 class="text-[13px] font-semibold text-zinc-700 dark:text-zinc-300">
-                No active downloads
-              </h3>
-              <p class="text-[11px] text-zinc-400 max-w-xs">
-                Downloads and extraction tasks will appear here.
-              </p>
+              <Tooltip openDelay={200} placement="bottom">
+                <Tooltip.Trigger as="div" class="cursor-default inline-flex">
+                  <DownloadCloud class="w-8 h-8 text-zinc-300 dark:text-zinc-700" />
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                    <Tooltip.Arrow />
+                    No active downloads
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip>
             </div>
           }
         >
