@@ -1,15 +1,6 @@
 import { createSignal, onMount, Show, type JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
-import {
-  Minus,
-  Square,
-  Maximize2,
-  Minimize2,
-  EyeOff,
-  X,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-solid";
+import { Minus, Maximize2, Minimize2, EyeOff, X, ChevronLeft, ChevronRight } from "lucide-solid";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from "@/utils/tauri";
 import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
@@ -28,7 +19,6 @@ const safeTry = async <T,>(label: string, fn: () => Promise<T>, fallback: () => 
 
 export default function TitleBar(): JSX.Element {
   const [isFullscreen, setIsFullscreen] = createSignal(false);
-  const [isMaximized, setIsMaximized] = createSignal(false);
   const navigate = useNavigate();
 
   onMount(() => {
@@ -38,7 +28,6 @@ export default function TitleBar(): JSX.Element {
       async () => {
         const appWindow = getCurrentWindow();
         setIsFullscreen(await appWindow.isFullscreen());
-        setIsMaximized(await appWindow.isMaximized());
       },
       () => undefined,
     );
@@ -49,23 +38,6 @@ export default function TitleBar(): JSX.Element {
       "minimize",
       async () => {
         await getCurrentWindow().minimize();
-      },
-      () => undefined,
-    );
-  };
-
-  const handleMaximize = async (): Promise<void> => {
-    await safeTry(
-      "maximize",
-      async () => {
-        const appWindow = getCurrentWindow();
-        if (await appWindow.isMaximized()) {
-          await appWindow.unmaximize();
-          setIsMaximized(false);
-        } else {
-          await appWindow.maximize();
-          setIsMaximized(true);
-        }
       },
       () => undefined,
     );
@@ -160,7 +132,7 @@ export default function TitleBar(): JSX.Element {
       {/* Middle drag region (allows dragging window anywhere in the empty area) */}
       <div data-tauri-drag-region class="flex-1 h-full cursor-default" />
 
-      {/* Right: Window Controls (Minimize, Fullscreen, Maximize, Hide to Tray, Close) */}
+      {/* Right: Window Controls (Minimize, Fullscreen, Hide to Tray, Close) */}
       <div class="flex items-center gap-1">
         <AdaptiveTooltip content="Minimize">
           <button
@@ -183,18 +155,6 @@ export default function TitleBar(): JSX.Element {
             <Show when={isFullscreen()} fallback={<Maximize2 class="w-3.5 h-3.5" />}>
               <Minimize2 class="w-3.5 h-3.5" />
             </Show>
-          </button>
-        </AdaptiveTooltip>
-
-        <AdaptiveTooltip content={isMaximized() ? "Restore" : "Maximize"}>
-          <button
-            onClick={() => {
-              void handleMaximize();
-            }}
-            class="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-150 cursor-pointer flex items-center justify-center"
-            type="button"
-          >
-            <Square class="w-3 h-3" />
           </button>
         </AdaptiveTooltip>
 
