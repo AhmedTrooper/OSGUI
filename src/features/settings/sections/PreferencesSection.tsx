@@ -1,5 +1,6 @@
 import { createEffect, createSignal, onMount, Show, type JSX } from "solid-js";
-import { RefreshCw, CheckCircle2, FolderOpen } from "lucide-solid";
+import { Tooltip } from "@kobalte/core/tooltip";
+import { RefreshCw, CheckCircle2, FolderOpen, Save, Gauge, Layers, Download } from "lucide-solid";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useUIStore } from "@/store/useUIStore";
 import { ipc } from "@/utils/ipc";
@@ -102,9 +103,20 @@ export function PreferencesSection(): JSX.Element {
     >
       <div class="flex flex-col border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm">
         <div class="flex flex-col gap-2.5 p-3 sm:p-4">
-          <label class="text-[10px] sm:text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-            Download Directory Path
-          </label>
+          <Tooltip openDelay={200} placement="top">
+            <Tooltip.Trigger
+              as="label"
+              class="text-zinc-500 dark:text-zinc-400 cursor-default self-start"
+            >
+              <Download class="w-3.5 h-3.5" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Download Directory Path
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <input
               type="text"
@@ -114,26 +126,42 @@ export function PreferencesSection(): JSX.Element {
               class="w-full sm:flex-grow px-3 py-2.5 sm:py-2 bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none text-xs sm:text-sm text-zinc-900 dark:text-white"
             />
             <div class="flex flex-row gap-2 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={() => {
-                  void handleBrowse();
-                }}
-                class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs sm:text-[13px] font-bold sm:font-medium transition-colors"
-              >
-                <FolderOpen class="w-3.5 h-3.5 flex-shrink-0" />
-                <span class="truncate">Browse</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  void handleResetToDefault();
-                }}
-                class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs sm:text-[13px] font-bold sm:font-medium transition-colors"
-              >
-                <RefreshCw class="w-3.5 h-3.5 flex-shrink-0" />
-                <span class="truncate">Reset</span>
-              </button>
+              <Tooltip openDelay={200} placement="top">
+                <Tooltip.Trigger
+                  as="button"
+                  type="button"
+                  onClick={() => {
+                    void handleBrowse();
+                  }}
+                  class="flex-1 sm:flex-none flex items-center justify-center p-2.5 sm:p-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-lg transition-colors"
+                >
+                  <FolderOpen class="w-3.5 h-3.5 flex-shrink-0" />
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                    <Tooltip.Arrow />
+                    Browse
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip>
+              <Tooltip openDelay={200} placement="top">
+                <Tooltip.Trigger
+                  as="button"
+                  type="button"
+                  onClick={() => {
+                    void handleResetToDefault();
+                  }}
+                  class="flex-1 sm:flex-none flex items-center justify-center p-2.5 sm:p-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-lg transition-colors"
+                >
+                  <RefreshCw class="w-3.5 h-3.5 flex-shrink-0" />
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                    <Tooltip.Arrow />
+                    Reset
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip>
             </div>
           </div>
         </div>
@@ -142,14 +170,17 @@ export function PreferencesSection(): JSX.Element {
 
         <div class="flex flex-col gap-3 p-3 sm:p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
           <div class="flex items-center justify-between">
-            <div class="flex flex-col gap-0.5 sm:gap-1">
-              <span class="text-[12px] sm:text-[13px] font-bold text-zinc-900 dark:text-zinc-100">
-                Simultaneous Extractions
-              </span>
-              <span class="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400">
-                Maximum concurrent background downloads
-              </span>
-            </div>
+            <Tooltip openDelay={200} placement="top">
+              <Tooltip.Trigger as="div" class="cursor-default text-zinc-700 dark:text-zinc-200">
+                <Gauge class="w-4 h-4" />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  Simultaneous Extractions
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
             <div class="w-10 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
               {concurrency()}
             </div>
@@ -173,14 +204,17 @@ export function PreferencesSection(): JSX.Element {
 
         <div class="flex flex-col gap-3 p-3 sm:p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
           <div class="flex items-center justify-between">
-            <div class="flex flex-col gap-0.5 sm:gap-1">
-              <span class="text-[12px] sm:text-[13px] font-bold text-zinc-900 dark:text-zinc-100">
-                Concurrent Connections (Chunks)
-              </span>
-              <span class="text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400">
-                Multi-part parallel connections per download job (min 3, max 8)
-              </span>
-            </div>
+            <Tooltip openDelay={200} placement="top">
+              <Tooltip.Trigger as="div" class="cursor-default text-zinc-700 dark:text-zinc-200">
+                <Layers class="w-4 h-4" />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  Concurrent Connections (Chunks)
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
             <div class="w-10 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
               {chunks()}
             </div>
@@ -205,17 +239,37 @@ export function PreferencesSection(): JSX.Element {
 
       <div class="flex flex-col-reverse sm:flex-row items-center gap-4 justify-end pt-2">
         <Show when={savedSuccess()}>
-          <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 animate-fade-in w-full sm:w-auto justify-center sm:justify-start">
-            <CheckCircle2 class="w-3.5 h-3.5" /> Configuration Applied
-          </span>
+          <Tooltip openDelay={200} placement="left">
+            <Tooltip.Trigger
+              as="span"
+              class="text-emerald-600 dark:text-emerald-400 flex items-center animate-fade-in"
+            >
+              <CheckCircle2 class="w-4 h-4" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Configuration Applied
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </Show>
 
-        <button
-          type="submit"
-          class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-3 sm:py-2 rounded-xl sm:rounded-lg transition-colors text-xs sm:text-[13px] w-full sm:w-auto shadow-md shadow-blue-500/20"
-        >
-          Save Changes
-        </button>
+        <Tooltip openDelay={200} placement="left">
+          <Tooltip.Trigger
+            as="button"
+            type="submit"
+            class="flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold p-2.5 sm:p-2 rounded-xl sm:rounded-lg transition-colors shadow-md shadow-blue-500/20"
+          >
+            <Save class="w-4 h-4" />
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+              <Tooltip.Arrow />
+              Save Changes
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        </Tooltip>
       </div>
     </form>
   );
