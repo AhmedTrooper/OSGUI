@@ -1,8 +1,18 @@
-import { createSignal, onMount, type JSX } from "solid-js";
+import { createSignal, onMount, Show, type JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
-import { Minus, Square, X, ChevronLeft, ChevronRight } from "lucide-solid";
+import {
+  Minus,
+  Square,
+  Maximize2,
+  Minimize2,
+  EyeOff,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-solid";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from "@/utils/tauri";
+import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
 
 const CLOSE_CONFIRMATION =
   "Closing will stop active downloads. Some will be paused, and some may need to restart from the beginning when you reopen the app.\n\nAre you sure you want to close?";
@@ -18,15 +28,17 @@ const safeTry = async <T,>(label: string, fn: () => Promise<T>, fallback: () => 
 
 export default function TitleBar(): JSX.Element {
   const [isFullscreen, setIsFullscreen] = createSignal(false);
+  const [isMaximized, setIsMaximized] = createSignal(false);
   const navigate = useNavigate();
 
   onMount(() => {
     if (!isTauri()) return;
     void safeTry(
-      "isFullscreen",
+      "initWindowState",
       async () => {
         const appWindow = getCurrentWindow();
         setIsFullscreen(await appWindow.isFullscreen());
+        setIsMaximized(await appWindow.isMaximized());
       },
       () => undefined,
     );
@@ -49,9 +61,35 @@ export default function TitleBar(): JSX.Element {
         const appWindow = getCurrentWindow();
         if (await appWindow.isMaximized()) {
           await appWindow.unmaximize();
+          setIsMaximized(false);
         } else {
           await appWindow.maximize();
+          setIsMaximized(true);
         }
+      },
+      () => undefined,
+    );
+  };
+
+  const handleFullscreen = async (): Promise<void> => {
+    await safeTry(
+      "fullscreen",
+      async () => {
+        const appWindow = getCurrentWindow();
+        const next = !(await appWindow.isFullscreen());
+        await appWindow.setFullscreen(next);
+        setIsFullscreen(next);
+      },
+      () => undefined,
+    );
+  };
+
+  const handleHide = async (): Promise<void> => {
+    await safeTry(
+      "hide",
+      async () => {
+        const appWindow = getCurrentWindow();
+        await appWindow.hide();
       },
       () => undefined,
     );
@@ -85,13 +123,14 @@ export default function TitleBar(): JSX.Element {
     <div
       data-tauri-drag-region
       data-fullscreen={isFullscreen()}
-      class="flex items-center justify-between w-full h-10 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 select-none relative z-50 transition-colors duration-300"
+      class="flex items-center justify-between w-full h-10 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-3 select-none relative z-50 transition-colors duration-300"
     >
+      {/* Left: Navigation and App Identity */}
       <div data-tauri-drag-region class="flex items-center gap-3 sm:gap-4 cursor-default">
         <div class="flex items-center gap-0.5">
           <button
             onClick={() => navigate(-1)}
-            class="p-1 rounded-md hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-200 cursor-pointer"
+            class="p-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-200 cursor-pointer"
             title="Go Back"
             type="button"
           >
@@ -99,7 +138,7 @@ export default function TitleBar(): JSX.Element {
           </button>
           <button
             onClick={() => navigate(1)}
-            class="p-1 rounded-md hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-200 cursor-pointer"
+            class="p-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-200 cursor-pointer"
             title="Go Forward"
             type="button"
           >
@@ -113,44 +152,75 @@ export default function TitleBar(): JSX.Element {
         >
           <span data-tauri-drag-region class="bg-blue-500 w-1.5 h-1.5 rounded-full" />
           <span data-tauri-drag-region class="hidden sm:inline">
-            Synclime
+            SyncLime
           </span>
         </div>
       </div>
 
-      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
-        <button
-          onClick={() => {
-            void handleClose();
-          }}
-          class="flex items-center gap-1 px-3 py-1 bg-red-500 hover:bg-red-600 dark:bg-red-650 dark:hover:bg-red-550 text-white text-[9px] font-black tracking-wider uppercase rounded-full shadow-sm hover:shadow-md active:scale-95 transition-all cursor-pointer border border-red-500/20"
-          title="Quit Application"
-          type="button"
-        >
-          <X class="w-2.5 h-2.5" />
-          <span class="hidden xs:inline">Quit App</span>
-        </button>
-      </div>
+      {/* Middle drag region (allows dragging window anywhere in the empty area) */}
+      <div data-tauri-drag-region class="flex-1 h-full cursor-default" />
 
-      <div class="flex items-center gap-1.5">
-        <button
-          onClick={handleMinimize}
-          class="p-1 rounded hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-200 cursor-pointer"
-          title="Minimize"
-          type="button"
-        >
-          <Minus class="w-3.5 h-3.5" />
-        </button>
-        <button
-          onClick={() => {
-            void handleMaximize();
-          }}
-          class="p-1 rounded hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-200 cursor-pointer"
-          title="Maximize"
-          type="button"
-        >
-          <Square class="w-3 h-3" />
-        </button>
+      {/* Right: Window Controls (Minimize, Fullscreen, Maximize, Hide to Tray, Close) */}
+      <div class="flex items-center gap-1">
+        <AdaptiveTooltip content="Minimize">
+          <button
+            onClick={handleMinimize}
+            class="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-150 cursor-pointer flex items-center justify-center"
+            type="button"
+          >
+            <Minus class="w-3.5 h-3.5" />
+          </button>
+        </AdaptiveTooltip>
+
+        <AdaptiveTooltip content={isFullscreen() ? "Exit Fullscreen" : "Fullscreen"}>
+          <button
+            onClick={() => {
+              void handleFullscreen();
+            }}
+            class="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-150 cursor-pointer flex items-center justify-center"
+            type="button"
+          >
+            <Show when={isFullscreen()} fallback={<Maximize2 class="w-3.5 h-3.5" />}>
+              <Minimize2 class="w-3.5 h-3.5" />
+            </Show>
+          </button>
+        </AdaptiveTooltip>
+
+        <AdaptiveTooltip content={isMaximized() ? "Restore" : "Maximize"}>
+          <button
+            onClick={() => {
+              void handleMaximize();
+            }}
+            class="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-150 cursor-pointer flex items-center justify-center"
+            type="button"
+          >
+            <Square class="w-3 h-3" />
+          </button>
+        </AdaptiveTooltip>
+
+        <AdaptiveTooltip content="Hide to System Tray">
+          <button
+            onClick={() => {
+              void handleHide();
+            }}
+            class="p-1.5 rounded-md hover:bg-amber-500/10 text-zinc-500 dark:text-zinc-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors duration-150 cursor-pointer flex items-center justify-center"
+            type="button"
+          >
+            <EyeOff class="w-3.5 h-3.5" />
+          </button>
+        </AdaptiveTooltip>
+
+        <AdaptiveTooltip content="Close">
+          <button
+            onClick={() => {
+              void handleClose();
+            }}
+            class="p-1.5 rounded-md hover:bg-red-500 hover:text-white dark:hover:bg-red-600 dark:hover:text-white text-zinc-500 dark:text-zinc-400 transition-colors duration-150 cursor-pointer flex items-center justify-center"
+            type="button"
+          >
+            <X class="w-3.5 h-3.5" />
+          </button>
+        </AdaptiveTooltip>
       </div>
     </div>
   );
