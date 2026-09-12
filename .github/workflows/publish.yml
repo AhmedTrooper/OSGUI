@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - 'v*'
-      - 'roletect-v*'
       - 'synclime-v*'
 
 jobs:
@@ -79,8 +78,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: roletect-v__VERSION__
-          releaseName: "RoleTect v__VERSION__"
+          tagName: synclime-v__VERSION__
+          releaseName: "SyncLime v__VERSION__"
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}

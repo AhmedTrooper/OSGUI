@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Roletect",
-  "version": "0.1.5",
-  "identifier": "com.ahmedtrooper.roletect",
+  "productName": "SyncLime",
+  "version": "0.1.0",
+  "identifier": "com.ahmedtrooper.synclime",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Roletect",
+        "title": "SyncLime",
         "width": 1200,
         "height": 800,
         "decorations": false,
@@ -47,7 +47,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc3ODM5N0U2OTBCMTU4QQpSV1NLRlF0cGZqbDRCeXF5TWFkU202Y0J4RDdlUVVxd0VyVDJsTlY2UVFCbWh5ZnJ0ZXZvS0FvTwo=",
       "endpoints": [
-        "https://github.com/AhmedTrooper/RoleTect/releases/latest/download/latest.json"
+        "https://github.com/AhmedTrooper/Synclime/releases/latest/download/latest.json"
       ]
     }
   }
