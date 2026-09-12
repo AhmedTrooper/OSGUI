@@ -1,52 +1,62 @@
-import { invoke } from "@tauri-apps/api/core";
-
 /**
- * Persists application errors directly to the SQLite error_logs database.
- * Completely replaces simple console.log/console.error with persistent database tracking.
+ * Persists application errors and parse transactions directly to the SQLite
+ * log tables (`error_logs`, `parse_logs`).
+ *
+ * Silently no-ops when the app runs outside the Tauri shell.
  */
-export async function logErrorToDb(errorMsg: string, context: string = "app_error", jobSlug: string = "app_fallback") {
-  try {
-    const isTauri = typeof window !== "undefined" && !!(window as any).__TAURI_INTERNALS__;
-    if (isTauri) {
-      await invoke("insert_error_log", {
-        downloadJobSlug: jobSlug,
-        commandExecuted: context,
-        errorMessage: errorMsg,
-      });
-    }
-  } catch (err) {
-    // Silent safety fallback
-  }
+import { safeInvoke } from "@/utils/tauri";
+
+export type ParseLogStatus = "running" | "success" | "failed";
+
+export interface InsertErrorLogArgs {
+  downloadJobSlug: string;
+  commandExecuted: string;
+  errorMessage: string;
 }
 
-/**
- * Persists metadata discovery transactions to the SQLite parse_logs database.
- */
-export async function logParseToDb(
+export interface InsertParseLogArgs {
+  parsedFileSlug: string;
+  status: ParseLogStatus;
+  startedAt: string;
+  finishedAt: string | null;
+  durationMs: number;
+  commandExecuted: string;
+  exitCode: number | null;
+  bytesReturned: number;
+}
+
+export const logErrorToDb = async (
+  errorMsg: string,
+  context = "app_error",
+  jobSlug = "app_fallback",
+): Promise<void> => {
+  const args: InsertErrorLogArgs = {
+    downloadJobSlug: jobSlug,
+    commandExecuted: context,
+    errorMessage: errorMsg,
+  };
+  await safeInvoke<void>("insert_error_log", args as unknown as Record<string, unknown>);
+};
+
+export const logParseToDb = async (
   parsedFileSlug: string,
-  status: "running" | "success" | "failed",
+  status: ParseLogStatus,
   startedAt: string,
   finishedAt: string | null,
   durationMs: number,
   commandExecuted: string,
   exitCode: number | null,
-  bytesReturned: number
-) {
-  try {
-    const isTauri = typeof window !== "undefined" && !!(window as any).__TAURI_INTERNALS__;
-    if (isTauri) {
-      await invoke("insert_parse_log", {
-        parsedFileSlug,
-        status,
-        startedAt,
-        finishedAt,
-        durationMs,
-        commandExecuted,
-        exitCode,
-        bytesReturned,
-      });
-    }
-  } catch (err) {
-    // Silent safety fallback
-  }
-}
+  bytesReturned: number,
+): Promise<void> => {
+  const args: InsertParseLogArgs = {
+    parsedFileSlug,
+    status,
+    startedAt,
+    finishedAt,
+    durationMs,
+    commandExecuted,
+    exitCode,
+    bytesReturned,
+  };
+  await safeInvoke<void>("insert_parse_log", args as unknown as Record<string, unknown>);
+};

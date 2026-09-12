@@ -1,0 +1,372 @@
+/**
+ * Typed wrapper around `@tauri-apps/api/core#invoke`.
+ *
+ * Every IPC call in the application flows through here so the contract
+ * stays in one file. Browser-preview builds return safe mock data
+ * through `previewMock()` to keep Storybook / `vite preview` happy.
+ */
+
+import { invoke } from "@tauri-apps/api/core";
+import { isTauri } from "./tauri";
+import type {
+  AddCookieProfileArgs,
+  AddCookieProfileResult,
+  AddProxyProfileArgs,
+  AddProxyProfileResult,
+  AddSiteConfigArgs,
+  AddSiteConfigResult,
+  BatchDeleteCookieProfilesArgs,
+  BatchDeleteCookieProfilesResult,
+  BatchDeleteProxyProfilesArgs,
+  BatchDeleteProxyProfilesResult,
+  ClearAllJobsRecordsResult,
+  ClearAllLogsResult,
+  ClipboardSanitizeArgs,
+  ClipboardSanitizeResult,
+  DeleteCookieProfileArgs,
+  DeleteCookieProfileResult,
+  DeleteInboxUrlArgs,
+  DeleteInboxUrlResult,
+  DeleteJobRecordArgs,
+  DeleteJobRecordResult,
+  DeleteProxyProfileArgs,
+  DeleteProxyProfileResult,
+  DeleteSiteConfigArgs,
+  DeleteSiteConfigResult,
+  DiscoverAssetMetadataArgs,
+  DiscoverAssetMetadataResult,
+  GetActiveApiPortResult,
+  GetAllJobsResult,
+  GetConcurrencyLimitResult,
+  GetCookieProfilesResult,
+  GetDownloadChunksResult,
+  GetErrorLogsResult,
+  GetInboxUrlBySlugArgs,
+  GetInboxUrlBySlugResult,
+  GetInboxUrlsResult,
+  GetLocalUpdatesResult,
+  GetOnlineUpdatesResult,
+  GetParseLogsResult,
+  GetProxyProfilesResult,
+  GetSiteConfigsResult,
+  InsertJobRecordArgs,
+  InsertJobRecordResult,
+  InsertParsedFileArgs,
+  InsertParsedFileResult,
+  RequestJobPauseArgs,
+  RequestJobPauseResult,
+  RevealFolderInExplorerArgs,
+  RevealFolderInExplorerResult,
+  RevealJobInExplorerArgs,
+  RevealJobInExplorerResult,
+  TriggerJobStartArgs,
+  TriggerJobStartResult,
+  UpdateConfigArgs,
+  UpdateConfigResult,
+  UpdateCookieDataArgs,
+  UpdateCookieDataResult,
+  UpdateInboxStatusArgs,
+  UpdateInboxStatusResult,
+  UpdateProxyDataArgs,
+  UpdateProxyDataResult,
+  UpdateSiteConfigArgs,
+  UpdateSiteConfigResult,
+} from "@/core/types/ipc.types";
+import type { SiteConfig } from "@/core/types/database.types";
+
+/** Build an `ApiResult`-shaped success envelope for browser preview mocks. */
+const mockOk = <T>(payload?: T): { success: true; message: string } & { payload?: T } => ({
+  success: true,
+  message: "browser preview mock",
+  ...(payload === undefined ? {} : { payload }),
+});
+
+/**
+ * Internal helper — invokes a Tauri command with typed args. Args are
+ * widened to `Record<string, unknown>` to satisfy Tauri's invoke
+ * signature without losing the outer type contract enforced by callers.
+ */
+const callTauri = <T>(cmd: string, args: Record<string, unknown> = {}): Promise<T> =>
+  invoke<T>(cmd, args as unknown as Record<string, unknown>);
+
+/**
+ * Runtime guard for raw `invoke` calls — refuses to execute anything
+ * against the OS bridge outside of Tauri.
+ */
+export const ipcInvoke = async <T>(cmd: string, args?: Record<string, unknown>): Promise<T> => {
+  if (!isTauri()) {
+    throw new Error(`ipcInvoke('${cmd}') called outside Tauri runtime`);
+  }
+  return invoke<T>(cmd, args);
+};
+
+export const ipc = {
+  // ── clipboard ────────────────────────────────────────────────────────────
+  processClipboardPaste: async (args: ClipboardSanitizeArgs): Promise<ClipboardSanitizeResult> => {
+    if (!isTauri()) {
+      return { success: true, sanitized_url: args.rawInput.trim() };
+    }
+    return callTauri<ClipboardSanitizeResult>(
+      "process_clipboard_paste",
+      args as unknown as Record<string, unknown>,
+    );
+  },
+
+  // ── config ───────────────────────────────────────────────────────────────
+  getConcurrencyLimit: (): Promise<GetConcurrencyLimitResult> =>
+    isTauri()
+      ? callTauri<GetConcurrencyLimitResult>("get_concurrency_limit")
+      : Promise.resolve({ ...mockOk(0), limit: 3 }),
+
+  getDownloadChunks: (): Promise<GetDownloadChunksResult> =>
+    isTauri()
+      ? callTauri<GetDownloadChunksResult>("get_download_chunks")
+      : Promise.resolve({ ...mockOk(0), chunks: 4 }),
+
+  updateConfig: (args: UpdateConfigArgs): Promise<UpdateConfigResult> =>
+    isTauri()
+      ? callTauri<UpdateConfigResult>("update_config", args as unknown as Record<string, unknown>)
+      : Promise.resolve(mockOk()),
+
+  // ── discovery ────────────────────────────────────────────────────────────
+  discoverAssetMetadata: (args: DiscoverAssetMetadataArgs): Promise<DiscoverAssetMetadataResult> =>
+    isTauri()
+      ? callTauri<DiscoverAssetMetadataResult>(
+          "discover_asset_metadata",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve({ success: true, payload: null, error_message: null }),
+
+  // ── inbox ─────────────────────────────────────────────────────────────────
+  getInboxUrls: (): Promise<GetInboxUrlsResult> =>
+    isTauri()
+      ? callTauri<GetInboxUrlsResult>("get_inbox_urls")
+      : Promise.resolve({ ...mockOk<SiteConfig[]>([]), payload: [] }),
+
+  getInboxUrlBySlug: (args: GetInboxUrlBySlugArgs): Promise<GetInboxUrlBySlugResult> =>
+    isTauri()
+      ? callTauri<GetInboxUrlBySlugResult>(
+          "get_inbox_url_by_slug",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve({ ...mockOk(null), payload: null }),
+
+  deleteInboxUrl: (args: DeleteInboxUrlArgs): Promise<DeleteInboxUrlResult> =>
+    isTauri()
+      ? callTauri<DeleteInboxUrlResult>(
+          "delete_inbox_url",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  updateInboxStatus: (args: UpdateInboxStatusArgs): Promise<UpdateInboxStatusResult> =>
+    isTauri()
+      ? callTauri<UpdateInboxStatusResult>(
+          "update_inbox_status",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  // ── logs ──────────────────────────────────────────────────────────────────
+  getErrorLogs: (): Promise<GetErrorLogsResult> =>
+    isTauri()
+      ? callTauri<GetErrorLogsResult>("get_error_logs")
+      : Promise.resolve({ ...mockOk([]), payload: [] }),
+
+  getParseLogs: (): Promise<GetParseLogsResult> =>
+    isTauri()
+      ? callTauri<GetParseLogsResult>("get_parse_logs")
+      : Promise.resolve({ ...mockOk([]), payload: [] }),
+
+  clearAllLogs: (): Promise<ClearAllLogsResult> =>
+    isTauri() ? callTauri<ClearAllLogsResult>("clear_all_logs") : Promise.resolve(mockOk()),
+
+  // ── queue ─────────────────────────────────────────────────────────────────
+  insertJobRecord: (args: InsertJobRecordArgs): Promise<InsertJobRecordResult> =>
+    isTauri()
+      ? callTauri<InsertJobRecordResult>(
+          "insert_job_record",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  getAllJobs: (): Promise<GetAllJobsResult> =>
+    isTauri()
+      ? callTauri<GetAllJobsResult>("get_all_jobs")
+      : Promise.resolve({ ...mockOk([]), payload: [] }),
+
+  deleteJobRecord: (args: DeleteJobRecordArgs): Promise<DeleteJobRecordResult> =>
+    isTauri()
+      ? callTauri<DeleteJobRecordResult>(
+          "delete_job_record",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  clearAllJobsRecords: (): Promise<ClearAllJobsRecordsResult> =>
+    isTauri()
+      ? callTauri<ClearAllJobsRecordsResult>("clear_all_jobs_records")
+      : Promise.resolve(mockOk()),
+
+  triggerJobStart: (args: TriggerJobStartArgs): Promise<TriggerJobStartResult> =>
+    isTauri()
+      ? callTauri<TriggerJobStartResult>(
+          "trigger_job_start",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  requestJobPause: (args: RequestJobPauseArgs): Promise<RequestJobPauseResult> =>
+    isTauri()
+      ? callTauri<RequestJobPauseResult>(
+          "request_job_pause",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  revealJobInExplorer: (args: RevealJobInExplorerArgs): Promise<RevealJobInExplorerResult> =>
+    isTauri()
+      ? callTauri<RevealJobInExplorerResult>(
+          "reveal_job_in_explorer",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  revealFolderInExplorer: (
+    args: RevealFolderInExplorerArgs,
+  ): Promise<RevealFolderInExplorerResult> =>
+    isTauri()
+      ? callTauri<RevealFolderInExplorerResult>(
+          "reveal_folder_in_explorer",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  // ── sites / parsed files ─────────────────────────────────────────────────
+  getSiteConfigs: (): Promise<GetSiteConfigsResult> =>
+    isTauri() ? callTauri<GetSiteConfigsResult>("get_site_configs") : Promise.resolve([]),
+
+  addSiteConfig: (args: AddSiteConfigArgs): Promise<AddSiteConfigResult> =>
+    isTauri()
+      ? callTauri<AddSiteConfigResult>(
+          "add_site_config",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  updateSiteConfig: (args: UpdateSiteConfigArgs): Promise<UpdateSiteConfigResult> =>
+    isTauri()
+      ? callTauri<UpdateSiteConfigResult>(
+          "update_site_config",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  deleteSiteConfig: (args: DeleteSiteConfigArgs): Promise<DeleteSiteConfigResult> =>
+    isTauri()
+      ? callTauri<DeleteSiteConfigResult>(
+          "delete_site_config",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  insertParsedFile: (args: InsertParsedFileArgs): Promise<InsertParsedFileResult> =>
+    isTauri()
+      ? callTauri<InsertParsedFileResult>(
+          "insert_parsed_file",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  // ── cookie profiles ────────────────────────────────────────────────────────
+  getCookieProfiles: (): Promise<GetCookieProfilesResult> =>
+    isTauri() ? callTauri<GetCookieProfilesResult>("get_cookie_profiles") : Promise.resolve([]),
+
+  addCookieProfile: (args: AddCookieProfileArgs): Promise<AddCookieProfileResult> =>
+    isTauri()
+      ? callTauri<AddCookieProfileResult>(
+          "add_cookie_profile",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk("mock_cookie_slug")),
+
+  updateCookieData: (args: UpdateCookieDataArgs): Promise<UpdateCookieDataResult> =>
+    isTauri()
+      ? callTauri<UpdateCookieDataResult>(
+          "update_cookie_data",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  deleteCookieProfile: (args: DeleteCookieProfileArgs): Promise<DeleteCookieProfileResult> =>
+    isTauri()
+      ? callTauri<DeleteCookieProfileResult>(
+          "delete_cookie_profile",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  batchDeleteCookieProfiles: (
+    args: BatchDeleteCookieProfilesArgs,
+  ): Promise<BatchDeleteCookieProfilesResult> =>
+    isTauri()
+      ? callTauri<BatchDeleteCookieProfilesResult>(
+          "batch_delete_cookie_profiles",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  // ── proxy profiles ─────────────────────────────────────────────────────────
+  getProxyProfiles: (): Promise<GetProxyProfilesResult> =>
+    isTauri() ? callTauri<GetProxyProfilesResult>("get_proxy_profiles") : Promise.resolve([]),
+
+  addProxyProfile: (args: AddProxyProfileArgs): Promise<AddProxyProfileResult> =>
+    isTauri()
+      ? callTauri<AddProxyProfileResult>(
+          "add_proxy_profile",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk("mock_proxy_slug")),
+
+  updateProxyData: (args: UpdateProxyDataArgs): Promise<UpdateProxyDataResult> =>
+    isTauri()
+      ? callTauri<UpdateProxyDataResult>(
+          "update_proxy_data",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  deleteProxyProfile: (args: DeleteProxyProfileArgs): Promise<DeleteProxyProfileResult> =>
+    isTauri()
+      ? callTauri<DeleteProxyProfileResult>(
+          "delete_proxy_profile",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  batchDeleteProxyProfiles: (
+    args: BatchDeleteProxyProfilesArgs,
+  ): Promise<BatchDeleteProxyProfilesResult> =>
+    isTauri()
+      ? callTauri<BatchDeleteProxyProfilesResult>(
+          "batch_delete_proxy_profiles",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve(mockOk()),
+
+  // ── updates / app info ───────────────────────────────────────────────────
+  getOnlineUpdates: (): Promise<GetOnlineUpdatesResult> =>
+    isTauri()
+      ? callTauri<GetOnlineUpdatesResult>("get_online_updates")
+      : Promise.reject(new Error("offline")),
+
+  getLocalUpdates: (): Promise<GetLocalUpdatesResult> =>
+    isTauri()
+      ? callTauri<GetLocalUpdatesResult>("get_local_updates")
+      : Promise.reject(new Error("offline")),
+
+  getActiveApiPort: (): Promise<GetActiveApiPortResult> =>
+    isTauri()
+      ? callTauri<GetActiveApiPortResult>("get_active_api_port")
+      : Promise.resolve({ ...mockOk(0), port: 14221 }),
+} as const;
