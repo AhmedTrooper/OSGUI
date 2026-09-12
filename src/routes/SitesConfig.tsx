@@ -19,6 +19,9 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  Cookie,
+  Shield,
+  Globe,
 } from "lucide-solid";
 
 type ConfigTab = "sites" | "cookies" | "proxies";
@@ -484,10 +487,19 @@ export default function SitesConfig(): JSX.Element {
                               onChange={(val) => {
                                 void handleUpdateSite(site.slug, val || null, site.proxy_profile_slug);
                               }}
-                              options={cookies().map((c) => ({ value: c.slug, label: c.title }))}
-                              placeholder="Direct (No Cookies)"
+                              options={cookies().map((c) => ({
+                                value: c.slug,
+                                label: c.title,
+                                tag: c.domain,
+                                tagClass:
+                                  "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+                                icon: Cookie,
+                              }))}
+                              placeholder="Direct Connection"
+                              placeholderTag="NO COOKIES"
+                              placeholderIcon={Globe}
+                              icon={Cookie}
                               compact
-                              hideIcon
                             />
                           </div>
 
@@ -503,10 +515,19 @@ export default function SitesConfig(): JSX.Element {
                               onChange={(val) => {
                                 void handleUpdateSite(site.slug, site.cookie_profile_slug, val || null);
                               }}
-                              options={proxies().map((p) => ({ value: p.slug, label: p.title }))}
-                              placeholder="Direct (Bypass)"
+                              options={proxies().map((p) => ({
+                                value: p.slug,
+                                label: p.title,
+                                tag: "PROXY",
+                                tagClass:
+                                  "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20",
+                                icon: Shield,
+                              }))}
+                              placeholder="Direct Connection"
+                              placeholderTag="BYPASS"
+                              placeholderIcon={Globe}
+                              icon={Shield}
                               compact
-                              hideIcon
                             />
                           </div>
                         </div>
@@ -601,9 +622,16 @@ export default function SitesConfig(): JSX.Element {
                     onChange={setNewSiteCookieSlug}
                     options={cookies().map((c) => ({
                       value: c.slug,
-                      label: `${c.title} (${c.domain})`,
+                      label: c.title,
+                      tag: c.domain,
+                      tagClass:
+                        "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+                      icon: Cookie,
                     }))}
-                    placeholder="No Cookie Profile (Direct)"
+                    placeholder="Direct Connection"
+                    placeholderTag="NO COOKIES"
+                    placeholderIcon={Globe}
+                    icon={Cookie}
                   />
                 </div>
 
@@ -614,8 +642,18 @@ export default function SitesConfig(): JSX.Element {
                   <CustomSelect
                     value={newSiteProxySlug()}
                     onChange={setNewSiteProxySlug}
-                    options={proxies().map((p) => ({ value: p.slug, label: p.title }))}
-                    placeholder="No Proxy Network (Direct)"
+                    options={proxies().map((p) => ({
+                      value: p.slug,
+                      label: p.title,
+                      tag: "PROXY",
+                      tagClass:
+                        "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20",
+                      icon: Shield,
+                    }))}
+                    placeholder="Direct Connection"
+                    placeholderTag="BYPASS"
+                    placeholderIcon={Globe}
+                    icon={Shield}
                   />
                 </div>
 
