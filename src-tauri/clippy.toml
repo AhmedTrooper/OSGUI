@@ -1,0 +1,16 @@
+# Project-wide clippy configuration.
+# Per-file `#[allow(...)]` attributes are preferred for narrow exceptions;
+# anything declared here applies to every crate in the workspace.
+
+# Tauri command signatures are intentionally flat (one argument per
+# frontend field). Disabling this lint globally would mask real offenders,
+# so we keep it on and `#[allow]` it at the specific command boundary.
+
+# Allow module-name repetitions for domain-named command modules
+# (e.g. `commands::queue::QueueCommand` is awkward; `commands::Queue*` is
+# the idiomatic shape). Already handled inline via the `[lints.clippy]`
+# block in Cargo.toml.
+
+# This file is intentionally empty — the real configuration lives in
+# Cargo.toml under `[lints]` so it is discovered by `cargo clippy`
+# without an explicit `--manifest-path` dance.
