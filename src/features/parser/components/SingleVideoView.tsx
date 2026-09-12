@@ -226,7 +226,7 @@ function StreamPickerPanel(props: StreamPickerPanelProps): JSX.Element {
         <select
           value={props.selected()}
           onChange={(event) => props.onSelect(event.currentTarget.value)}
-          class="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2 py-2 outline-none text-[10px] font-semibold max-w-full text-ellipsis overflow-hidden"
+          class="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 outline-none text-xs font-semibold text-zinc-900 dark:text-zinc-100 max-w-full text-ellipsis overflow-hidden focus:border-blue-500 transition-colors"
         >
           <option value="">(None) Deselect Stream</option>
           <For each={props.streams}>
@@ -298,7 +298,7 @@ function PresetPickerPanel(props: PresetPickerPanelProps): JSX.Element {
         <select
           value={props.selected()}
           onChange={(event) => props.onSelect(event.currentTarget.value)}
-          class="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2 py-2 outline-none text-[10px] font-semibold max-w-full text-ellipsis overflow-hidden"
+          class="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 outline-none text-xs font-semibold text-zinc-900 dark:text-zinc-100 max-w-full text-ellipsis overflow-hidden focus:border-blue-500 transition-colors"
         >
           <For each={props.presets}>
             {(preset) => <option value={preset.value}>{preset.label}</option>}

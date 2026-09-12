@@ -77,3 +77,68 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ==========================================================================
+   Global Consistent Form Controls (input, select, textarea)
+   ========================================================================== */
+
+input[type="text"],
+input[type="number"],
+input[type="search"],
+input[type="password"],
+input[type="url"],
+textarea {
+  font-family: inherit;
+  color: #18181b;
+  background-color: #ffffff;
+  border-color: #e4e4e7;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+
+.dark input[type="text"],
+.dark input[type="number"],
+.dark input[type="search"],
+.dark input[type="password"],
+.dark input[type="url"],
+.dark textarea {
+  color: #f4f4f5;
+  background-color: #09090b;
+  border-color: #27272a;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+input[type="password"]:focus,
+input[type="url"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: #9333ea;
+  box-shadow: 0 0 0 1px rgba(147, 51, 234, 0.2);
+}
+
+select {
+  font-family: inherit;
+  color: #18181b;
+  background-color: #ffffff;
+  border-color: #e4e4e7;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.dark select {
+  color: #f4f4f5;
+  background-color: #09090b;
+  border-color: #27272a;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #18181b;
+}
+
+.dark select option {
+  background-color: #18181b;
+  color: #f4f4f5;
+}
