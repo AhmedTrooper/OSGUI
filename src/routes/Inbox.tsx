@@ -15,6 +15,8 @@ import {
   Server,
   X,
   Globe,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-solid";
 import { useUIStore } from "@/store/useUIStore";
 import { ipc } from "@/utils/ipc";
@@ -23,7 +25,7 @@ import { formatDate, formatTime } from "@/utils/format";
 import type { InboxItem, InboxStatus } from "@/core/types/database.types";
 
 type HealthStatus = "idle" | "checking" | "online" | "offline";
-type FilterTab = "all" | "pending" | "parsed" | "downloaded";
+const PAGE_SIZE = 10;
 
 function extractDomain(urlStr: string): string {
   try {
@@ -37,8 +39,11 @@ function extractDomain(urlStr: string): string {
 export default function InboxRoute(): JSX.Element {
   const navigate = useNavigate();
   const [inboxItems, setInboxItems] = createSignal<InboxItem[]>([]);
+  const [page, setPage] = createSignal(1);
+  const [total, setTotal] = createSignal(0);
+  const [pendingCount, setPendingCount] = createSignal(0);
+  const [totalPages, setTotalPages] = createSignal(1);
   const [searchQuery, setSearchQuery] = createSignal("");
-  const [filterTab, setFilterTab] = createSignal<FilterTab>("all");
   const [loading, setLoading] = createSignal(true);
   const [errorMsg, setErrorMsg] = createSignal("");
   const [activePort, setActivePort] = createSignal(14221);
@@ -47,13 +52,24 @@ export default function InboxRoute(): JSX.Element {
   const [copiedSlug, setCopiedSlug] = createSignal<string | null>(null);
   let unlistenInbox: (() => void) | null = null;
 
-  const fetchInbox = async (): Promise<void> => {
+  const fetchInbox = async (targetPage = page()): Promise<void> => {
     setLoading(true);
     setErrorMsg("");
     if (isTauri()) {
       try {
-        const result = await ipc.getInboxUrls();
-        setInboxItems(result.payload ?? []);
+        const result = await ipc.getInboxUrls({
+          page: targetPage,
+          pageSize: PAGE_SIZE,
+        });
+        if (result.success && result.payload) {
+          setInboxItems(result.payload.items ?? []);
+          setTotal(result.payload.total ?? 0);
+          setPendingCount(result.payload.pending_count ?? 0);
+          setTotalPages(result.payload.total_pages ?? 1);
+          setPage(result.payload.page ?? targetPage);
+        } else {
+          setErrorMsg(result.message || "Failed to query inbox records.");
+        }
       } catch (err) {
         console.error("Failed to fetch inbox URLs:", err);
         setErrorMsg("Failed to connect to internal inbox database.");
@@ -62,6 +78,9 @@ export default function InboxRoute(): JSX.Element {
       }
     } else {
       setInboxItems([]);
+      setTotal(0);
+      setPendingCount(0);
+      setTotalPages(1);
       setLoading(false);
     }
   };
@@ -88,7 +107,7 @@ export default function InboxRoute(): JSX.Element {
 
   onMount(() => {
     useUIStore.setActivePath("/inbox");
-    void fetchInbox();
+    void fetchInbox(1);
 
     void (async () => {
       try {
@@ -100,7 +119,7 @@ export default function InboxRoute(): JSX.Element {
     })();
 
     void safeListen("inbox-updated", () => {
-      void fetchInbox();
+      void fetchInbox(page());
     }).then((unlisten) => {
       unlistenInbox = unlisten;
     });
@@ -117,7 +136,7 @@ export default function InboxRoute(): JSX.Element {
     if (isTauri()) {
       try {
         await ipc.deleteInboxUrl({ slug });
-        await fetchInbox();
+        await fetchInbox(page());
       } catch (err) {
         console.error("Failed to delete inbox item:", err);
       }
@@ -139,29 +158,30 @@ export default function InboxRoute(): JSX.Element {
     }
   };
 
-  const pendingCount = (): number =>
-    inboxItems().filter((item) => item.status === "pending").length;
-
-  const parsedCount = (): number =>
-    inboxItems().filter((item) => item.status === "parsed").length;
-
-  const downloadedCount = (): number =>
-    inboxItems().filter((item) => item.status === "downloaded").length;
-
-  const filteredItems = (): InboxItem[] => {
-    const query = searchQuery().toLowerCase().trim();
-    const currentTab = filterTab();
-    return inboxItems().filter((item) => {
-      if (currentTab !== "all" && item.status !== currentTab) {
-        return false;
-      }
-      if (!query) return true;
-      return (
-        item.url.toLowerCase().includes(query) ||
-        extractDomain(item.url).toLowerCase().includes(query)
-      );
-    });
+  const handlePrevPage = (): void => {
+    if (page() > 1 && !loading()) {
+      void fetchInbox(page() - 1);
+    }
   };
+
+  const handleNextPage = (): void => {
+    if (page() < totalPages() && !loading()) {
+      void fetchInbox(page() + 1);
+    }
+  };
+
+  const displayedItems = (): InboxItem[] => {
+    const query = searchQuery().toLowerCase().trim();
+    if (!query) return inboxItems();
+    return inboxItems().filter(
+      (item) =>
+        item.url.toLowerCase().includes(query) ||
+        extractDomain(item.url).toLowerCase().includes(query),
+    );
+  };
+
+  const rangeStart = (): number => (total() === 0 ? 0 : (page() - 1) * PAGE_SIZE + 1);
+  const rangeEnd = (): number => Math.min(page() * PAGE_SIZE, total());
 
   return (
     <div class="space-y-4 max-w-4xl mx-auto py-2 select-none animate-fade-in text-xs sm:text-sm font-sans text-left">
@@ -173,12 +193,10 @@ export default function InboxRoute(): JSX.Element {
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-base font-bold text-zinc-900 dark:text-white">
-                Inbox
-              </h1>
+              <h1 class="text-base font-bold text-zinc-900 dark:text-white">Inbox</h1>
               <Show when={pendingCount() > 0}>
                 <span class="px-2 py-0.5 text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded-full">
-                  {pendingCount()} new
+                  {pendingCount()} pending
                 </span>
               </Show>
             </div>
@@ -192,7 +210,7 @@ export default function InboxRoute(): JSX.Element {
           <Tooltip openDelay={200} placement="bottom">
             <Tooltip.Trigger
               as="button"
-              onClick={() => void fetchInbox()}
+              onClick={() => void fetchInbox(page())}
               disabled={loading()}
               class="p-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors border border-zinc-200 dark:border-zinc-800 cursor-pointer disabled:opacity-50"
               type="button"
@@ -209,68 +227,26 @@ export default function InboxRoute(): JSX.Element {
         </div>
       </div>
 
-      {/* Filter Tabs & Search Toolbar */}
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Segmented Filter Tabs */}
-        <div class="inline-flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => setFilterTab("all")}
-            class={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-              filterTab() === "all"
-                ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
-                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-            }`}
-          >
-            <span>All</span>
-            <span class="text-[10px] font-mono opacity-70">({inboxItems().length})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterTab("pending")}
-            class={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-              filterTab() === "pending"
-                ? "bg-white dark:bg-zinc-800 text-amber-600 dark:text-amber-400 shadow-xs"
-                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-            }`}
-          >
-            <span>Pending</span>
-            <span class="text-[10px] font-mono opacity-70">({pendingCount()})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterTab("parsed")}
-            class={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-              filterTab() === "parsed"
-                ? "bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs"
-                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-            }`}
-          >
-            <span>Parsed</span>
-            <span class="text-[10px] font-mono opacity-70">({parsedCount()})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterTab("downloaded")}
-            class={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-              filterTab() === "downloaded"
-                ? "bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs"
-                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-            }`}
-          >
-            <span>Downloaded</span>
-            <span class="text-[10px] font-mono opacity-70">({downloadedCount()})</span>
-          </button>
+      {/* Search & Info Toolbar */}
+      <div class="flex items-center justify-between gap-3">
+        <div class="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+          <Show when={total() > 0} fallback={<span>No items recorded</span>}>
+            <span>
+              Showing <strong class="text-zinc-800 dark:text-zinc-200">{rangeStart()}</strong> to{" "}
+              <strong class="text-zinc-800 dark:text-zinc-200">{rangeEnd()}</strong> of{" "}
+              <strong class="text-zinc-800 dark:text-zinc-200">{total()}</strong> items
+            </span>
+          </Show>
         </div>
 
-        {/* Search Bar */}
-        <div class="relative flex-1 sm:max-w-xs">
+        {/* Quick Filter Search */}
+        <div class="relative w-full sm:max-w-xs">
           <div class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 pointer-events-none">
             <Search class="w-3.5 h-3.5" />
           </div>
           <input
             type="text"
-            placeholder="Filter links and domains..."
+            placeholder="Search on page..."
             value={searchQuery()}
             onInput={(e) => setSearchQuery(e.currentTarget.value)}
             class="w-full pl-9 pr-8 py-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-blue-500/10 transition-all outline-none text-xs text-zinc-900 dark:text-white"
@@ -293,7 +269,7 @@ export default function InboxRoute(): JSX.Element {
         fallback={
           <div class="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-3">
             <div class="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span class="text-xs text-zinc-400 font-medium">Loading inbox queue...</span>
+            <span class="text-xs text-zinc-400 font-medium">Loading inbox page...</span>
           </div>
         }
       >
@@ -306,7 +282,7 @@ export default function InboxRoute(): JSX.Element {
           }
         >
           <Show
-            when={filteredItems().length > 0}
+            when={displayedItems().length > 0}
             fallback={
               <div class="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-3">
                 <div class="w-12 h-12 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 rounded-xl">
@@ -314,11 +290,11 @@ export default function InboxRoute(): JSX.Element {
                 </div>
                 <div>
                   <h3 class="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                    {searchQuery() ? "No matching links" : "Your inbox is empty"}
+                    {searchQuery() ? "No matching links on this page" : "Your inbox is empty"}
                   </h3>
                   <p class="text-[11px] text-zinc-400 max-w-sm mt-0.5">
                     {searchQuery()
-                      ? `No links match "${searchQuery()}". Clear your filter to view all items.`
+                      ? `No links match "${searchQuery()}". Clear your search to view all page items.`
                       : "Links sent via browser extensions or local API POST requests will appear here."}
                   </p>
                 </div>
@@ -326,7 +302,7 @@ export default function InboxRoute(): JSX.Element {
             }
           >
             <div class="space-y-2">
-              <For each={filteredItems()}>
+              <For each={displayedItems()}>
                 {(item) => {
                   const domain = () => extractDomain(item.url);
                   const isCopied = () => copiedSlug() === item.slug;
@@ -381,10 +357,7 @@ export default function InboxRoute(): JSX.Element {
                             class="p-2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
                             type="button"
                           >
-                            <Show
-                              when={isCopied()}
-                              fallback={<Copy class="w-3.5 h-3.5" />}
-                            >
+                            <Show when={isCopied()} fallback={<Copy class="w-3.5 h-3.5" />}>
                               <Check class="w-3.5 h-3.5 text-emerald-500" />
                             </Show>
                           </Tooltip.Trigger>
@@ -440,6 +413,38 @@ export default function InboxRoute(): JSX.Element {
             </div>
           </Show>
         </Show>
+      </Show>
+
+      {/* Real Server-side Pagination Controls */}
+      <Show when={totalPages() > 1}>
+        <div class="flex items-center justify-between pt-2 px-1">
+          <div class="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+            Page <strong class="text-zinc-800 dark:text-zinc-200">{page()}</strong> of{" "}
+            <strong class="text-zinc-800 dark:text-zinc-200">{totalPages()}</strong>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handlePrevPage}
+              disabled={page() <= 1 || loading()}
+              class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+            >
+              <ChevronLeft class="w-3.5 h-3.5" />
+              <span>Previous</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNextPage}
+              disabled={page() >= totalPages() || loading()}
+              class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+            >
+              <span>Next</span>
+              <ChevronRight class="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
       </Show>
 
       {/* Local Ingestion Service & API Integration */}

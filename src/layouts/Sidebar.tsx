@@ -15,7 +15,6 @@ import { useUIStore, type BadgeTab } from "@/store/useUIStore";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ipc } from "@/utils/ipc";
 import { safeListen } from "@/utils/tauri";
-import type { InboxItem } from "@/core/types/database.types";
 
 interface NavItem {
   path: string;
@@ -38,12 +37,9 @@ export default function Sidebar() {
   let unlistenInbox: (() => void) | null = null;
 
   const refreshInboxBadge = async (): Promise<void> => {
-    const result = await ipc.getInboxUrls();
-    if (!result.success) return;
-    const pending = (result.payload as InboxItem[]).filter(
-      (item) => item.status === "pending",
-    ).length;
-    useUIStore.setBadge("inbox", pending);
+    const result = await ipc.getInboxUrls({ page: 1, pageSize: 1 });
+    if (!result.success || !result.payload) return;
+    useUIStore.setBadge("inbox", result.payload.pending_count ?? 0);
   };
 
   onMount(() => {

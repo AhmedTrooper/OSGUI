@@ -68,9 +68,22 @@ export interface DiscoverAssetMetadataResult {
   error_message: string | null;
 }
 
-// ── inbox ─────────────────────────────────────────────────────────────────────
-export interface GetInboxUrlsResult extends CommandResult<InboxItem[]> {
-  payload: InboxItem[];
+export interface PaginatedInboxUrls {
+  items: InboxItem[];
+  total: number;
+  pending_count: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface GetInboxUrlsArgs {
+  page?: number;
+  pageSize?: number;
+}
+
+export interface GetInboxUrlsResult extends CommandResult<PaginatedInboxUrls> {
+  payload: PaginatedInboxUrls;
 }
 
 export interface GetInboxUrlBySlugArgs {

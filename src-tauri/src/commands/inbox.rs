@@ -21,17 +21,56 @@ pub struct InboxResponse {
     pub slug: Option<String>,
 }
 
-/// List every inbox row, newest first.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+pub struct PaginatedInboxUrls {
+    pub items: Vec<InboxUrlRow>,
+    pub total: i64,
+    pub pending_count: i64,
+    pub page: u32,
+    pub page_size: u32,
+    pub total_pages: u32,
+}
+
+/// List inbox rows with pagination, newest first.
 #[tauri::command]
 #[allow(clippy::unused_async)]
-pub async fn get_inbox_urls(state: State<'_, AppEngineState>) -> Result<Vec<InboxUrlRow>, String> {
+pub async fn get_inbox_urls(
+    state: State<'_, AppEngineState>,
+    page: Option<u32>,
+    page_size: Option<u32>,
+) -> Result<PaginatedInboxUrls, String> {
     let conn = state.db_conn.lock();
+
+    let total: i64 = conn
+        .query_row("SELECT COUNT(*) FROM inbox_urls;", [], |row| row.get(0))
+        .map_err(|e| e.to_string())?;
+
+    let pending_count: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM inbox_urls WHERE status = 'pending';",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+
+    let page = page.unwrap_or(1).max(1);
+    let page_size = page_size.unwrap_or(15).max(1);
+    let page_size_i64 = i64::from(page_size);
+    let offset = i64::from(page - 1) * page_size_i64;
+    let total_pages = if total == 0 {
+        1
+    } else {
+        u32::try_from((total + page_size_i64 - 1) / page_size_i64).unwrap_or(1)
+    };
+
     let mut stmt = conn
-        .prepare("SELECT slug, url, status, created_at, updated_at FROM inbox_urls ORDER BY created_at DESC;")
+        .prepare(
+            "SELECT slug, url, status, created_at, updated_at FROM inbox_urls ORDER BY created_at DESC LIMIT ?1 OFFSET ?2;",
+        )
         .map_err(|e| e.to_string())?;
 
     let rows = stmt
-        .query_map([], |row| {
+        .query_map(rusqlite::params![page_size, offset], |row| {
             Ok(InboxUrlRow {
                 slug: row.get(0)?,
                 url: row.get(1)?,
@@ -42,11 +81,19 @@ pub async fn get_inbox_urls(state: State<'_, AppEngineState>) -> Result<Vec<Inbo
         })
         .map_err(|e| e.to_string())?;
 
-    let mut list = Vec::new();
+    let mut items = Vec::new();
     for item in rows.flatten() {
-        list.push(item);
+        items.push(item);
     }
-    Ok(list)
+
+    Ok(PaginatedInboxUrls {
+        items,
+        total,
+        pending_count,
+        page,
+        page_size,
+        total_pages,
+    })
 }
 
 /// Fetch a single inbox row by its slug.

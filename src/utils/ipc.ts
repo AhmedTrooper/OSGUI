@@ -47,7 +47,9 @@ import type {
   GetErrorLogsResult,
   GetInboxUrlBySlugArgs,
   GetInboxUrlBySlugResult,
+  GetInboxUrlsArgs,
   GetInboxUrlsResult,
+  PaginatedInboxUrls,
   GetLocalUpdatesResult,
   GetOnlineUpdatesResult,
   GetParseLogsResult,
@@ -76,7 +78,6 @@ import type {
   UpdateSiteConfigArgs,
   UpdateSiteConfigResult,
 } from "@/core/types/ipc.types";
-import type { SiteConfig } from "@/core/types/database.types";
 
 /** Build an `ApiResult`-shaped success envelope for browser preview mocks. */
 const mockOk = <T>(payload?: T): { success: true; message: string } & { payload?: T } => ({
@@ -184,10 +185,30 @@ export const ipc = {
       : Promise.resolve({ success: true, payload: null, error_message: null }),
 
   // ── inbox ─────────────────────────────────────────────────────────────────
-  getInboxUrls: (): Promise<GetInboxUrlsResult> =>
+  getInboxUrls: (args?: GetInboxUrlsArgs): Promise<GetInboxUrlsResult> =>
     isTauri()
-      ? callTauri<GetInboxUrlsResult>("get_inbox_urls")
-      : Promise.resolve({ ...mockOk<SiteConfig[]>([]), payload: [] }),
+      ? callTauri<GetInboxUrlsResult>(
+          "get_inbox_urls",
+          args as unknown as Record<string, unknown>,
+        )
+      : Promise.resolve({
+          ...mockOk<PaginatedInboxUrls>({
+            items: [],
+            total: 0,
+            pending_count: 0,
+            page: 1,
+            page_size: 15,
+            total_pages: 1,
+          }),
+          payload: {
+            items: [],
+            total: 0,
+            pending_count: 0,
+            page: 1,
+            page_size: 15,
+            total_pages: 1,
+          },
+        }),
 
   getInboxUrlBySlug: (args: GetInboxUrlBySlugArgs): Promise<GetInboxUrlBySlugResult> =>
     isTauri()
