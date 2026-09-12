@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SyncLime - Media Companion</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <img src="icons/32x32.png" alt="SyncLime Logo" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-name">SyncLime</span>
+          <span class="brand-badge">COMPANION</span>
+        </div>
+      </div>
+      <div id="status-pill" class="status-pill checking">
+        <span class="status-dot"></span>
+        <span id="status-text" class="status-text">Probing...</span>
+      </div>
+    </header>
+
+    <!-- Active Tab Media Card -->
+    <main class="main-card">
+      <div class="tab-preview">
+        <img id="tab-favicon" class="tab-favicon" src="icons/16x16.png" alt="Favicon">
+        <div id="tab-title" class="tab-title" title="Active Page">Detecting active page...</div>
+      </div>
+
+      <div class="input-group">
+        <label for="url-input" class="input-label">Target URL</label>
+        <div class="input-wrapper">
+          <input type="text" id="url-input" class="url-input" placeholder="https://www.youtube.com/watch?v=..." spellcheck="false">
+          <button type="button" id="paste-btn" class="icon-btn" title="Paste from clipboard">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sync Options -->
+      <div class="options-group">
+        <label class="checkbox-label" title="Extracts Netscape cookies so yt-dlp can access age-restricted or private videos">
+          <input type="checkbox" id="sync-cookies" checked>
+          <span class="custom-checkbox"></span>
+          <span class="checkbox-text">Synchronize session cookies</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="auto-close" checked>
+          <span class="custom-checkbox"></span>
+          <span class="checkbox-text">Close popup upon send</span>
+        </label>
+      </div>
+
+      <!-- Action Button -->
+      <button type="button" id="send-btn" class="send-btn">
+        <svg class="send-icon default-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 3v12m0 0l4-4m-4 4l-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+        </svg>
+        <span class="spinner-icon hidden"></span>
+        <span id="btn-text">Send to SyncLime Inbox</span>
+      </button>
+
+      <!-- Feedback Alert Banner -->
+      <div id="feedback" class="feedback-banner hidden">
+        <span id="feedback-icon" class="feedback-icon"></span>
+        <span id="feedback-text" class="feedback-text"></span>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span class="shortcut-tip">Quick send: <kbd>Alt</kbd> + <kbd>S</kbd></span>
+      <span class="app-version">v0.1.1</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

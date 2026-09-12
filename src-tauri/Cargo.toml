@@ -1,7 +1,7 @@
 [package]
 name = "synclime"
 version = "0.1.1"
-description = "High-performance media extraction pipeline powered by yt-dlp, FFmpeg, and dynamic JS runtimes."
+description = "Next-generation native desktop media ingestion, queue scheduler, and stream downloader powered by Tauri v2, SolidJS, Rust, and yt-dlp."
 authors = ["you"]
 edition = "2021"
 

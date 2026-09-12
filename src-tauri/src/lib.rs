@@ -372,6 +372,10 @@ async fn start_axum_server(app_handle: AppHandle, db_conn: Arc<Mutex<Connection>
     #[derive(Deserialize)]
     struct AddUrlPayload {
         url: String,
+        cookies: Option<String>,
+        #[serde(default)]
+        #[allow(dead_code)]
+        title: Option<String>,
     }
 
     let app = Router::new()
@@ -405,6 +409,69 @@ async fn start_axum_server(app_handle: AppHandle, db_conn: Arc<Mutex<Connection>
                             );
                         }
 
+                        // Synchronize cookies if provided by the companion extension
+                        if let Some(ref cookies_txt) = payload.cookies {
+                            let clean_cookies = cookies_txt.trim();
+                            if !clean_cookies.is_empty() {
+                                if let Ok(parsed_url) = url::Url::parse(url) {
+                                    if let Some(host) = parsed_url.host_str() {
+                                        let domain = host.trim_start_matches("www.").to_string();
+                                        let conn = db_conn.lock();
+                                        let now = chrono::Utc::now().to_rfc3339();
+
+                                        let existing_slug: Option<String> = conn
+                                            .query_row(
+                                                "SELECT slug FROM cookie_profiles WHERE domain = ?1 LIMIT 1;",
+                                                rusqlite::params![domain],
+                                                |row| row.get(0),
+                                            )
+                                            .ok();
+
+                                        let cp_slug = existing_slug.map_or_else(
+                                            || {
+                                                let new_slug = format!("cp_{}", chrono::Utc::now().timestamp_millis());
+                                                let cp_title = format!("{domain} (Browser Sync)");
+                                                let _ = conn.execute(
+                                                    "INSERT INTO cookie_profiles (slug, title, domain, cookie_data, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6);",
+                                                    rusqlite::params![new_slug, cp_title, domain, clean_cookies, now, now],
+                                                );
+                                                new_slug
+                                            },
+                                            |slug| {
+                                                let _ = conn.execute(
+                                                    "UPDATE cookie_profiles SET cookie_data = ?1, updated_at = ?2 WHERE slug = ?3;",
+                                                    rusqlite::params![clean_cookies, now, slug],
+                                                );
+                                                slug
+                                            },
+                                        );
+
+                                        let site_exists: bool = conn
+                                            .query_row(
+                                                "SELECT 1 FROM site_configs WHERE domain = ?1 LIMIT 1;",
+                                                rusqlite::params![domain],
+                                                |_| Ok(true),
+                                            )
+                                            .unwrap_or(false);
+
+                                        if site_exists {
+                                            let _ = conn.execute(
+                                                "UPDATE site_configs SET cookie_profile_slug = ?1, updated_at = ?2 WHERE domain = ?3;",
+                                                rusqlite::params![cp_slug, now, domain],
+                                            );
+                                        } else {
+                                            let sc_slug = format!("sc_{}", chrono::Utc::now().timestamp_millis());
+                                            let sc_title = format!("{domain} Config");
+                                            let _ = conn.execute(
+                                                "INSERT INTO site_configs (slug, title, domain, cookie_profile_slug, proxy_profile_slug, is_default, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, NULL, 0, ?5, ?6);",
+                                                rusqlite::params![sc_slug, sc_title, domain, cp_slug, now, now],
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         let slug = format!("inbox-{}", chrono::Utc::now().timestamp_millis());
                         let conn = db_conn.lock();
                         let query = "
@@ -427,8 +494,9 @@ async fn start_axum_server(app_handle: AppHandle, db_conn: Arc<Mutex<Connection>
                             Ok(_) => (
                                 axum::http::StatusCode::OK,
                                 Json(serde_json::json!({
-                                    "success": false,
-                                    "message": "URL already exists in inbox"
+                                    "success": true,
+                                    "message": "URL already exists in inbox",
+                                    "already_exists": true
                                 })),
                             ),
                             Err(e) => (

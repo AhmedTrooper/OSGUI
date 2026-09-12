@@ -1,7 +1,7 @@
 {
   "name": "synclime",
   "version": "0.1.1",
-  "description": "",
+  "description": "Next-generation native desktop media ingestion, queue scheduler, and stream downloader powered by Tauri v2, SolidJS, Rust, and yt-dlp.",
   "type": "module",
   "scripts": {
     "start": "vite",

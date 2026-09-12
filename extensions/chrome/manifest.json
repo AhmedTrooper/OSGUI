@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "SyncLime - Media Companion",
+  "version": "0.1.1",
+  "description": "Send video URLs and Netscape session cookies directly to the SyncLime desktop downloader inbox.",
+  "permissions": [
+    "activeTab",
+    "cookies",
+    "contextMenus",
+    "storage",
+    "notifications"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:*/*",
+    "http://localhost:*/*",
+    "*://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Send to SyncLime Inbox",
+    "default_icon": {
+      "16": "icons/16x16.png",
+      "32": "icons/32x32.png",
+      "48": "icons/48x48.png",
+      "128": "icons/128x128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "send-to-synclime": {
+      "suggested_key": {
+        "default": "Alt+S",
+        "mac": "Alt+S"
+      },
+      "description": "Send current active tab URL to SyncLime Inbox"
+    }
+  },
+  "icons": {
+    "16": "icons/16x16.png",
+    "32": "icons/32x32.png",
+    "48": "icons/48x48.png",
+    "128": "icons/128x128.png"
+  }
+}

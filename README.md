@@ -34,7 +34,33 @@ Many traditional web-style downloaders freeze or lag when dealing with high netw
 - **Quit App Safety confirmation**: Relocates window close buttons to the absolute center of TitleBars, issuing native operating system warnings (`ask()` API) before letting the app close to prevent accidental interruptions.
 - **Diagnostics Logs & Staging**: Monospaced diagnostics streams showing stdout/stderr transactions, featuring one-click clipboard copying triggers and visual copy indicators.
 - **Real-Time Reference Validation**: Real-time validation checks rendering red warning badges on domain rules matching deleted/missing network credentials.
-- **Browser Extensions Sync**: Direct, real-time background syncing of raw links from un-packed browser extensions via local port listener (`127.0.0.1:14221`).
+- **Browser Extensions Sync**: Direct, real-time background syncing of raw links from unpacked Chrome & Firefox companion extensions via local port listener (`127.0.0.1:14221`).
+
+---
+
+## 🖼️ Application Screenshots & UI Showcase
+
+|                   Active Download Queue                    |            Video Metadata & Streams Picker            |
+| :--------------------------------------------------------: | :---------------------------------------------------: |
+| ![Active Download Queue](assets/images/downloads_list.png) | ![Video Metadata Extraction](assets/images/video.png) |
+
+|                Playlist Multi-Track Analysis                |                   Format, Codec & Subtitle Catalog                   |
+| :---------------------------------------------------------: | :------------------------------------------------------------------: |
+| ![Playlist Metadata Extraction](assets/images/playlist.png) | ![Subtitle and Video Options](assets/images/subtitles_and_video.png) |
+
+|              Network Vault, Cookies & Proxies               |                Single Resource Analysis                |
+| :---------------------------------------------------------: | :----------------------------------------------------: |
+| ![Network Routing & Credentials](assets/images/network.png) | ![Single Media Extraction](assets/images/metadata.png) |
+
+---
+
+## 🧩 Browser Companion Extensions
+
+SyncLime comes with ready-to-use browser extensions for **Google Chrome / Brave / Edge** and **Mozilla Firefox**:
+
+- **Chrome / Chromium**: [`extensions/chrome/`](./extensions/chrome/) (Manifest V3)
+- **Firefox / Gecko**: [`extensions/firefox/`](./extensions/firefox/) (Manifest V3 compatible)
+- **Full Guide**: See [`extentions.md`](./extentions.md) for step-by-step setup, keyboard shortcuts (<kbd>Alt</kbd>+<kbd>S</kbd>), and cookie sync instructions.
 
 ---
 
@@ -254,20 +280,18 @@ To run the core engines, ensure the following utilities are installed on your sy
 
 - **yt-dlp** (Mandatory - for asset metadata extraction and analysis)
 - **ffmpeg** (Mandatory - for merging formats, muxing streams, and post-processing)
-- **Deno** (Mandatory - for companion browser extension local Axum listeners)
 - **aria2** / **aria2c** (Optional, but **Strongly Recommended** - unlocks extreme high-speed multithreaded network write queues)
 
 > [!TIP]
 > **Need help installing these?**
 > If you are unsure how to install these dependencies on your specific operating system (Windows, macOS, or Linux distributions), we highly recommend asking AI assistants like **Gemini** or **ChatGPT** for tailored, step-by-step instructions. Just paste this simple prompt:
-> _"How do I install yt-dlp, ffmpeg, Deno, and aria2 on [Ubuntu / Debian / Arch / macOS / Windows]?"_
+> _"How do I install yt-dlp, ffmpeg, and aria2 on [Ubuntu / Debian / Arch / macOS / Windows]?"_
 
 ### 2. Check Installed Utilities
 
 ```bash
 yt-dlp --version
 ffmpeg -version
-deno --version
 aria2c --version
 ```
 
