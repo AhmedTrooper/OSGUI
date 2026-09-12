@@ -1,23 +1,19 @@
-import { createSignal, For } from "solid-js";
+import { createSignal, For, type JSX } from "solid-js";
+import type { SubtitleOption } from "@/core/types/ytdlp.types";
 
-interface SubtitleTrack {
-  lang: string;
-  name: string;
-}
-
-interface SubtitleSelectorProps {
-  tracks: SubtitleTrack[];
+export interface SubtitleSelectorProps {
+  tracks: SubtitleOption[];
   onChange: (selectedLang: string) => void;
 }
 
-export function SubtitleSelector(props: SubtitleSelectorProps) {
+export function SubtitleSelector(props: SubtitleSelectorProps): JSX.Element {
   const [selected, setSelected] = createSignal("");
 
-  const handleChange = (e: Event) => {
-    const target = e.target as HTMLSelectElement;
-    const val = target.value;
-    setSelected(val);
-    props.onChange(val);
+  const handleChange = (event: Event): void => {
+    const target = event.target as HTMLSelectElement;
+    const value = target.value;
+    setSelected(value);
+    props.onChange(value);
   };
 
   return (

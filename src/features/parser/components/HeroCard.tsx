@@ -1,7 +1,7 @@
-import { Show } from "solid-js";
+import { Show, type JSX } from "solid-js";
 import { Clock } from "lucide-solid";
 
-interface HeroCardProps {
+export interface HeroCardProps {
   thumbnail: string;
   title: string;
   author: string;
@@ -11,7 +11,7 @@ interface HeroCardProps {
   formatDuration: (secs: number) => string;
 }
 
-export function HeroCard(props: HeroCardProps) {
+export function HeroCard(props: HeroCardProps): JSX.Element {
   return (
     <div class="w-full bg-zinc-50/50 dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 sm:p-4 select-none">
       <div class="flex flex-row gap-3 sm:gap-5 items-start text-left min-w-0">
@@ -28,7 +28,7 @@ export function HeroCard(props: HeroCardProps) {
             <h2 class="text-sm sm:text-base md:text-lg font-bold text-zinc-900 dark:text-zinc-100 leading-snug line-clamp-2">
               {props.title}
             </h2>
-            
+
             <div class="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-400 font-medium w-full">
               <span class="font-mono font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded border border-zinc-200 dark:border-zinc-800/30 truncate max-w-full">
                 {props.author}
@@ -36,9 +36,15 @@ export function HeroCard(props: HeroCardProps) {
               <span>•</span>
               <Show
                 when={props.isPlaylist}
-                fallback={<span class="text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider text-[9px]">Single Video</span>}
+                fallback={
+                  <span class="text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wider text-[9px]">
+                    Single Video
+                  </span>
+                }
               >
-                <span class="text-purple-600 dark:text-purple-400 font-semibold uppercase tracking-wider text-[9px]">Playlist</span>
+                <span class="text-purple-600 dark:text-purple-400 font-semibold uppercase tracking-wider text-[9px]">
+                  Playlist
+                </span>
               </Show>
               <Show when={!props.isPlaylist}>
                 <span>•</span>

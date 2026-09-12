@@ -1,38 +1,53 @@
+import { Show, createMemo, createSignal, type JSX } from "solid-js";
 import { Play, Pause, FolderOpen, Trash, Copy, Check } from "lucide-solid";
-import { Show, createMemo, createSignal } from "solid-js";
-import { useQueueStore } from "../../../store/useQueueStore";
+import { useQueueStore } from "@/store/useQueueStore";
+import type { DownloadStatus } from "@/core/types/database.types";
 
-interface DownloadRowProps {
+export interface DownloadRowProps {
   id: string;
   onPauseToggle: () => void;
   onReveal: () => void;
   onDelete: () => void;
 }
 
-export function DownloadRow(props: DownloadRowProps) {
-  const job = createMemo(() => useQueueStore.state.queue.find((j) => j.slug === props.id));
-  const [copied, setCopied] = createSignal(false);
-  
-  const name = () => job()?.name || "Unknown File";
-  const progress = () => job()?.progress ?? 0;
-  const status = () => {
-    const s = job()?.status;
-    return s === "pending" ? "paused" : s || "paused";
-  };
-  const message = () => job()?.message || "";
-  const isError = () => status() === "error";
+const VISIBLE_STATUS: Record<DownloadStatus, DownloadStatus> = {
+  pending: "paused",
+  downloading: "downloading",
+  paused: "paused",
+  completed: "completed",
+  error: "error",
+};
 
-  const handleCopy = () => {
+const statusLabel = (status: DownloadStatus | undefined): DownloadStatus => {
+  if (status === undefined) return "paused";
+  return VISIBLE_STATUS[status];
+};
+
+const pauseToggleTitle = (status: DownloadStatus | undefined): string => {
+  if (status === "error") return "Restart / Resume Download";
+  if (status === "paused" || status === "pending") return "Resume Download";
+  return "Pause Download";
+};
+
+export function DownloadRow(props: DownloadRowProps): JSX.Element {
+  const job = createMemo(() => useQueueStore.state.queue.find((entry) => entry.slug === props.id));
+  const [copied, setCopied] = createSignal(false);
+
+  const name = (): string => job()?.name ?? "Unknown File";
+  const progress = (): number => job()?.progress ?? 0;
+  const status = (): DownloadStatus => statusLabel(job()?.status);
+  const message = (): string => job()?.message ?? "";
+  const isError = (): boolean => status() === "error";
+
+  const handleCopy = async (): Promise<void> => {
     const url = job()?.url;
-    if (url) {
-      navigator.clipboard.writeText(url)
-        .then(() => {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000);
-        })
-        .catch((err) => {
-          // console.error("Failed to copy URL to clipboard:", err);
-        });
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.warn("Failed to copy URL to clipboard:", err);
     }
   };
 
@@ -44,7 +59,9 @@ export function DownloadRow(props: DownloadRowProps) {
       }`}
     >
       <div class="flex flex-col gap-1 flex-grow overflow-hidden text-left min-w-0">
-        <span class="text-[11px] sm:text-[13px] font-medium text-zinc-900 dark:text-zinc-100 truncate">{name()}</span>
+        <span class="text-[11px] sm:text-[13px] font-medium text-zinc-900 dark:text-zinc-100 truncate">
+          {name()}
+        </span>
         <div class="flex items-center gap-1.5 sm:gap-3 w-full">
           <div class="flex-1 max-w-[128px] min-w-[32px] h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
             <div
@@ -52,12 +69,18 @@ export function DownloadRow(props: DownloadRowProps) {
               style={{ width: `${progress()}%` }}
             />
           </div>
-          <span class="text-[9px] sm:text-[10px] text-zinc-500 dark:text-zinc-400 font-mono w-5 sm:w-8 flex-shrink-0">{Math.round(progress())}%</span>
-          <span class={`text-[8px] sm:text-[10px] uppercase tracking-wide truncate flex-shrink-0 ${isError() ? "text-red-500" : "text-zinc-500"}`}>
+          <span class="text-[9px] sm:text-[10px] text-zinc-500 dark:text-zinc-400 font-mono w-5 sm:w-8 flex-shrink-0">
+            {Math.round(progress())}%
+          </span>
+          <span
+            class={`text-[8px] sm:text-[10px] uppercase tracking-wide truncate flex-shrink-0 ${
+              isError() ? "text-red-500" : "text-zinc-500"
+            }`}
+          >
             {status()}
           </span>
         </div>
-        <Show when={message() && message().trim().length > 0}>
+        <Show when={message() !== ""}>
           <span
             class={`text-[9px] sm:text-[10px] font-mono truncate max-w-xs sm:max-w-md md:max-w-lg mt-0.5 ${
               isError() ? "text-red-500 dark:text-red-400" : "text-zinc-400 dark:text-zinc-500"
@@ -74,9 +97,13 @@ export function DownloadRow(props: DownloadRowProps) {
           <button
             onClick={() => props.onPauseToggle()}
             class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors"
-            title={status() === "error" ? "Restart / Resume Download" : status() === "paused" ? "Resume Download" : "Pause Download"}
+            title={pauseToggleTitle(status())}
+            type="button"
           >
-            <Show when={status() === "paused" || status() === "error"} fallback={<Pause class="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />}>
+            <Show
+              when={status() === "paused" || status() === "error"}
+              fallback={<Pause class="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />}
+            >
               <Play class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
             </Show>
           </button>
@@ -86,15 +113,19 @@ export function DownloadRow(props: DownloadRowProps) {
             onClick={() => props.onReveal()}
             class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-blue-600 dark:text-blue-400 transition-colors"
             title="Reveal in File Explorer"
+            type="button"
           >
             <FolderOpen class="w-3.5 h-3.5" />
           </button>
         </Show>
         <Show when={job()?.url}>
           <button
-            onClick={handleCopy}
+            onClick={() => {
+              void handleCopy();
+            }}
             class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors"
             title={copied() ? "Copied!" : "Copy Source URL"}
+            type="button"
           >
             <Show when={copied()} fallback={<Copy class="w-3.5 h-3.5" />}>
               <Check class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
@@ -105,6 +136,7 @@ export function DownloadRow(props: DownloadRowProps) {
           onClick={() => props.onDelete()}
           class="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors"
           title="Delete Job"
+          type="button"
         >
           <Trash class="w-3.5 h-3.5" />
         </button>
