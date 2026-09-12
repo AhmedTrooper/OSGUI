@@ -1,5 +1,4 @@
 import { createSignal, For, Show, type JSX } from "solid-js";
-import { Tooltip } from "@kobalte/core/tooltip";
 import {
   Cpu,
   Database,
@@ -189,92 +188,62 @@ export function AboutSection(): JSX.Element {
                 <h1 class="text-3xl font-black tracking-tight drop-shadow-sm uppercase mt-1">
                   {appInfo().name}
                 </h1>
+                <p class="text-white/80 text-xs mt-1 font-medium max-w-[260px]">
+                  Modern YouTube & multi-source media ingestion desktop engine
+                </p>
               </div>
 
-              <Tooltip openDelay={200} placement="left">
-                <Tooltip.Trigger
-                  as="span"
-                  class="bg-emerald-500/20 backdrop-blur-md text-emerald-200 text-[9px] px-2 py-0.5 rounded font-black tracking-wider uppercase border border-emerald-500/10 flex items-center gap-1 shadow-sm cursor-default"
-                >
-                  <Activity class="w-3 h-3 animate-pulse" />
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                    <Tooltip.Arrow />
-                    Live
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip>
+              <div class="bg-emerald-500/20 backdrop-blur-md text-emerald-200 text-[9px] px-2.5 py-1 rounded-full font-black tracking-wider uppercase border border-emerald-500/20 flex items-center gap-1.5 shadow-sm">
+                <Activity class="w-3 h-3 animate-pulse text-emerald-300" />
+                <span>Engine Live</span>
+              </div>
             </div>
 
             <div class="pt-4 flex items-center justify-between gap-3">
-              <Tooltip openDelay={200} placement="right">
-                <Tooltip.Trigger
-                  as="button"
-                  onClick={() => {
-                    void triggerSystemDiagnostic();
-                  }}
-                  disabled={checkLoading()}
-                  class="flex items-center justify-center p-2.5 rounded-xl bg-white text-blue-700 shadow-md hover:bg-blue-50 active:scale-[0.98] transition-all disabled:opacity-50 min-h-[38px] cursor-pointer"
-                >
-                  <Bell class={`w-4 h-4 text-blue-600 ${checkLoading() ? "animate-bounce" : ""}`} />
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                    <Tooltip.Arrow />
-                    {checkLoading() ? "Scanning..." : "Run host system diagnostics checks"}
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip>
+              <button
+                type="button"
+                onClick={() => {
+                  void triggerSystemDiagnostic();
+                }}
+                disabled={checkLoading()}
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white text-blue-700 font-bold text-xs shadow-md hover:bg-blue-50 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <Bell class={`w-4 h-4 text-blue-600 ${checkLoading() ? "animate-bounce" : ""}`} />
+                <span>
+                  {checkLoading() ? "Scanning Subsystems..." : "Run Subsystem Diagnostics"}
+                </span>
+              </button>
             </div>
           </div>
 
           {/* Default Storage Path Box */}
-          <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-4 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] backdrop-blur-md">
-            <div class="flex items-center justify-between gap-3">
-              <div class="flex items-center gap-3 min-w-0">
-                <Tooltip openDelay={200} placement="right">
-                  <Tooltip.Trigger
-                    as="div"
-                    class="w-9 h-9 flex items-center justify-center bg-teal-500/10 dark:bg-teal-500/15 text-teal-600 dark:text-teal-400 rounded-xl border border-teal-500/20 shadow-sm flex-shrink-0 cursor-default"
-                  >
-                    <Folder class="w-4.5 h-4.5" />
-                  </Tooltip.Trigger>
-                  <Tooltip.Portal>
-                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                      <Tooltip.Arrow />
-                      Target Download Path
-                    </Tooltip.Content>
-                  </Tooltip.Portal>
-                </Tooltip>
-                <p
-                  class="text-[9px] text-zinc-400 dark:text-zinc-500 truncate max-w-[160px] sm:max-w-xs md:max-w-md font-mono font-bold"
-                  title={useUIStore.state.downloadPath}
-                >
-                  {useUIStore.state.downloadPath || ""}
-                </p>
+          <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/40 p-4 rounded-2xl shadow-2xs">
+            <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-zinc-200/70 dark:border-zinc-800/70">
+              <div class="flex items-center gap-2">
+                <Folder class="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                <span class="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                  Target Download Directory
+                </span>
               </div>
-
               <Show when={useUIStore.state.downloadPath}>
-                <Tooltip openDelay={200} placement="left">
-                  <Tooltip.Trigger
-                    as="button"
-                    onClick={() => {
-                      void openDownloadFolder();
-                    }}
-                    class="flex items-center justify-center p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 text-zinc-800 dark:text-zinc-200 transition-all min-h-[32px] cursor-pointer shadow-sm"
-                  >
-                    <ExternalLink class="w-3.5 h-3.5" />
-                  </Tooltip.Trigger>
-                  <Tooltip.Portal>
-                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                      <Tooltip.Arrow />
-                      Reveal folder directory in native explorer
-                    </Tooltip.Content>
-                  </Tooltip.Portal>
-                </Tooltip>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void openDownloadFolder();
+                  }}
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
+                >
+                  <span>Open Folder</span>
+                  <ExternalLink class="w-3.5 h-3.5" />
+                </button>
               </Show>
             </div>
+            <p
+              class="text-xs text-zinc-700 dark:text-zinc-300 font-mono break-all select-text bg-zinc-50 dark:bg-black/30 p-2.5 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60"
+              title={useUIStore.state.downloadPath}
+            >
+              {useUIStore.state.downloadPath || "No directory configured"}
+            </p>
           </div>
         </div>
 
@@ -283,97 +252,37 @@ export function AboutSection(): JSX.Element {
           {/* Host Info & SQLite Metrics Splits */}
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Host specs */}
-            <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-4 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] backdrop-blur-md">
-              <Tooltip openDelay={200} placement="right">
-                <Tooltip.Trigger
-                  as="div"
-                  class="cursor-default text-[10px] text-blue-500 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 mb-2 flex items-center"
-                >
-                  <Cpu class="w-3.5 h-3.5" />
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                    <Tooltip.Arrow />
-                    Host Platform Spec
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip>
+            <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/40 p-4 sm:p-5 rounded-2xl shadow-2xs">
+              <div class="flex items-center gap-2 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2.5 mb-3">
+                <Cpu class="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span class="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100">
+                  Host Platform Environment
+                </span>
+              </div>
 
-              <div class="space-y-2.5 text-[11px] font-semibold">
+              <div class="space-y-2.5 text-xs font-semibold">
                 <div class="flex items-center justify-between">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="span"
-                      class="cursor-default text-zinc-500 dark:text-zinc-400"
-                    >
-                      OS
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        OS Platform
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-                  <span class="bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded font-mono font-bold text-[10px]">
+                  <span class="text-zinc-500 dark:text-zinc-400 font-medium">OS Platform</span>
+                  <span class="bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 px-2.5 py-0.5 rounded-lg font-mono font-bold text-xs">
                     {osInfo().platform}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="span"
-                      class="cursor-default text-zinc-500 dark:text-zinc-400"
-                    >
-                      TYPE
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        OS Type
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-                  <span class="bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded font-mono font-bold text-[10px]">
+                  <span class="text-zinc-500 dark:text-zinc-400 font-medium">Kernel Type</span>
+                  <span class="bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 px-2.5 py-0.5 rounded-lg font-mono font-bold text-xs">
                     {osInfo().type}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="span"
-                      class="cursor-default text-zinc-500 dark:text-zinc-400"
-                    >
-                      ARCH
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        Architecture
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-                  <span class="bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded font-mono font-bold text-[10px]">
+                  <span class="text-zinc-500 dark:text-zinc-400 font-medium">CPU Architecture</span>
+                  <span class="bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 px-2.5 py-0.5 rounded-lg font-mono font-bold text-xs">
                     {osInfo().arch}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="span"
-                      class="cursor-default text-zinc-500 dark:text-zinc-400"
-                    >
-                      KRNL
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        Kernel version
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
+                  <span class="text-zinc-500 dark:text-zinc-400 font-medium">Kernel Build</span>
                   <span
-                    class="bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded font-mono font-bold text-[9px] truncate max-w-[110px]"
+                    class="bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 px-2.5 py-0.5 rounded-lg font-mono font-bold text-xs truncate max-w-[140px]"
                     title={osInfo().version}
                   >
                     {osInfo().version}
@@ -383,99 +292,44 @@ export function AboutSection(): JSX.Element {
             </div>
 
             {/* SQLite store metrics */}
-            <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-4 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] backdrop-blur-md">
-              <Tooltip openDelay={200} placement="right">
-                <Tooltip.Trigger
-                  as="div"
-                  class="cursor-default text-[10px] text-purple-500 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 mb-2 flex items-center"
-                >
-                  <Database class="w-3.5 h-3.5" />
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                    <Tooltip.Arrow />
-                    SQLite Store Metrics
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip>
+            <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/40 p-4 sm:p-5 rounded-2xl shadow-2xs">
+              <div class="flex items-center gap-2 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2.5 mb-3">
+                <Database class="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <span class="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100">
+                  Database & Queue Metrics
+                </span>
+              </div>
 
-              <div class="space-y-2.5 text-[11px] font-semibold">
+              <div class="space-y-2.5 text-xs font-semibold">
                 <div class="flex items-center justify-between">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="span"
-                      class="cursor-default text-zinc-500 dark:text-zinc-400 flex items-center"
-                    >
-                      ACTIVE
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        Active Queue
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
+                  <span class="text-zinc-500 dark:text-zinc-400 font-medium">Active Queue</span>
                   <span
-                    class={`px-2 py-0.5 rounded font-bold text-[10px] ${activeJobsCount() > 0 ? "bg-amber-500/10 text-amber-500" : "bg-zinc-100 dark:bg-zinc-900 text-zinc-400"}`}
+                    class={`px-2.5 py-0.5 rounded-lg font-bold text-xs font-mono ${
+                      activeJobsCount() > 0
+                        ? "bg-amber-500/10 text-amber-500"
+                        : "bg-zinc-100 dark:bg-zinc-900 text-zinc-400"
+                    }`}
                   >
                     {activeJobsCount()}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="span"
-                      class="cursor-default text-zinc-500 dark:text-zinc-400"
-                    >
-                      DONE
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        Completed Queue
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-                  <span class="bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded font-mono font-bold text-[10px]">
+                  <span class="text-zinc-500 dark:text-zinc-400 font-medium">Completed Jobs</span>
+                  <span class="bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 px-2.5 py-0.5 rounded-lg font-mono font-bold text-xs">
                     {completedJobsCount()}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="span"
-                      class="cursor-default text-zinc-500 dark:text-zinc-400"
-                    >
-                      CACHE
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        Saved Cache
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-                  <span class="bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded font-mono font-bold text-[10px]">
+                  <span class="text-zinc-500 dark:text-zinc-400 font-medium">Library Schemas</span>
+                  <span class="bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 px-2.5 py-0.5 rounded-lg font-mono font-bold text-xs">
                     {useParseStore.state.parsedFiles.length}
                   </span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="span"
-                      class="cursor-default text-emerald-500 flex items-center"
-                    >
-                      OK
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        Engine status: healthy
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-                  <span class="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded font-bold text-[10px]">
-                    ●
+                  <span class="text-zinc-500 dark:text-zinc-400 font-medium">Engine Subsystem</span>
+                  <span class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-lg font-bold text-xs flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Healthy & Synced</span>
                   </span>
                 </div>
               </div>
@@ -484,121 +338,107 @@ export function AboutSection(): JSX.Element {
 
           {/* Core Tech Stack */}
           <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-4.5 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] backdrop-blur-md">
-            <Tooltip openDelay={200} placement="right">
-              <Tooltip.Trigger
-                as="div"
-                class="cursor-default text-[10px] text-indigo-500 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 mb-2.5 flex items-center"
-              >
-                <Sparkles class="w-3.5 h-3.5" />
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                  <Tooltip.Arrow />
-                  Core Application Frameworks
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip>
+            <div class="flex items-center justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2.5 mb-3">
+              <div class="flex items-center gap-2">
+                <Sparkles class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <span class="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100">
+                  Core Runtime & Tech Stack
+                </span>
+              </div>
+              <span class="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded-md">
+                Hybrid Architecture
+              </span>
+            </div>
 
             <div class="divide-y divide-zinc-100 dark:divide-zinc-800/60 text-xs">
-              <div class="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+              <div class="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
                 <div class="flex items-center gap-3">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="div"
-                      class="w-9 h-9 flex items-center justify-center bg-rose-500/10 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-500/20 shadow-sm flex-shrink-0 cursor-default"
-                    >
-                      <Terminal class="w-4.5 h-4.5" />
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        Tauri Core Engine
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-                  <span class="text-[9px] text-zinc-500 dark:text-zinc-400 font-bold bg-zinc-100 dark:bg-zinc-900 px-2 py-0.5 rounded font-mono border border-zinc-200 dark:border-zinc-800 uppercase">
-                    Rust
-                  </span>
+                  <div class="w-9 h-9 flex items-center justify-center bg-rose-500/10 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-500/20 shadow-xs flex-shrink-0">
+                    <Terminal class="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">
+                      Tauri Core Engine
+                    </div>
+                    <div class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Native Rust backend & cross-platform system IPC
+                    </div>
+                  </div>
                 </div>
+                <span class="text-[9px] text-zinc-600 dark:text-zinc-300 font-bold bg-zinc-100 dark:bg-zinc-900 px-2.5 py-1 rounded font-mono border border-zinc-200 dark:border-zinc-800 uppercase">
+                  Rust 2021
+                </span>
               </div>
 
-              <div class="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+              <div class="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
                 <div class="flex items-center gap-3">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="div"
-                      class="w-9 h-9 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20 shadow-sm flex-shrink-0 cursor-default"
-                    >
-                      <Layers class="w-4.5 h-4.5" />
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        SolidJS Render Layer
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-                  <span class="text-[9px] text-zinc-500 dark:text-zinc-400 font-bold bg-zinc-100 dark:bg-zinc-900 px-2 py-0.5 rounded font-mono border border-zinc-200 dark:border-zinc-800 uppercase">
-                    JS/TS
-                  </span>
+                  <div class="w-9 h-9 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20 shadow-xs flex-shrink-0">
+                    <Layers class="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">
+                      SolidJS Reactive Interface
+                    </div>
+                    <div class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Zero-overhead fine-grained DOM reactivity
+                    </div>
+                  </div>
                 </div>
+                <span class="text-[9px] text-zinc-600 dark:text-zinc-300 font-bold bg-zinc-100 dark:bg-zinc-900 px-2.5 py-1 rounded font-mono border border-zinc-200 dark:border-zinc-800 uppercase">
+                  TypeScript
+                </span>
               </div>
 
-              <div class="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+              <div class="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
                 <div class="flex items-center gap-3">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="div"
-                      class="w-9 h-9 flex items-center justify-center bg-teal-500/10 dark:bg-teal-500/15 text-teal-600 dark:text-teal-400 rounded-xl border border-teal-500/20 shadow-sm flex-shrink-0 cursor-default"
-                    >
-                      <Database class="w-4.5 h-4.5" />
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        SQLite Embedded
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-                  <span class="text-[9px] text-zinc-500 dark:text-zinc-400 font-bold bg-zinc-100 dark:bg-zinc-900 px-2 py-0.5 rounded font-mono border border-zinc-200 dark:border-zinc-800 uppercase">
-                    SQL
-                  </span>
+                  <div class="w-9 h-9 flex items-center justify-center bg-teal-500/10 dark:bg-teal-500/15 text-teal-600 dark:text-teal-400 rounded-xl border border-teal-500/20 shadow-xs flex-shrink-0">
+                    <Database class="w-4.5 h-4.5" />
+                  </div>
+                  <div>
+                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">
+                      SQLite Embedded Engine
+                    </div>
+                    <div class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      Local-first durable ACID persistence & query cache
+                    </div>
+                  </div>
                 </div>
+                <span class="text-[9px] text-zinc-600 dark:text-zinc-300 font-bold bg-zinc-100 dark:bg-zinc-900 px-2.5 py-1 rounded font-mono border border-zinc-200 dark:border-zinc-800 uppercase">
+                  SQLite 3
+                </span>
               </div>
             </div>
           </div>
 
           {/* Updates / Changelog */}
           <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-4.5 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] backdrop-blur-md">
-            <Tooltip openDelay={200} placement="right">
-              <Tooltip.Trigger
-                as="div"
-                class="cursor-default text-[10px] text-emerald-500 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 mb-3 flex items-center"
-              >
-                <Sparkles class="w-3.5 h-3.5" />
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                  <Tooltip.Arrow />
-                  Release Changelog
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip>
+            <div class="flex items-center justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2.5 mb-3">
+              <div class="flex items-center gap-2">
+                <Sparkles class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span class="font-bold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100">
+                  Release Highlights
+                </span>
+              </div>
+              <span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+                Ledger
+              </span>
+            </div>
 
             <Show
               when={!updatesLoading()}
               fallback={
-                <div class="flex items-center justify-center py-4">
-                  <div class="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                <div class="flex items-center justify-center py-6 gap-2 text-xs text-zinc-400">
+                  <div class="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  <span>Loading release ledger...</span>
                 </div>
               }
             >
               <Show
                 when={updatesData()}
                 fallback={
-                  <div class="flex items-center gap-2 text-red-500 text-[11px] py-2">
-                    <AlertTriangle class="w-3.5 h-3.5" />
-                    {updatesError() || "Offline"}
+                  <div class="flex items-center gap-2 text-rose-500 text-xs py-3 bg-rose-500/10 px-3 rounded-xl border border-rose-500/20">
+                    <AlertTriangle class="w-4 h-4 shrink-0" />
+                    <span>{updatesError() || "Changelog updates not available offline."}</span>
                   </div>
                 }
               >
@@ -606,38 +446,14 @@ export function AboutSection(): JSX.Element {
                   <div class="space-y-4">
                     <For each={data().updates}>
                       {(item) => (
-                        <div class="space-y-1.5 border-l-2 border-emerald-500/40 pl-3">
-                          <div class="flex items-center justify-between text-[11px]">
-                            <Tooltip openDelay={200} placement="right">
-                              <Tooltip.Trigger
-                                as="span"
-                                class="cursor-default font-mono font-bold text-zinc-700 dark:text-zinc-200"
-                              >
-                                v{item.application_online_version}
-                              </Tooltip.Trigger>
-                              <Tooltip.Portal>
-                                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                                  <Tooltip.Arrow />
-                                  Version
-                                </Tooltip.Content>
-                              </Tooltip.Portal>
-                            </Tooltip>
-                            <Tooltip openDelay={200} placement="left">
-                              <Tooltip.Trigger
-                                as="span"
-                                class="cursor-default text-zinc-400 font-mono"
-                              >
-                                {item.date}
-                              </Tooltip.Trigger>
-                              <Tooltip.Portal>
-                                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                                  <Tooltip.Arrow />
-                                  Release Date
-                                </Tooltip.Content>
-                              </Tooltip.Portal>
-                            </Tooltip>
+                        <div class="space-y-2 border-l-2 border-emerald-500/40 pl-3.5">
+                          <div class="flex items-center justify-between text-xs">
+                            <span class="font-mono font-bold text-zinc-800 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-[11px]">
+                              v{item.application_online_version}
+                            </span>
+                            <span class="text-zinc-400 font-mono text-[11px]">{item.date}</span>
                           </div>
-                          <ul class="list-disc list-inside text-[10px] text-zinc-500 dark:text-zinc-400 space-y-0.5">
+                          <ul class="list-disc list-inside text-xs text-zinc-600 dark:text-zinc-400 space-y-1">
                             <For each={item.features}>{(feature) => <li>{feature}</li>}</For>
                           </ul>
                         </div>

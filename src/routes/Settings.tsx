@@ -1,6 +1,5 @@
 import { onMount, type JSX } from "solid-js";
-import { Tooltip } from "@kobalte/core/tooltip";
-import { Settings as SettingsIcon, Cpu, Layers, Info } from "lucide-solid";
+import { SlidersHorizontal, Cpu, Layers, Info, Settings as SettingsIcon } from "lucide-solid";
 import { useUIStore } from "@/store/useUIStore";
 import { SettingsAccordion } from "@/features/settings/components/SettingsAccordion";
 import { PreferencesSection } from "@/features/settings/sections/PreferencesSection";
@@ -14,38 +13,68 @@ export default function Settings(): JSX.Element {
   });
 
   return (
-    <div class="flex flex-col gap-4 w-full px-2 sm:px-6">
-      <div class="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-white/10">
-        <Tooltip openDelay={200} placement="right">
-          <Tooltip.Trigger
-            as="div"
-            class="p-1.5 bg-zinc-500 rounded-md text-white shadow-sm cursor-default"
-          >
-            <SettingsIcon class="w-4 h-4" />
-          </Tooltip.Trigger>
-          <Tooltip.Portal>
-            <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-              <Tooltip.Arrow />
-              Settings
-            </Tooltip.Content>
-          </Tooltip.Portal>
-        </Tooltip>
+    <div class="space-y-4 max-w-4xl mx-auto py-2 select-none animate-fade-in text-xs sm:text-sm font-sans text-left">
+      {/* Header */}
+      <div class="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl">
+            <SettingsIcon class="w-5 h-5" />
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base font-bold text-zinc-900 dark:text-white">
+                Settings & Preferences
+              </h1>
+              <span class="px-2 py-0.5 text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-full font-mono">
+                Config
+              </span>
+            </div>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
+              Download paths, concurrency limits, SQLite diagnostics, browser integration & runtime
+              specs
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div class="flex flex-col gap-3 pb-4">
-        <SettingsAccordion icon={SettingsIcon} defaultOpen>
+      <div class="flex flex-col gap-3.5 pb-6">
+        <SettingsAccordion
+          title="General Preferences"
+          description="Download destination directory, simultaneous jobs, and parallel connection chunks"
+          badge="Core"
+          icon={SlidersHorizontal}
+          defaultOpen
+        >
           <PreferencesSection />
         </SettingsAccordion>
 
-        <SettingsAccordion icon={Cpu} defaultOpen>
+        <SettingsAccordion
+          title="Engine Logs & Traces"
+          description="SQLite exception ledger, execution commands, yt-dlp probe traces and exit codes"
+          badge="SQLite"
+          icon={Cpu}
+          defaultOpen
+        >
           <LogsSection />
         </SettingsAccordion>
 
-        <SettingsAccordion icon={Layers} defaultOpen={false}>
+        <SettingsAccordion
+          title="Browser Companion & Updates"
+          description="Chrome, Firefox and Edge integration hub, local API sync bridge, and release changelogs"
+          badge="Sync"
+          icon={Layers}
+          defaultOpen={false}
+        >
           <ExtensionsSection />
         </SettingsAccordion>
 
-        <SettingsAccordion icon={Info} defaultOpen={false}>
+        <SettingsAccordion
+          title="System Architecture & Environment"
+          description="Operating system specs, native runtime info, database health metrics, and framework stack"
+          badge="Platform"
+          icon={Info}
+          defaultOpen={false}
+        >
           <AboutSection />
         </SettingsAccordion>
       </div>

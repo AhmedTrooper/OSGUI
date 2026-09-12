@@ -1,5 +1,4 @@
 import { createSignal, For, Show, onMount, type JSX } from "solid-js";
-import { Tooltip } from "@kobalte/core/tooltip";
 import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
 import {
   FileWarning,
@@ -11,11 +10,13 @@ import {
   AlertTriangle,
   Check,
   Copy,
-  Download,
+  Terminal,
+  Clock,
   Cpu,
 } from "lucide-solid";
 import { ipc } from "@/utils/ipc";
 import { isTauri } from "@/utils/tauri";
+import { formatSize } from "@/utils/format";
 import type { ErrorLog, ParseLog } from "@/core/types/database.types";
 
 type LogsTab = "errors" | "parses";
@@ -82,20 +83,29 @@ export function LogsSection(): JSX.Element {
     (activeTab() === "parses" && parseLogs().length > 0);
 
   return (
-    <div class="space-y-4 text-xs sm:text-sm font-sans">
-      <div class="flex items-center justify-end pb-2 border-b border-zinc-200 dark:border-zinc-800/80">
+    <div class="space-y-4 text-xs sm:text-sm font-sans text-left">
+      {/* Top Toolbar */}
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-zinc-200/80 dark:border-zinc-800/80">
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100">
+            SQLite Query & Execution Traces
+          </span>
+          <span class="text-[11px] text-zinc-500 dark:text-zinc-400">
+            Persistent log streams for download worker exceptions and yt-dlp discovery probes
+          </span>
+        </div>
+
         <Show when={hasLogs()}>
-          <AdaptiveTooltip content="Flush all exception and discovery logs">
-            <button
-              onClick={() => {
-                void handleClearLogs();
-              }}
-              class="flex items-center justify-center p-2 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500/35 text-red-600 dark:text-red-400 rounded-lg transition-all cursor-pointer shadow-sm animate-fade-in"
-              type="button"
-            >
-              <Trash2 class="w-3.5 h-3.5" />
-            </button>
-          </AdaptiveTooltip>
+          <button
+            onClick={() => {
+              void handleClearLogs();
+            }}
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 rounded-xl transition-all cursor-pointer text-xs font-semibold shadow-2xs self-end sm:self-auto"
+            type="button"
+          >
+            <Trash2 class="w-3.5 h-3.5" />
+            <span>Clear Logs</span>
+          </button>
         </Show>
       </div>
 
@@ -147,20 +157,10 @@ export function LogsSection(): JSX.Element {
                   <span class="w-2.5 h-2.5 rounded-full bg-yellow-500" />
                   <span class="w-2.5 h-2.5 rounded-full bg-green-500" />
                 </div>
-                <Tooltip openDelay={200} placement="left">
-                  <Tooltip.Trigger
-                    as="span"
-                    class="text-zinc-400 dark:text-zinc-600 cursor-default"
-                  >
-                    <Cpu class="w-3.5 h-3.5" />
-                  </Tooltip.Trigger>
-                  <Tooltip.Portal>
-                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                      <Tooltip.Arrow />
-                      SQLite Log Storage
-                    </Tooltip.Content>
-                  </Tooltip.Portal>
-                </Tooltip>
+                <div class="flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono">
+                  <Cpu class="w-3.5 h-3.5 text-zinc-400" />
+                  <span>SQLite Log Storage</span>
+                </div>
               </div>
 
               <Show
@@ -208,21 +208,11 @@ export function LogsSection(): JSX.Element {
                             <Show when={isSelected()}>
                               <div class="border-t border-zinc-200 dark:border-zinc-900 p-3.5 bg-zinc-50/50 dark:bg-zinc-950/80 text-[10px] sm:text-xs text-left font-mono space-y-3 select-text overflow-x-auto">
                                 <div>
-                                  <div class="flex items-center justify-between mb-1">
-                                    <Tooltip openDelay={200} placement="right">
-                                      <Tooltip.Trigger
-                                        as="span"
-                                        class="text-zinc-400 cursor-default"
-                                      >
-                                        <Download class="w-3 h-3" />
-                                      </Tooltip.Trigger>
-                                      <Tooltip.Portal>
-                                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                                          <Tooltip.Arrow />
-                                          Execution Command
-                                        </Tooltip.Content>
-                                      </Tooltip.Portal>
-                                    </Tooltip>
+                                  <div class="flex items-center justify-between mb-1.5">
+                                    <div class="flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300 font-bold text-xs">
+                                      <Terminal class="w-3.5 h-3.5 text-blue-500" />
+                                      <span>Executed yt-dlp Command</span>
+                                    </div>
                                     <AdaptiveTooltip
                                       content={
                                         copiedKey() === `${log.slug}-cmd`
@@ -250,27 +240,17 @@ export function LogsSection(): JSX.Element {
                                       </button>
                                     </AdaptiveTooltip>
                                   </div>
-                                  <div class="bg-zinc-100 dark:bg-black p-2 rounded-lg border border-zinc-250 dark:border-zinc-900 break-all text-zinc-800 dark:text-zinc-300">
+                                  <div class="bg-zinc-100 dark:bg-black p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 break-all text-zinc-800 dark:text-zinc-300 font-mono text-xs">
                                     {log.command_executed}
                                   </div>
                                 </div>
 
                                 <div>
-                                  <div class="flex items-center justify-between mb-1">
-                                    <Tooltip openDelay={200} placement="right">
-                                      <Tooltip.Trigger
-                                        as="span"
-                                        class="text-zinc-400 cursor-default"
-                                      >
-                                        <FileWarning class="w-3 h-3" />
-                                      </Tooltip.Trigger>
-                                      <Tooltip.Portal>
-                                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                                          <Tooltip.Arrow />
-                                          Full Error Payload Description
-                                        </Tooltip.Content>
-                                      </Tooltip.Portal>
-                                    </Tooltip>
+                                  <div class="flex items-center justify-between mb-1.5">
+                                    <div class="flex items-center gap-1.5 text-red-600 dark:text-red-400 font-bold text-xs">
+                                      <FileWarning class="w-3.5 h-3.5 text-red-500" />
+                                      <span>Standard Error Output (stderr)</span>
+                                    </div>
                                     <AdaptiveTooltip
                                       content={
                                         copiedKey() === `${log.slug}-msg`
@@ -295,22 +275,25 @@ export function LogsSection(): JSX.Element {
                                       </button>
                                     </AdaptiveTooltip>
                                   </div>
-                                  <div class="bg-red-500/5 text-red-700 dark:text-red-400 p-2 rounded-lg border border-red-500/15 dark:border-red-500/10 break-words whitespace-pre-wrap leading-relaxed select-text">
+                                  <div class="bg-red-500/5 text-red-700 dark:text-red-400 p-2.5 rounded-xl border border-red-500/20 break-words whitespace-pre-wrap leading-relaxed select-text font-mono text-xs">
                                     {log.error_message}
                                   </div>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-4 text-[9px] text-zinc-400 dark:text-zinc-500 pt-2 border-t border-zinc-200 dark:border-zinc-900">
-                                  <div>
-                                    <strong>{log.slug}</strong>
+                                <div class="grid grid-cols-2 gap-4 text-[10px] text-zinc-500 pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                                  <div class="font-mono">
+                                    Record:{" "}
+                                    <strong class="text-zinc-700 dark:text-zinc-300">
+                                      {log.slug}
+                                    </strong>
                                   </div>
-                                  <div>
+                                  <div class="flex justify-end">
                                     {log.is_resolved === 1 ? (
-                                      <span class="text-emerald-500 flex items-center gap-1">
+                                      <span class="text-emerald-500 flex items-center gap-1 font-bold">
                                         <Check class="w-3 h-3" /> RESOLVED
                                       </span>
                                     ) : (
-                                      <span class="text-red-500 flex items-center gap-1">
+                                      <span class="text-red-500 flex items-center gap-1 font-bold">
                                         <AlertTriangle class="w-3 h-3" /> UNRESOLVED
                                       </span>
                                     )}
@@ -324,7 +307,15 @@ export function LogsSection(): JSX.Element {
                     </For>
                     <Show when={errorLogs().length === 0}>
                       <div class="flex flex-col items-center justify-center py-20 text-center gap-2">
-                        <FileWarning class="w-8 h-8 text-zinc-300 dark:text-zinc-700 mb-1" />
+                        <div class="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center text-zinc-400 mb-1">
+                          <FileWarning class="w-6 h-6" />
+                        </div>
+                        <span class="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                          No Exception Records
+                        </span>
+                        <span class="text-[11px] text-zinc-400 max-w-xs">
+                          All download processes have completed without fatal runtime errors.
+                        </span>
                       </div>
                     </Show>
                   </Show>
@@ -377,21 +368,11 @@ export function LogsSection(): JSX.Element {
                             <Show when={isSelected()}>
                               <div class="border-t border-zinc-200 dark:border-zinc-900 p-3.5 bg-zinc-50/50 dark:bg-zinc-950/80 text-[10px] sm:text-xs text-left font-mono space-y-3 select-text overflow-x-auto">
                                 <div>
-                                  <div class="flex items-center justify-between mb-1">
-                                    <Tooltip openDelay={200} placement="right">
-                                      <Tooltip.Trigger
-                                        as="span"
-                                        class="text-zinc-400 cursor-default"
-                                      >
-                                        <Download class="w-3 h-3" />
-                                      </Tooltip.Trigger>
-                                      <Tooltip.Portal>
-                                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                                          <Tooltip.Arrow />
-                                          Probe Command Pipeline
-                                        </Tooltip.Content>
-                                      </Tooltip.Portal>
-                                    </Tooltip>
+                                  <div class="flex items-center justify-between mb-1.5">
+                                    <div class="flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300 font-bold text-xs">
+                                      <Terminal class="w-3.5 h-3.5 text-indigo-500" />
+                                      <span>Metadata Discovery Command</span>
+                                    </div>
                                     <AdaptiveTooltip
                                       content={
                                         copiedKey() === `${log.slug}-cmd`
@@ -407,7 +388,7 @@ export function LogsSection(): JSX.Element {
                                             `${log.slug}-cmd`,
                                           );
                                         }}
-                                        class="p-1 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors cursor-pointer flex items-center justify-center"
+                                        class="p-1 text-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded transition-colors cursor-pointer flex items-center justify-center"
                                         aria-label="Copy executed command"
                                       >
                                         <Show
@@ -419,93 +400,62 @@ export function LogsSection(): JSX.Element {
                                       </button>
                                     </AdaptiveTooltip>
                                   </div>
-                                  <div class="bg-zinc-100 dark:bg-black p-2 rounded-lg border border-zinc-250 dark:border-zinc-900 break-all text-zinc-800 dark:text-zinc-300">
+                                  <div class="bg-zinc-100 dark:bg-black p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 break-all text-zinc-800 dark:text-zinc-300 font-mono text-xs">
                                     {log.command_executed}
                                   </div>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-4 text-[11px] text-zinc-850 dark:text-zinc-300 font-sans">
-                                  <div class="p-3 bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-900 rounded-xl space-y-1">
-                                    <Tooltip openDelay={200} placement="top">
-                                      <Tooltip.Trigger
-                                        as="span"
-                                        class="text-zinc-450 dark:text-zinc-500 cursor-default flex"
-                                      >
-                                        <Download class="w-3 h-3" />
-                                      </Tooltip.Trigger>
-                                      <Tooltip.Portal>
-                                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                                          <Tooltip.Arrow />
-                                          Exit Code
-                                        </Tooltip.Content>
-                                      </Tooltip.Portal>
-                                    </Tooltip>
-                                    <span class="font-mono">
-                                      {log.exit_code !== null ? log.exit_code : "N/A"}
-                                    </span>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-[11px] font-sans">
+                                  <div class="p-2.5 bg-zinc-100/70 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 rounded-xl space-y-1">
+                                    <div class="flex items-center gap-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                                      <Terminal class="w-3 h-3 text-zinc-400" />
+                                      <span>Exit Code</span>
+                                    </div>
+                                    <div class="font-mono font-bold text-xs text-zinc-800 dark:text-zinc-200">
+                                      {log.exit_code !== null ? log.exit_code : "0"}
+                                    </div>
                                   </div>
-                                  <div class="p-3 bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-900 rounded-xl space-y-1">
-                                    <Tooltip openDelay={200} placement="top">
-                                      <Tooltip.Trigger
-                                        as="span"
-                                        class="text-zinc-450 dark:text-zinc-500 cursor-default flex"
-                                      >
-                                        <Database class="w-3 h-3" />
-                                      </Tooltip.Trigger>
-                                      <Tooltip.Portal>
-                                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                                          <Tooltip.Arrow />
-                                          Bytes Transferred
-                                        </Tooltip.Content>
-                                      </Tooltip.Portal>
-                                    </Tooltip>
-                                    <span class="font-mono">
-                                      {log.bytes_returned.toLocaleString()}
-                                    </span>
+
+                                  <div class="p-2.5 bg-zinc-100/70 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 rounded-xl space-y-1">
+                                    <div class="flex items-center gap-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                                      <Database class="w-3 h-3 text-zinc-400" />
+                                      <span>Data Returned</span>
+                                    </div>
+                                    <div class="font-mono font-bold text-xs text-zinc-800 dark:text-zinc-200">
+                                      {formatSize(log.bytes_returned)}
+                                    </div>
                                   </div>
-                                  <div class="p-3 bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-900 rounded-xl space-y-1">
-                                    <Tooltip openDelay={200} placement="top">
-                                      <Tooltip.Trigger
-                                        as="span"
-                                        class="text-zinc-450 dark:text-zinc-500 cursor-default flex"
-                                      >
-                                        <Cpu class="w-3 h-3" />
-                                      </Tooltip.Trigger>
-                                      <Tooltip.Portal>
-                                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                                          <Tooltip.Arrow />
-                                          Analysis Time
-                                        </Tooltip.Content>
-                                      </Tooltip.Portal>
-                                    </Tooltip>
-                                    <span class="font-mono text-indigo-500 dark:text-indigo-400 font-bold">
-                                      {log.duration_ms}ms
-                                    </span>
+
+                                  <div class="p-2.5 bg-zinc-100/70 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 rounded-xl space-y-1">
+                                    <div class="flex items-center gap-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                                      <Clock class="w-3 h-3 text-zinc-400" />
+                                      <span>Duration</span>
+                                    </div>
+                                    <div class="font-mono font-bold text-xs text-indigo-600 dark:text-indigo-400">
+                                      {log.duration_ms} ms
+                                    </div>
                                   </div>
-                                  <div class="p-3 bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-900 rounded-xl space-y-1">
-                                    <Tooltip openDelay={200} placement="top">
-                                      <Tooltip.Trigger
-                                        as="span"
-                                        class="text-zinc-450 dark:text-zinc-500 cursor-default flex"
-                                      >
-                                        <CheckCircle2 class="w-3 h-3" />
-                                      </Tooltip.Trigger>
-                                      <Tooltip.Portal>
-                                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                                          <Tooltip.Arrow />
-                                          Engine Status
-                                        </Tooltip.Content>
-                                      </Tooltip.Portal>
-                                    </Tooltip>
-                                    <span
-                                      class={`font-black uppercase text-[10px] tracking-wider ${isFailed ? "text-red-500" : "text-emerald-500"}`}
+
+                                  <div class="p-2.5 bg-zinc-100/70 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 rounded-xl space-y-1">
+                                    <div class="flex items-center gap-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                                      <CheckCircle2 class="w-3 h-3 text-zinc-400" />
+                                      <span>Status</span>
+                                    </div>
+                                    <div
+                                      class={`font-mono font-bold text-xs uppercase ${isFailed ? "text-red-500" : "text-emerald-500"}`}
                                     >
                                       {log.status}
-                                    </span>
+                                    </div>
                                   </div>
                                 </div>
-                                <div class="text-[9px] text-zinc-450 dark:text-zinc-500 pt-2 border-t border-zinc-200 dark:border-zinc-900 flex items-center gap-1">
-                                  <Database class="w-3 h-3" /> {log.slug}
+                                <div class="text-[10px] text-zinc-500 pt-2 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between font-mono">
+                                  <span>Record: {log.slug}</span>
+                                  <span
+                                    class="text-zinc-400 truncate max-w-[200px]"
+                                    title={log.parsed_file_slug}
+                                  >
+                                    Target: {log.parsed_file_slug}
+                                  </span>
                                 </div>
                               </div>
                             </Show>
@@ -515,7 +465,15 @@ export function LogsSection(): JSX.Element {
                     </For>
                     <Show when={parseLogs().length === 0}>
                       <div class="flex flex-col items-center justify-center py-20 text-center gap-2">
-                        <Database class="w-8 h-8 text-zinc-300 dark:text-zinc-700 mb-1" />
+                        <div class="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center text-zinc-400 mb-1">
+                          <Database class="w-6 h-6" />
+                        </div>
+                        <span class="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                          No Discovery History
+                        </span>
+                        <span class="text-[11px] text-zinc-400 max-w-xs">
+                          No media parsing requests have been recorded in the database yet.
+                        </span>
                       </div>
                     </Show>
                   </Show>
