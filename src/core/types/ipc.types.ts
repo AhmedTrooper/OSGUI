@@ -81,17 +81,12 @@ export interface GetInboxUrlsArgs {
   page?: number;
   pageSize?: number;
 }
-
-export interface GetInboxUrlsResult extends CommandResult<PaginatedInboxUrls> {
-  payload: PaginatedInboxUrls;
-}
+export type GetInboxUrlsResult = PaginatedInboxUrls;
 
 export interface GetInboxUrlBySlugArgs {
   slug: string;
 }
-export interface GetInboxUrlBySlugResult extends CommandResult<InboxItem | null> {
-  payload: InboxItem | null;
-}
+export type GetInboxUrlBySlugResult = InboxItem | null;
 
 export interface DeleteInboxUrlArgs {
   slug: string;

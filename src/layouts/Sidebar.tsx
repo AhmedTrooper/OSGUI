@@ -37,9 +37,12 @@ export default function Sidebar() {
   let unlistenInbox: (() => void) | null = null;
 
   const refreshInboxBadge = async (): Promise<void> => {
-    const result = await ipc.getInboxUrls({ page: 1, pageSize: 1 });
-    if (!result.success || !result.payload) return;
-    useUIStore.setBadge("inbox", result.payload.pending_count ?? 0);
+    try {
+      const result = await ipc.getInboxUrls({ page: 1, pageSize: 1 });
+      useUIStore.setBadge("inbox", result.pending_count ?? 0);
+    } catch (err) {
+      console.error("Failed to query inbox count for badge:", err);
+    }
   };
 
   onMount(() => {

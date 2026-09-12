@@ -56,15 +56,11 @@ export default function InboxRoute(): JSX.Element {
           page: targetPage,
           pageSize: PAGE_SIZE,
         });
-        if (result.success && result.payload) {
-          setInboxItems(result.payload.items ?? []);
-          setTotal(result.payload.total ?? 0);
-          setPendingCount(result.payload.pending_count ?? 0);
-          setTotalPages(result.payload.total_pages ?? 1);
-          setPage(result.payload.page ?? targetPage);
-        } else {
-          setErrorMsg(result.message || "Failed to query inbox records.");
-        }
+        setInboxItems(result.items ?? []);
+        setTotal(result.total ?? 0);
+        setPendingCount(result.pending_count ?? 0);
+        setTotalPages(result.total_pages ?? 1);
+        setPage(result.page ?? targetPage);
       } catch (err) {
         console.error("Failed to fetch inbox URLs:", err);
         setErrorMsg("Failed to connect to internal inbox database.");

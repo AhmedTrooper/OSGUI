@@ -49,7 +49,6 @@ import type {
   GetInboxUrlBySlugResult,
   GetInboxUrlsArgs,
   GetInboxUrlsResult,
-  PaginatedInboxUrls,
   GetLocalUpdatesResult,
   GetOnlineUpdatesResult,
   GetParseLogsResult,
@@ -192,22 +191,12 @@ export const ipc = {
           args as unknown as Record<string, unknown>,
         )
       : Promise.resolve({
-          ...mockOk<PaginatedInboxUrls>({
-            items: [],
-            total: 0,
-            pending_count: 0,
-            page: 1,
-            page_size: 15,
-            total_pages: 1,
-          }),
-          payload: {
-            items: [],
-            total: 0,
-            pending_count: 0,
-            page: 1,
-            page_size: 15,
-            total_pages: 1,
-          },
+          items: [],
+          total: 0,
+          pending_count: 0,
+          page: 1,
+          page_size: 15,
+          total_pages: 1,
         }),
 
   getInboxUrlBySlug: (args: GetInboxUrlBySlugArgs): Promise<GetInboxUrlBySlugResult> =>
@@ -216,7 +205,7 @@ export const ipc = {
           "get_inbox_url_by_slug",
           args as unknown as Record<string, unknown>,
         )
-      : Promise.resolve({ ...mockOk(null), payload: null }),
+      : Promise.resolve(null),
 
   deleteInboxUrl: (args: DeleteInboxUrlArgs): Promise<DeleteInboxUrlResult> =>
     isTauri()

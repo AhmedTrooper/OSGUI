@@ -60,8 +60,7 @@ export default function InboxDetail(): JSX.Element {
 
       if (isTauri()) {
         try {
-          const result = await ipc.getInboxUrlBySlug({ slug: params.slug });
-          const item = result.payload ?? null;
+          const item = await ipc.getInboxUrlBySlug({ slug: params.slug });
           if (item) {
             setInboxItem(item);
             setUrl(item.url);
