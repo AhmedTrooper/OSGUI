@@ -1,5 +1,6 @@
 import { onMount, For, Show, type JSX } from "solid-js";
 import { A } from "@solidjs/router";
+import { Tooltip } from "@kobalte/core/tooltip";
 import { FileText, ArrowRight, PlayCircle, Trash2 } from "lucide-solid";
 import { useUIStore } from "@/store/useUIStore";
 import { useParseStore } from "@/store/useParseStore";
@@ -14,25 +15,42 @@ export default function ParsedFiles(): JSX.Element {
     <div class="flex flex-col gap-6 w-full max-w-4xl mx-auto h-full py-2">
       <div class="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-white/10">
         <div class="flex items-center gap-2.5">
-          <div class="p-1.5 bg-zinc-500 rounded-md text-white shadow-sm">
-            <FileText class="w-4 h-4" />
-          </div>
-          <h1 class="text-base font-bold text-zinc-900 dark:text-white tracking-tight">
-            Library Cache
-          </h1>
+          <Tooltip openDelay={200} placement="bottom">
+            <Tooltip.Trigger
+              as="div"
+              class="p-1.5 bg-zinc-500 rounded-md text-white shadow-sm cursor-default inline-flex"
+            >
+              <FileText class="w-4 h-4" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Library Cache
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </div>
         <Show when={useParseStore.state.parsedFiles.length > 0}>
-          <button
-            onClick={() => {
-              if (window.confirm("Are you sure you want to delete all cached library schemas?")) {
-                useParseStore.clearParsedFiles();
-              }
-            }}
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-semibold rounded-md transition-colors text-[10px] sm:text-[11px]"
-          >
-            <Trash2 class="w-3.5 h-3.5" />
-            Clear All
-          </button>
+          <Tooltip openDelay={200} placement="left">
+            <Tooltip.Trigger
+              as="button"
+              onClick={() => {
+                if (window.confirm("Are you sure you want to delete all cached library schemas?")) {
+                  useParseStore.clearParsedFiles();
+                }
+              }}
+              class="flex items-center justify-center p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md transition-colors"
+              type="button"
+            >
+              <Trash2 class="w-3.5 h-3.5" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Clear All
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </Show>
       </div>
 
@@ -72,7 +90,7 @@ export default function ParsedFiles(): JSX.Element {
                       }
                     >
                       <span class="text-purple-600 dark:text-purple-400 font-semibold">
-                        {"entries" in file.payload ? file.payload.entries?.length || 0 : 0} Tracks
+                        {"entries" in file.payload ? file.payload.entries?.length || 0 : 0} T
                       </span>
                     </Show>
                   </div>
@@ -80,20 +98,37 @@ export default function ParsedFiles(): JSX.Element {
               </div>
 
               <div class="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                <A
-                  href={`/parsed_file/${file.slug}`}
-                  class="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-3 py-2.5 sm:py-1.5 rounded-md bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-medium transition-colors text-[11px] sm:text-[11px] flex-shrink-0"
-                >
-                  Details
-                  <ArrowRight class="w-3 h-3 flex-shrink-0" />
-                </A>
-                <button
-                  onClick={() => useParseStore.removeParsedFile(file.slug)}
-                  class="flex items-center justify-center p-2.5 sm:p-1.5 rounded-md bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors flex-shrink-0"
-                  title="Delete from Library"
-                >
-                  <Trash2 class="w-3.5 h-3.5 sm:w-3.5 sm:h-3.5" />
-                </button>
+                <Tooltip openDelay={200} placement="left">
+                  <Tooltip.Trigger
+                    as={A}
+                    href={`/parsed_file/${file.slug}`}
+                    class="flex flex-1 sm:flex-none items-center justify-center p-2 rounded-md bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors flex-shrink-0"
+                  >
+                    <ArrowRight class="w-3 h-3" />
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                      <Tooltip.Arrow />
+                      Details
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip>
+                <Tooltip openDelay={200} placement="left">
+                  <Tooltip.Trigger
+                    as="button"
+                    onClick={() => useParseStore.removeParsedFile(file.slug)}
+                    class="flex items-center justify-center p-2 rounded-md bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors flex-shrink-0"
+                    type="button"
+                  >
+                    <Trash2 class="w-3.5 h-3.5" />
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                      <Tooltip.Arrow />
+                      Delete from Library
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip>
               </div>
             </div>
           )}
@@ -101,13 +136,17 @@ export default function ParsedFiles(): JSX.Element {
 
         <Show when={useParseStore.state.parsedFiles.length === 0}>
           <div class="flex flex-col items-center justify-center py-20 text-center gap-2">
-            <PlayCircle class="w-8 h-8 text-zinc-300 dark:text-zinc-700 mb-2" />
-            <h3 class="text-[13px] font-semibold text-zinc-700 dark:text-zinc-300">
-              Library is empty
-            </h3>
-            <p class="text-[11px] text-zinc-400 max-w-xs">
-              Analyzed media and parsed structures will be stored here.
-            </p>
+            <Tooltip openDelay={200} placement="bottom">
+              <Tooltip.Trigger as="div" class="cursor-default inline-flex">
+                <PlayCircle class="w-8 h-8 text-zinc-300 dark:text-zinc-700" />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  Library is empty
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
           </div>
         </Show>
       </div>

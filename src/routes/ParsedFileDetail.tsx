@@ -1,6 +1,7 @@
 import { createSignal, createMemo, Show, onMount, type JSX } from "solid-js";
 import { useParams, A, useNavigate } from "@solidjs/router";
-import { PlayCircle } from "lucide-solid";
+import { Tooltip } from "@kobalte/core/tooltip";
+import { PlayCircle, GlobeLock, ArrowLeft } from "lucide-solid";
 
 import { useParseStore } from "@/store/useParseStore";
 import { useUIStore } from "@/store/useUIStore";
@@ -637,20 +638,38 @@ export default function ParsedFileDetail(): JSX.Element {
       fallback={
         <div class="flex flex-col items-center justify-center min-h-[50vh] text-center gap-6 w-full max-w-md mx-auto px-4 font-sans select-none">
           <div class="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl">
-            <PlayCircle class="w-8 h-8" />
+            <Tooltip openDelay={200} placement="bottom">
+              <Tooltip.Trigger as="div" class="cursor-default inline-flex">
+                <PlayCircle class="w-8 h-8" />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  Metadata Not Found
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
           </div>
           <div class="flex flex-col gap-1">
-            <h3 class="text-lg font-bold text-zinc-900 dark:text-white">Metadata Not Found</h3>
             <p class="text-xs text-zinc-500 dark:text-zinc-400">
               The requested parsed asset cache profile is either invalid or was recently cleared.
             </p>
           </div>
-          <A
-            href="/parsed_files"
-            class="inline-flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-300 font-semibold border border-zinc-200 dark:border-white/10 px-5 py-2 rounded-xl transition-all duration-300 text-sm"
-          >
-            Return to Repository
-          </A>
+          <Tooltip openDelay={200} placement="top">
+            <Tooltip.Trigger
+              as={A}
+              href="/parsed_files"
+              class="inline-flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 text-zinc-800 dark:text-zinc-300 border border-zinc-200 dark:border-white/10 p-2.5 rounded-xl transition-all duration-300"
+            >
+              <ArrowLeft class="w-4 h-4" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Return to Repository
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </div>
       }
     >
@@ -662,9 +681,17 @@ export default function ParsedFileDetail(): JSX.Element {
             {/* Active Site Configuration Profile Card */}
             <div class="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm text-left space-y-3 animate-fade-in">
               <div class="flex flex-col gap-1">
-                <h3 class="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider">
-                  Active Site Configuration Profile
-                </h3>
+                <Tooltip openDelay={200} placement="right">
+                  <Tooltip.Trigger as="div" class="cursor-default inline-flex items-center">
+                    <GlobeLock class="w-3.5 h-3.5 text-zinc-400" />
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                      <Tooltip.Arrow />
+                      Active Site Configuration Profile
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip>
                 <p class="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-400">
                   Select an explicit profile to force specific cookies, proxy headers, or network
                   limits for this download job.

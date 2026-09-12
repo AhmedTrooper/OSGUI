@@ -1,4 +1,5 @@
 import { createSignal, onMount, Show, For, type JSX } from "solid-js";
+import { Tooltip } from "@kobalte/core/tooltip";
 import { useUIStore } from "@/store/useUIStore";
 import { ipc } from "@/utils/ipc";
 import type { CookieProfile, ProxyProfile, SiteConfig } from "@/core/types/database.types";
@@ -259,17 +260,21 @@ export default function SitesConfig(): JSX.Element {
       {/* Desktop Preference Panel Header */}
       <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800/80 gap-3">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20 shadow-sm">
-            <GlobeLock class="w-5 h-5" />
-          </div>
-          <div class="text-left">
-            <h1 class="text-sm font-black text-zinc-900 dark:text-white tracking-tight leading-tight uppercase">
-              Network Preferences
-            </h1>
-            <p class="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
-              Configure network route bypasses, cookie injectors, and proxies
-            </p>
-          </div>
+          <Tooltip openDelay={200} placement="bottom">
+            <Tooltip.Trigger
+              as="div"
+              class="w-10 h-10 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20 shadow-sm cursor-default inline-flex"
+            >
+              <GlobeLock class="w-5 h-5" />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Network Preferences — Configure network route bypasses, cookie injectors, and
+                proxies
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </div>
       </div>
 
@@ -277,9 +282,21 @@ export default function SitesConfig(): JSX.Element {
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         {/* Left Side: Desktop Sidebar Navigation inside Settings Pane */}
         <div class="lg:col-span-3 flex flex-col gap-1 border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 rounded-2xl backdrop-blur-md">
-          <span class="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider px-2.5 py-1 text-left">
-            Configuration Categories
-          </span>
+          <Tooltip openDelay={200} placement="right">
+            <Tooltip.Trigger
+              as="div"
+              class="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider px-2.5 py-1 text-left cursor-default inline-flex"
+            >
+              <span>·</span>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                <Tooltip.Arrow />
+                Configuration Categories
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
+
           <button
             onClick={() => setActiveTab("sites")}
             class={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -288,14 +305,23 @@ export default function SitesConfig(): JSX.Element {
                 : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5"
             }`}
           >
-            <div class="flex items-center gap-2">
-              <Database class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-              <span>Domain Router</span>
-            </div>
+            <Tooltip openDelay={200} placement="right">
+              <Tooltip.Trigger as="div" class="flex items-center gap-2 cursor-default inline-flex">
+                <Database class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                <span>·</span>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  Domain Router
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
             <span class="text-[10px] bg-zinc-200/70 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-1.5 py-0.5 rounded-md font-mono">
               {sites().length}
             </span>
           </button>
+
           <button
             onClick={() => setActiveTab("cookies")}
             class={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -304,14 +330,23 @@ export default function SitesConfig(): JSX.Element {
                 : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5"
             }`}
           >
-            <div class="flex items-center gap-2">
-              <ShieldCheck class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-              <span>Cookie Vault</span>
-            </div>
+            <Tooltip openDelay={200} placement="right">
+              <Tooltip.Trigger as="div" class="flex items-center gap-2 cursor-default inline-flex">
+                <ShieldCheck class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                <span>·</span>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  Cookie Vault
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
             <span class="text-[10px] bg-zinc-200/70 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-1.5 py-0.5 rounded-md font-mono">
               {cookies().length}
             </span>
           </button>
+
           <button
             onClick={() => setActiveTab("proxies")}
             class={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -320,10 +355,18 @@ export default function SitesConfig(): JSX.Element {
                 : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5"
             }`}
           >
-            <div class="flex items-center gap-2">
-              <Settings2 class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-              <span>Proxy Networks</span>
-            </div>
+            <Tooltip openDelay={200} placement="right">
+              <Tooltip.Trigger as="div" class="flex items-center gap-2 cursor-default inline-flex">
+                <Settings2 class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                <span>·</span>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                  <Tooltip.Arrow />
+                  Proxy Networks
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip>
             <span class="text-[10px] bg-zinc-200/70 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-1.5 py-0.5 rounded-md font-mono">
               {proxies().length}
             </span>
@@ -338,12 +381,22 @@ export default function SitesConfig(): JSX.Element {
               {/* Rules List Container */}
               <div class="xl:col-span-7 space-y-3.5 flex flex-col justify-between">
                 <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-4.5 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] text-left">
-                  <h3 class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between">
-                    <span>Active Domain Rules</span>
+                  <div class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between">
+                    <Tooltip openDelay={200} placement="right">
+                      <Tooltip.Trigger as="div" class="cursor-default inline-flex">
+                        <span>·</span>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Active Domain Rules
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
                     <span class="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono font-bold">
                       Total: {sites().length}
                     </span>
-                  </h3>
+                  </div>
 
                   <div class="space-y-3 max-h-[460px] overflow-y-auto custom-scrollbar pr-0.5 mt-3">
                     <For each={sites()}>
@@ -358,23 +411,43 @@ export default function SitesConfig(): JSX.Element {
                                 {site.domain}
                               </span>
                             </div>
-                            <button
-                              onClick={() => {
-                                void handleDeleteSite(site.slug);
-                              }}
-                              class="p-1.5 text-red-500/80 hover:text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
-                              title="Delete Rule"
-                            >
-                              <Trash2 class="w-3.5 h-3.5" />
-                            </button>
+                            <Tooltip openDelay={200} placement="left">
+                              <Tooltip.Trigger
+                                as="button"
+                                onClick={() => {
+                                  void handleDeleteSite(site.slug);
+                                }}
+                                class="p-1.5 text-red-500/80 hover:text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
+                                type="button"
+                              >
+                                <Trash2 class="w-3.5 h-3.5" />
+                              </Tooltip.Trigger>
+                              <Tooltip.Portal>
+                                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                  <Tooltip.Arrow />
+                                  Delete Rule
+                                </Tooltip.Content>
+                              </Tooltip.Portal>
+                            </Tooltip>
                           </div>
 
                           <div class="grid grid-cols-2 gap-3.5 pt-3 border-t border-zinc-200 dark:border-zinc-800/80">
                             <div class="flex flex-col gap-1.5">
                               <div class="flex items-center justify-between">
-                                <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                                  Cookie Vault profile
-                                </span>
+                                <Tooltip openDelay={200} placement="right">
+                                  <Tooltip.Trigger
+                                    as="div"
+                                    class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider cursor-default inline-flex"
+                                  >
+                                    <span>·</span>
+                                  </Tooltip.Trigger>
+                                  <Tooltip.Portal>
+                                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                      <Tooltip.Arrow />
+                                      Cookie Vault profile
+                                    </Tooltip.Content>
+                                  </Tooltip.Portal>
+                                </Tooltip>
                                 <Show
                                   when={
                                     site.cookie_profile_slug !== null &&
@@ -403,9 +476,20 @@ export default function SitesConfig(): JSX.Element {
                             </div>
                             <div class="flex flex-col gap-1.5">
                               <div class="flex items-center justify-between">
-                                <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                                  Proxy Network profile
-                                </span>
+                                <Tooltip openDelay={200} placement="right">
+                                  <Tooltip.Trigger
+                                    as="div"
+                                    class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider cursor-default inline-flex"
+                                  >
+                                    <span>·</span>
+                                  </Tooltip.Trigger>
+                                  <Tooltip.Portal>
+                                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                      <Tooltip.Arrow />
+                                      Proxy Network profile
+                                    </Tooltip.Content>
+                                  </Tooltip.Portal>
+                                </Tooltip>
                                 <Show
                                   when={
                                     site.proxy_profile_slug !== null &&
@@ -451,10 +535,19 @@ export default function SitesConfig(): JSX.Element {
               {/* Creator Form Inspector */}
               <div class="xl:col-span-5 space-y-3.5 text-left">
                 <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-4.5 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)]">
-                  <h3 class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center gap-1.5">
-                    <Plus class="w-4 h-4 text-emerald-500" />
-                    <span>Create Domain Match</span>
-                  </h3>
+                  <div class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center gap-1.5">
+                    <Tooltip openDelay={200} placement="right">
+                      <Tooltip.Trigger as="div" class="cursor-default inline-flex">
+                        <Plus class="w-4 h-4 text-emerald-500" />
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Create Domain Match
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
+                  </div>
                   <form
                     onSubmit={(e) => {
                       void handleAddSite(e);
@@ -462,9 +555,20 @@ export default function SitesConfig(): JSX.Element {
                     class="space-y-4 mt-3"
                   >
                     <div class="space-y-1">
-                      <label class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Rule Label
-                      </label>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="label"
+                          class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider cursor-default inline-flex"
+                        >
+                          <span>·</span>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Rule Label
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <input
                         type="text"
                         placeholder="e.g. YouTube Premium Account"
@@ -476,9 +580,20 @@ export default function SitesConfig(): JSX.Element {
                     </div>
 
                     <div class="space-y-1">
-                      <label class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Domain Match Criteria
-                      </label>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="label"
+                          class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider cursor-default inline-flex"
+                        >
+                          <span>·</span>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Domain Match Criteria
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <input
                         type="text"
                         placeholder="e.g. youtube.com"
@@ -490,9 +605,20 @@ export default function SitesConfig(): JSX.Element {
                     </div>
 
                     <div class="space-y-1">
-                      <label class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Link Cookie Vault Profile
-                      </label>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="label"
+                          class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider cursor-default inline-flex"
+                        >
+                          <span>·</span>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Link Cookie Vault Profile
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <CustomSelect
                         value={newSiteCookieSlug()}
                         onChange={setNewSiteCookieSlug}
@@ -505,9 +631,20 @@ export default function SitesConfig(): JSX.Element {
                     </div>
 
                     <div class="space-y-1">
-                      <label class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Link Proxy Network Profile
-                      </label>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="label"
+                          class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider cursor-default inline-flex"
+                        >
+                          <span>·</span>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Link Proxy Network Profile
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <CustomSelect
                         value={newSiteProxySlug()}
                         onChange={setNewSiteProxySlug}
@@ -516,13 +653,22 @@ export default function SitesConfig(): JSX.Element {
                       />
                     </div>
 
-                    <button
-                      type="submit"
-                      class="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase py-2.5 px-4 rounded-xl shadow-md transition-all active:scale-[0.99] tracking-wider cursor-pointer border border-blue-500/20"
-                    >
-                      <Save class="w-3.5 h-3.5" />
-                      <span>Save Domain Rule</span>
-                    </button>
+                    <Tooltip openDelay={200} placement="top">
+                      <Tooltip.Trigger
+                        as="button"
+                        type="submit"
+                        class="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase py-2.5 px-4 rounded-xl shadow-md transition-all active:scale-[0.99] tracking-wider cursor-pointer border border-blue-500/20"
+                      >
+                        <Save class="w-3.5 h-3.5" />
+                        <span>·</span>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Save Domain Rule
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
                   </form>
                 </div>
               </div>
@@ -535,41 +681,67 @@ export default function SitesConfig(): JSX.Element {
               {/* Cookies List */}
               <div class="xl:col-span-7 space-y-3.5 flex flex-col justify-between">
                 <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-4.5 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] text-left">
-                  <h3 class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between">
-                    <span>Stored Netscape Credentials</span>
+                  <div class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between">
+                    <Tooltip openDelay={200} placement="right">
+                      <Tooltip.Trigger as="div" class="cursor-default inline-flex">
+                        <span>·</span>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Stored Netscape Credentials
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
 
                     <Show when={cookies().length > 0}>
                       <div class="flex items-center gap-1.5">
-                        <button
-                          onClick={toggleSelectAll}
-                          class="p-1.5 text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 rounded-md transition-colors cursor-pointer"
-                          title={
-                            selectedCookies().length === cookies().length
-                              ? "Deselect All"
-                              : "Select All"
-                          }
-                        >
-                          <Show
-                            when={selectedCookies().length === cookies().length}
-                            fallback={<CheckSquare class="w-3.5 h-3.5" />}
+                        <Tooltip openDelay={200} placement="left">
+                          <Tooltip.Trigger
+                            as="button"
+                            onClick={toggleSelectAll}
+                            class="p-1.5 text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 rounded-md transition-colors cursor-pointer"
+                            type="button"
                           >
-                            <Square class="w-3.5 h-3.5" />
-                          </Show>
-                        </button>
+                            <Show
+                              when={selectedCookies().length === cookies().length}
+                              fallback={<CheckSquare class="w-3.5 h-3.5" />}
+                            >
+                              <Square class="w-3.5 h-3.5" />
+                            </Show>
+                          </Tooltip.Trigger>
+                          <Tooltip.Portal>
+                            <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                              <Tooltip.Arrow />
+                              {selectedCookies().length === cookies().length
+                                ? "Deselect All"
+                                : "Select All"}
+                            </Tooltip.Content>
+                          </Tooltip.Portal>
+                        </Tooltip>
                         <Show when={selectedCookies().length > 0}>
-                          <button
-                            onClick={() => {
-                              void handleBatchDeleteCookies();
-                            }}
-                            class="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md transition-colors cursor-pointer"
-                            title="Delete Selected"
-                          >
-                            <Trash2 class="w-3.5 h-3.5" />
-                          </button>
+                          <Tooltip openDelay={200} placement="left">
+                            <Tooltip.Trigger
+                              as="button"
+                              onClick={() => {
+                                void handleBatchDeleteCookies();
+                              }}
+                              class="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md transition-colors cursor-pointer"
+                              type="button"
+                            >
+                              <Trash2 class="w-3.5 h-3.5" />
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                <Tooltip.Arrow />
+                                Delete Selected
+                              </Tooltip.Content>
+                            </Tooltip.Portal>
+                          </Tooltip>
                         </Show>
                       </div>
                     </Show>
-                  </h3>
+                  </div>
 
                   <div class="space-y-3 max-h-[460px] overflow-y-auto custom-scrollbar pr-0.5 mt-3">
                     <For each={cookies()}>
@@ -596,34 +768,62 @@ export default function SitesConfig(): JSX.Element {
                               <Show
                                 when={editingCookie() === cookie.slug}
                                 fallback={
-                                  <button
-                                    onClick={() => {
-                                      setEditingCookie(cookie.slug);
-                                      setEditCookieData(cookie.cookie_data);
-                                    }}
-                                    class="p-1.5 text-zinc-500 hover:text-blue-500 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-md transition-colors cursor-pointer"
-                                    title="Edit Cookie Data"
-                                  >
-                                    <Edit2 class="w-3.5 h-3.5" />
-                                  </button>
+                                  <Tooltip openDelay={200} placement="left">
+                                    <Tooltip.Trigger
+                                      as="button"
+                                      onClick={() => {
+                                        setEditingCookie(cookie.slug);
+                                        setEditCookieData(cookie.cookie_data);
+                                      }}
+                                      class="p-1.5 text-zinc-500 hover:text-blue-500 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-md transition-colors cursor-pointer"
+                                      type="button"
+                                    >
+                                      <Edit2 class="w-3.5 h-3.5" />
+                                    </Tooltip.Trigger>
+                                    <Tooltip.Portal>
+                                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                        <Tooltip.Arrow />
+                                        Edit Cookie Data
+                                      </Tooltip.Content>
+                                    </Tooltip.Portal>
+                                  </Tooltip>
                                 }
                               >
-                                <button
-                                  onClick={() => setEditingCookie(null)}
-                                  class="p-1.5 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-md transition-colors cursor-pointer"
-                                >
-                                  <X class="w-3.5 h-3.5" />
-                                </button>
+                                <Tooltip openDelay={200} placement="left">
+                                  <Tooltip.Trigger
+                                    as="button"
+                                    onClick={() => setEditingCookie(null)}
+                                    class="p-1.5 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-md transition-colors cursor-pointer"
+                                    type="button"
+                                  >
+                                    <X class="w-3.5 h-3.5" />
+                                  </Tooltip.Trigger>
+                                  <Tooltip.Portal>
+                                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                      <Tooltip.Arrow />
+                                      Cancel Edit
+                                    </Tooltip.Content>
+                                  </Tooltip.Portal>
+                                </Tooltip>
                               </Show>
-                              <button
-                                onClick={() => {
-                                  void handleDeleteCookie(cookie.slug);
-                                }}
-                                class="p-1.5 text-red-500/70 hover:text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 rounded-md transition-colors cursor-pointer"
-                                title="Delete Profile"
-                              >
-                                <Trash2 class="w-3.5 h-3.5" />
-                              </button>
+                              <Tooltip openDelay={200} placement="left">
+                                <Tooltip.Trigger
+                                  as="button"
+                                  onClick={() => {
+                                    void handleDeleteCookie(cookie.slug);
+                                  }}
+                                  class="p-1.5 text-red-500/70 hover:text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 rounded-md transition-colors cursor-pointer"
+                                  type="button"
+                                >
+                                  <Trash2 class="w-3.5 h-3.5" />
+                                </Tooltip.Trigger>
+                                <Tooltip.Portal>
+                                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                    <Tooltip.Arrow />
+                                    Delete Profile
+                                  </Tooltip.Content>
+                                </Tooltip.Portal>
+                              </Tooltip>
                             </div>
                           </div>
 
@@ -634,16 +834,25 @@ export default function SitesConfig(): JSX.Element {
                                 onInput={(e) => setEditCookieData(e.currentTarget.value)}
                                 class="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg outline-none focus:border-blue-500 text-[10px] font-mono min-h-[100px] text-zinc-900 dark:text-white shadow-inner"
                               />
-                              <button
-                                onClick={() => {
-                                  void handleUpdateCookie(cookie.slug);
-                                }}
-                                class="w-full sm:w-auto self-end flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-500 text-white text-[9px] font-black uppercase py-1.5 px-3 rounded-lg transition-colors cursor-pointer border border-blue-500/10"
-                                title="Save Updates"
-                              >
-                                <Save class="w-3 h-3" />
-                                <span>Save Changes</span>
-                              </button>
+                              <Tooltip openDelay={200} placement="left">
+                                <Tooltip.Trigger
+                                  as="button"
+                                  onClick={() => {
+                                    void handleUpdateCookie(cookie.slug);
+                                  }}
+                                  class="w-full sm:w-auto self-end flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-500 text-white text-[9px] font-black uppercase py-1.5 px-3 rounded-lg transition-colors cursor-pointer border border-blue-500/10"
+                                  type="button"
+                                >
+                                  <Save class="w-3 h-3" />
+                                  <span>·</span>
+                                </Tooltip.Trigger>
+                                <Tooltip.Portal>
+                                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                    <Tooltip.Arrow />
+                                    Save Updates
+                                  </Tooltip.Content>
+                                </Tooltip.Portal>
+                              </Tooltip>
                             </div>
                           </Show>
                         </div>
@@ -664,10 +873,19 @@ export default function SitesConfig(): JSX.Element {
               {/* Add Cookie Inspector */}
               <div class="xl:col-span-5 space-y-3.5 text-left">
                 <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-4.5 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] space-y-4">
-                  <h3 class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center gap-1.5">
-                    <Plus class="w-4 h-4 text-emerald-500" />
-                    <span>Import Cookies</span>
-                  </h3>
+                  <div class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center gap-1.5">
+                    <Tooltip openDelay={200} placement="right">
+                      <Tooltip.Trigger as="div" class="cursor-default inline-flex">
+                        <Plus class="w-4 h-4 text-emerald-500" />
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Import Cookies
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
+                  </div>
 
                   <form
                     onSubmit={(e) => {
@@ -676,9 +894,20 @@ export default function SitesConfig(): JSX.Element {
                     class="space-y-4"
                   >
                     <div class="space-y-1">
-                      <label class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Profile Label
-                      </label>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="label"
+                          class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider cursor-default inline-flex"
+                        >
+                          <span>·</span>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Profile Label
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <input
                         type="text"
                         placeholder="e.g. YouTube Premium Profile"
@@ -690,9 +919,20 @@ export default function SitesConfig(): JSX.Element {
                     </div>
 
                     <div class="space-y-1">
-                      <label class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Primary Domain
-                      </label>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="label"
+                          class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider cursor-default inline-flex"
+                        >
+                          <span>·</span>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Primary Domain
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <input
                         type="text"
                         placeholder="e.g. youtube.com"
@@ -704,9 +944,20 @@ export default function SitesConfig(): JSX.Element {
                     </div>
 
                     <div class="space-y-1">
-                      <label class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Netscape Cookie String
-                      </label>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="label"
+                          class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider cursor-default inline-flex"
+                        >
+                          <span>·</span>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Netscape Cookie String
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <textarea
                         placeholder="# Netscape HTTP Cookie File&#10;.youtube.com&#9;TRUE&#9;/&#9;TRUE&#9;1735689&#9;SID&#9;ABC..."
                         value={newCookieData()}
@@ -718,25 +969,42 @@ export default function SitesConfig(): JSX.Element {
 
                     {/* Netscape Warning Terminal Alert */}
                     <div class="flex items-start gap-2.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 p-3 rounded-xl select-none leading-relaxed">
-                      <ShieldCheck class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <div class="font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">
-                          Netscape Format Required
-                        </div>
-                        <p class="text-zinc-500 dark:text-zinc-400 mt-0.5">
-                          Only raw Netscape cookie format files are matched by standard yt-dlp
-                          parsers. JSON/key-value blocks will throw authentication errors.
-                        </p>
-                      </div>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="div"
+                          class="cursor-default inline-flex flex-shrink-0 mt-0.5"
+                        >
+                          <ShieldCheck class="w-4 h-4 text-amber-500" />
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Netscape Format Required
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
+                      <p class="text-zinc-500 dark:text-zinc-400">
+                        Only raw Netscape cookie format files are matched by standard yt-dlp
+                        parsers. JSON/key-value blocks will throw authentication errors.
+                      </p>
                     </div>
 
-                    <button
-                      type="submit"
-                      class="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase py-2.5 px-4 rounded-xl shadow-md transition-all active:scale-[0.99] tracking-wider cursor-pointer border border-blue-500/20"
-                    >
-                      <Save class="w-3.5 h-3.5" />
-                      <span>Save Credentials</span>
-                    </button>
+                    <Tooltip openDelay={200} placement="top">
+                      <Tooltip.Trigger
+                        as="button"
+                        type="submit"
+                        class="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase py-2.5 px-4 rounded-xl shadow-md transition-all active:scale-[0.99] tracking-wider cursor-pointer border border-blue-500/20"
+                      >
+                        <Save class="w-3.5 h-3.5" />
+                        <span>·</span>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Save Credentials
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
                   </form>
                 </div>
               </div>
@@ -749,41 +1017,67 @@ export default function SitesConfig(): JSX.Element {
               {/* Proxy List */}
               <div class="xl:col-span-7 space-y-3.5 flex flex-col justify-between">
                 <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-4.5 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] text-left">
-                  <h3 class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between">
-                    <span>Configured Proxies</span>
+                  <div class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between">
+                    <Tooltip openDelay={200} placement="right">
+                      <Tooltip.Trigger as="div" class="cursor-default inline-flex">
+                        <span>·</span>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Configured Proxies
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
 
                     <Show when={proxies().length > 0}>
                       <div class="flex items-center gap-1.5">
-                        <button
-                          onClick={toggleSelectAllProxies}
-                          class="p-1.5 text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 rounded-md transition-colors cursor-pointer"
-                          title={
-                            selectedProxies().length === proxies().length
-                              ? "Deselect All"
-                              : "Select All"
-                          }
-                        >
-                          <Show
-                            when={selectedProxies().length === proxies().length}
-                            fallback={<CheckSquare class="w-3.5 h-3.5" />}
+                        <Tooltip openDelay={200} placement="left">
+                          <Tooltip.Trigger
+                            as="button"
+                            onClick={toggleSelectAllProxies}
+                            class="p-1.5 text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 rounded-md transition-colors cursor-pointer"
+                            type="button"
                           >
-                            <Square class="w-3.5 h-3.5" />
-                          </Show>
-                        </button>
+                            <Show
+                              when={selectedProxies().length === proxies().length}
+                              fallback={<CheckSquare class="w-3.5 h-3.5" />}
+                            >
+                              <Square class="w-3.5 h-3.5" />
+                            </Show>
+                          </Tooltip.Trigger>
+                          <Tooltip.Portal>
+                            <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                              <Tooltip.Arrow />
+                              {selectedProxies().length === proxies().length
+                                ? "Deselect All"
+                                : "Select All"}
+                            </Tooltip.Content>
+                          </Tooltip.Portal>
+                        </Tooltip>
                         <Show when={selectedProxies().length > 0}>
-                          <button
-                            onClick={() => {
-                              void handleBatchDeleteProxies();
-                            }}
-                            class="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md transition-colors cursor-pointer"
-                            title="Delete Selected"
-                          >
-                            <Trash2 class="w-3.5 h-3.5" />
-                          </button>
+                          <Tooltip openDelay={200} placement="left">
+                            <Tooltip.Trigger
+                              as="button"
+                              onClick={() => {
+                                void handleBatchDeleteProxies();
+                              }}
+                              class="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md transition-colors cursor-pointer"
+                              type="button"
+                            >
+                              <Trash2 class="w-3.5 h-3.5" />
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                <Tooltip.Arrow />
+                                Delete Selected
+                              </Tooltip.Content>
+                            </Tooltip.Portal>
+                          </Tooltip>
                         </Show>
                       </div>
                     </Show>
-                  </h3>
+                  </div>
 
                   <div class="space-y-3 max-h-[460px] overflow-y-auto custom-scrollbar pr-0.5 mt-3">
                     <For each={proxies()}>
@@ -810,34 +1104,62 @@ export default function SitesConfig(): JSX.Element {
                               <Show
                                 when={editingProxy() === proxy.slug}
                                 fallback={
-                                  <button
-                                    onClick={() => {
-                                      setEditingProxy(proxy.slug);
-                                      setEditProxyData(proxy.proxy_string);
-                                    }}
-                                    class="p-1.5 text-zinc-500 hover:text-blue-500 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-md transition-colors cursor-pointer"
-                                    title="Edit Proxy String"
-                                  >
-                                    <Edit2 class="w-3.5 h-3.5" />
-                                  </button>
+                                  <Tooltip openDelay={200} placement="left">
+                                    <Tooltip.Trigger
+                                      as="button"
+                                      onClick={() => {
+                                        setEditingProxy(proxy.slug);
+                                        setEditProxyData(proxy.proxy_string);
+                                      }}
+                                      class="p-1.5 text-zinc-500 hover:text-blue-500 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-md transition-colors cursor-pointer"
+                                      type="button"
+                                    >
+                                      <Edit2 class="w-3.5 h-3.5" />
+                                    </Tooltip.Trigger>
+                                    <Tooltip.Portal>
+                                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                        <Tooltip.Arrow />
+                                        Edit Proxy String
+                                      </Tooltip.Content>
+                                    </Tooltip.Portal>
+                                  </Tooltip>
                                 }
                               >
-                                <button
-                                  onClick={() => setEditingProxy(null)}
-                                  class="p-1.5 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-md transition-colors cursor-pointer"
-                                >
-                                  <X class="w-3.5 h-3.5" />
-                                </button>
+                                <Tooltip openDelay={200} placement="left">
+                                  <Tooltip.Trigger
+                                    as="button"
+                                    onClick={() => setEditingProxy(null)}
+                                    class="p-1.5 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-md transition-colors cursor-pointer"
+                                    type="button"
+                                  >
+                                    <X class="w-3.5 h-3.5" />
+                                  </Tooltip.Trigger>
+                                  <Tooltip.Portal>
+                                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                      <Tooltip.Arrow />
+                                      Cancel Edit
+                                    </Tooltip.Content>
+                                  </Tooltip.Portal>
+                                </Tooltip>
                               </Show>
-                              <button
-                                onClick={() => {
-                                  void handleDeleteProxy(proxy.slug);
-                                }}
-                                class="p-1.5 text-red-500/70 hover:text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 rounded-md transition-colors cursor-pointer"
-                                title="Delete Profile"
-                              >
-                                <Trash2 class="w-3.5 h-3.5" />
-                              </button>
+                              <Tooltip openDelay={200} placement="left">
+                                <Tooltip.Trigger
+                                  as="button"
+                                  onClick={() => {
+                                    void handleDeleteProxy(proxy.slug);
+                                  }}
+                                  class="p-1.5 text-red-500/70 hover:text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 rounded-md transition-colors cursor-pointer"
+                                  type="button"
+                                >
+                                  <Trash2 class="w-3.5 h-3.5" />
+                                </Tooltip.Trigger>
+                                <Tooltip.Portal>
+                                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                    <Tooltip.Arrow />
+                                    Delete Profile
+                                  </Tooltip.Content>
+                                </Tooltip.Portal>
+                              </Tooltip>
                             </div>
                           </div>
 
@@ -849,16 +1171,25 @@ export default function SitesConfig(): JSX.Element {
                                 onInput={(e) => setEditProxyData(e.currentTarget.value)}
                                 class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg outline-none focus:border-blue-500 text-[10px] font-mono text-zinc-900 dark:text-white shadow-inner"
                               />
-                              <button
-                                onClick={() => {
-                                  void handleUpdateProxy(proxy.slug);
-                                }}
-                                class="w-full sm:w-auto self-end flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-500 text-white text-[9px] font-black uppercase py-1.5 px-3 rounded-lg transition-colors cursor-pointer border border-blue-500/10"
-                                title="Save Updates"
-                              >
-                                <Save class="w-3 h-3" />
-                                <span>Save Changes</span>
-                              </button>
+                              <Tooltip openDelay={200} placement="left">
+                                <Tooltip.Trigger
+                                  as="button"
+                                  onClick={() => {
+                                    void handleUpdateProxy(proxy.slug);
+                                  }}
+                                  class="w-full sm:w-auto self-end flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-500 text-white text-[9px] font-black uppercase py-1.5 px-3 rounded-lg transition-colors cursor-pointer border border-blue-500/10"
+                                  type="button"
+                                >
+                                  <Save class="w-3 h-3" />
+                                  <span>·</span>
+                                </Tooltip.Trigger>
+                                <Tooltip.Portal>
+                                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                                    <Tooltip.Arrow />
+                                    Save Updates
+                                  </Tooltip.Content>
+                                </Tooltip.Portal>
+                              </Tooltip>
                             </div>
                           </Show>
                         </div>
@@ -879,10 +1210,19 @@ export default function SitesConfig(): JSX.Element {
               {/* Add Proxy Form */}
               <div class="xl:col-span-5 space-y-3.5 text-left">
                 <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-4.5 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] space-y-4">
-                  <h3 class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center gap-1.5">
-                    <Plus class="w-4 h-4 text-emerald-500" />
-                    <span>Create Proxy String</span>
-                  </h3>
+                  <div class="text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center gap-1.5">
+                    <Tooltip openDelay={200} placement="right">
+                      <Tooltip.Trigger as="div" class="cursor-default inline-flex">
+                        <Plus class="w-4 h-4 text-emerald-500" />
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Create Proxy String
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
+                  </div>
 
                   <form
                     onSubmit={(e) => {
@@ -891,9 +1231,20 @@ export default function SitesConfig(): JSX.Element {
                     class="space-y-4"
                   >
                     <div class="space-y-1">
-                      <label class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Profile Label
-                      </label>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="label"
+                          class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider cursor-default inline-flex"
+                        >
+                          <span>·</span>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Profile Label
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <input
                         type="text"
                         placeholder="e.g. US Dedicated SOCKS5"
@@ -905,9 +1256,20 @@ export default function SitesConfig(): JSX.Element {
                     </div>
 
                     <div class="space-y-1">
-                      <label class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                        Proxy URI Connection
-                      </label>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="label"
+                          class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider cursor-default inline-flex"
+                        >
+                          <span>·</span>
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Proxy URI Connection
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
                       <input
                         type="text"
                         placeholder="socks5://user:pass@192.168.1.1:1080"
@@ -920,25 +1282,42 @@ export default function SitesConfig(): JSX.Element {
 
                     {/* Format support info */}
                     <div class="flex items-start gap-2 text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-800/80 p-3 rounded-xl leading-relaxed">
-                      <Settings2 class="w-4 h-4 text-zinc-400 dark:text-zinc-500 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <div class="font-bold text-zinc-800 dark:text-zinc-200 uppercase tracking-wide">
-                          Supported Protocols
-                        </div>
-                        <p class="text-zinc-400 dark:text-zinc-500 mt-0.5">
-                          Standard connection formats: HTTP, HTTPS, SOCKS4, and SOCKS5 are supported
-                          by the downloader subprocess.
-                        </p>
-                      </div>
+                      <Tooltip openDelay={200} placement="right">
+                        <Tooltip.Trigger
+                          as="div"
+                          class="cursor-default inline-flex flex-shrink-0 mt-0.5"
+                        >
+                          <Settings2 class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+                        </Tooltip.Trigger>
+                        <Tooltip.Portal>
+                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                            <Tooltip.Arrow />
+                            Supported Protocols
+                          </Tooltip.Content>
+                        </Tooltip.Portal>
+                      </Tooltip>
+                      <p class="text-zinc-400 dark:text-zinc-500">
+                        Standard connection formats: HTTP, HTTPS, SOCKS4, and SOCKS5 are supported
+                        by the downloader subprocess.
+                      </p>
                     </div>
 
-                    <button
-                      type="submit"
-                      class="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase py-2.5 px-4 rounded-xl shadow-md transition-all active:scale-[0.99] tracking-wider cursor-pointer border border-blue-500/20"
-                    >
-                      <Save class="w-3.5 h-3.5" />
-                      <span>Save Network Profile</span>
-                    </button>
+                    <Tooltip openDelay={200} placement="top">
+                      <Tooltip.Trigger
+                        as="button"
+                        type="submit"
+                        class="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase py-2.5 px-4 rounded-xl shadow-md transition-all active:scale-[0.99] tracking-wider cursor-pointer border border-blue-500/20"
+                      >
+                        <Save class="w-3.5 h-3.5" />
+                        <span>·</span>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                          <Tooltip.Arrow />
+                          Save Network Profile
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip>
                   </form>
                 </div>
               </div>
