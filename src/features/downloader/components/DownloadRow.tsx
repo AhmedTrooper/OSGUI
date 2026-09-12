@@ -114,14 +114,14 @@ export function DownloadRow(props: DownloadRowProps): JSX.Element {
             <Tooltip.Trigger
               as="button"
               onClick={() => props.onPauseToggle()}
-              class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors"
+              class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer"
               type="button"
             >
               <Show
                 when={status() === "paused" || status() === "error"}
-                fallback={<Pause class="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />}
+                fallback={<Pause class="w-4.5 h-4.5 text-yellow-600 dark:text-yellow-400" />}
               >
-                <Play class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                <Play class="w-4.5 h-4.5 text-green-600 dark:text-green-400" />
               </Show>
             </Tooltip.Trigger>
             <Tooltip.Portal>
@@ -137,10 +137,10 @@ export function DownloadRow(props: DownloadRowProps): JSX.Element {
             <Tooltip.Trigger
               as="button"
               onClick={() => props.onReveal()}
-              class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-blue-600 dark:text-blue-400 transition-colors"
+              class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-blue-600 dark:text-blue-400 transition-colors cursor-pointer"
               type="button"
             >
-              <FolderOpen class="w-3.5 h-3.5" />
+              <FolderOpen class="w-4.5 h-4.5" />
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
@@ -157,11 +157,11 @@ export function DownloadRow(props: DownloadRowProps): JSX.Element {
               onClick={() => {
                 void handleCopy();
               }}
-              class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors"
+              class="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer"
               type="button"
             >
-              <Show when={copied()} fallback={<Copy class="w-3.5 h-3.5" />}>
-                <Check class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+              <Show when={copied()} fallback={<Copy class="w-4.5 h-4.5" />}>
+                <Check class="w-4.5 h-4.5 text-green-600 dark:text-green-400" />
               </Show>
             </Tooltip.Trigger>
             <Tooltip.Portal>
@@ -176,10 +176,10 @@ export function DownloadRow(props: DownloadRowProps): JSX.Element {
           <Tooltip.Trigger
             as="button"
             onClick={() => props.onDelete()}
-            class="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors"
+            class="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors cursor-pointer"
             type="button"
           >
-            <Trash class="w-3.5 h-3.5" />
+            <Trash class="w-4.5 h-4.5" />
           </Tooltip.Trigger>
           <Tooltip.Portal>
             <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">

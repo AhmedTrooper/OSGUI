@@ -85,9 +85,14 @@ export const useQueueStore = {
     );
   },
   hydrate: async (): Promise<void> => {
-    const result = await ipc.getAllJobs();
-    if (result.success && result.payload) {
-      useQueueStore.setQueue(result.payload);
+    try {
+      const result = await ipc.getAllJobs();
+      const jobs = Array.isArray(result) ? result : (result?.payload ?? []);
+      if (jobs && jobs.length >= 0) {
+        useQueueStore.setQueue(jobs);
+      }
+    } catch (err) {
+      console.error("Failed to hydrate download queue:", err);
     }
   },
 };

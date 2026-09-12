@@ -128,6 +128,9 @@ impl Drop for CookieFileCleanup {
 /// Write the cookie blob to a per-call file and return its path along
 /// with a guard that removes it when the scope exits.
 fn materialize_cookie_file(app_dir: Option<&std::path::Path>, cookies: &str) -> Option<PathBuf> {
+    if cookies.trim().is_empty() {
+        return None;
+    }
     let app_dir = app_dir?;
     let unique_id = chrono::Utc::now().timestamp_nanos_opt().unwrap_or(0);
     let file_path = app_dir.join(format!("synclime_cookie_{unique_id}.txt"));
@@ -203,13 +206,18 @@ fn build_ytdlp_command(
     let mut cmd = Command::new("yt-dlp");
     cmd.arg("--dump-single-json").arg("--flat-playlist");
 
-    if let Some(ref proxy) = site_credentials.proxy_string {
+    if let Some(proxy) = site_credentials
+        .proxy_string
+        .as_deref()
+        .filter(|p| !p.trim().is_empty())
+    {
         cmd.arg("--proxy").arg(proxy);
     }
 
     let temp_cookie_path = site_credentials
         .cookie_data
         .as_deref()
+        .filter(|c| !c.trim().is_empty())
         .and_then(|cookies| materialize_cookie_file(state.db_path.parent(), cookies));
 
     let cookie_guard = CookieFileCleanup(temp_cookie_path.clone());

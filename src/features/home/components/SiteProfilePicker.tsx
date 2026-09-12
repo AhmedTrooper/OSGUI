@@ -29,8 +29,8 @@ export function SiteProfilePicker(props: SiteProfilePickerProps): JSX.Element {
               when={selectedConfig()}
               fallback={
                 <>
-                  <div class="w-6 h-6 rounded-lg bg-zinc-200/70 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0 text-zinc-600 dark:text-zinc-400">
-                    <Globe class="w-3.5 h-3.5" />
+                  <div class="w-7 h-7 rounded-lg bg-zinc-200/70 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0 text-zinc-600 dark:text-zinc-400">
+                    <Globe class="w-4 h-4" />
                   </div>
                   <div class="flex items-center gap-2 min-w-0 truncate">
                     <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
@@ -45,8 +45,8 @@ export function SiteProfilePicker(props: SiteProfilePickerProps): JSX.Element {
             >
               {(cfg) => (
                 <>
-                  <div class="w-6 h-6 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center flex-shrink-0 text-blue-600 dark:text-blue-400">
-                    <GlobeLock class="w-3.5 h-3.5" />
+                  <div class="w-7 h-7 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center flex-shrink-0 text-blue-600 dark:text-blue-400">
+                    <GlobeLock class="w-4 h-4" />
                   </div>
                   <div class="flex items-center gap-2 min-w-0 truncate">
                     <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
@@ -111,8 +111,8 @@ export function SiteProfilePicker(props: SiteProfilePickerProps): JSX.Element {
                 }`}
               >
                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div class="w-6 h-6 rounded-lg bg-zinc-200/60 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0 text-zinc-500">
-                    <Globe class="w-3.5 h-3.5" />
+                  <div class="w-7 h-7 rounded-lg bg-zinc-200/60 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0 text-zinc-500">
+                    <Globe class="w-4 h-4" />
                   </div>
                   <div class="flex flex-col min-w-0">
                     <div class="flex items-center gap-1.5">
@@ -149,8 +149,8 @@ export function SiteProfilePicker(props: SiteProfilePickerProps): JSX.Element {
                       }`}
                     >
                       <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div class="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0 text-blue-500">
-                          <GlobeLock class="w-3.5 h-3.5" />
+                        <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0 text-blue-500">
+                          <GlobeLock class="w-4 h-4" />
                         </div>
                         <div class="flex flex-col min-w-0">
                           <div class="flex items-center gap-1.5 flex-wrap">
@@ -203,7 +203,7 @@ export function SiteProfilePicker(props: SiteProfilePickerProps): JSX.Element {
                 class="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer"
               >
                 <span>Manage Site Rules in Network Preferences</span>
-                <ExternalLink class="w-3 h-3" />
+                <ExternalLink class="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -215,7 +215,7 @@ export function SiteProfilePicker(props: SiteProfilePickerProps): JSX.Element {
         when={selectedConfig()}
         fallback={
           <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/60 dark:border-zinc-800/60 text-[11px] text-zinc-500 dark:text-zinc-400">
-            <Globe class="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+            <Globe class="w-4 h-4 text-zinc-400 flex-shrink-0" />
             <span class="truncate">
               Direct connection enabled. Requests will bypass all proxy servers and custom cookies.
             </span>
@@ -226,7 +226,7 @@ export function SiteProfilePicker(props: SiteProfilePickerProps): JSX.Element {
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/70 dark:border-zinc-800/70 text-[11px]">
             {/* Domain constraint */}
             <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white dark:bg-zinc-900/80 border border-zinc-200/50 dark:border-zinc-800/50">
-              <GlobeLock class="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+              <GlobeLock class="w-4 h-4 text-zinc-400 flex-shrink-0" />
               <div class="flex flex-col min-w-0">
                 <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
                   Target Domain
@@ -239,7 +239,7 @@ export function SiteProfilePicker(props: SiteProfilePickerProps): JSX.Element {
 
             {/* Proxy state */}
             <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white dark:bg-zinc-900/80 border border-zinc-200/50 dark:border-zinc-800/50">
-              <Shield class="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+              <Shield class="w-4 h-4 text-zinc-400 flex-shrink-0" />
               <div class="flex flex-col min-w-0">
                 <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
                   Proxy Routing
@@ -259,7 +259,7 @@ export function SiteProfilePicker(props: SiteProfilePickerProps): JSX.Element {
 
             {/* Cookies state */}
             <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white dark:bg-zinc-900/80 border border-zinc-200/50 dark:border-zinc-800/50">
-              <Cookie class="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+              <Cookie class="w-4 h-4 text-zinc-400 flex-shrink-0" />
               <div class="flex flex-col min-w-0">
                 <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
                   Auth Session

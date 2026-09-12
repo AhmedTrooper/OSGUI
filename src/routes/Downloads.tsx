@@ -23,7 +23,10 @@ export default function Downloads(): JSX.Element {
     if (!isTauri()) return;
     void ipc
       .getAllJobs()
-      .then((result) => useQueueStore.setQueue(result.payload ?? []))
+      .then((result) => {
+        const jobs = Array.isArray(result) ? result : (result?.payload ?? []);
+        useQueueStore.setQueue(jobs);
+      })
       .catch((err: unknown) => console.error("Failed to fetch jobs from SQLite:", err));
   });
 
@@ -103,7 +106,10 @@ export default function Downloads(): JSX.Element {
           children: [],
         };
       }
-      virtualVideoNodes[urlKey].children.push(jobNodes[job.slug]!);
+      const childNode = jobNodes[job.slug];
+      if (childNode) {
+        virtualVideoNodes[urlKey].children.push(childNode);
+      }
     });
 
     useQueueStore.state.queue.forEach((job) => {
@@ -203,20 +209,24 @@ export default function Downloads(): JSX.Element {
                   </div>
                 }
               >
-                <div class="w-full min-w-0">
-                  <DownloadRow
-                    id={node.job!.slug}
-                    onPauseToggle={() => {
-                      void handlePauseToggle(node.job!);
-                    }}
-                    onReveal={() => {
-                      void handleReveal(node.job!);
-                    }}
-                    onDelete={() => {
-                      void handleDelete(node.job!.slug);
-                    }}
-                  />
-                </div>
+                <Show when={node.job}>
+                  {(job) => (
+                    <div class="w-full min-w-0">
+                      <DownloadRow
+                        id={job().slug}
+                        onPauseToggle={() => {
+                          void handlePauseToggle(job());
+                        }}
+                        onReveal={() => {
+                          void handleReveal(job());
+                        }}
+                        onDelete={() => {
+                          void handleDelete(job().slug);
+                        }}
+                      />
+                    </div>
+                  )}
+                </Show>
               </Show>
             }
           >
@@ -296,7 +306,7 @@ export default function Downloads(): JSX.Element {
               as="div"
               class="p-1.5 bg-indigo-500 rounded-md text-white shadow-sm cursor-default inline-flex"
             >
-              <DownloadCloud class="w-4 h-4" />
+              <DownloadCloud class="w-5 h-5" />
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
@@ -313,10 +323,10 @@ export default function Downloads(): JSX.Element {
               onClick={() => {
                 void handleClearAll();
               }}
-              class="flex items-center justify-center p-2 rounded-md bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors"
+              class="flex items-center justify-center p-2 rounded-md bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer"
               type="button"
             >
-              <Trash2 class="w-3.5 h-3.5" />
+              <Trash2 class="w-4.5 h-4.5" />
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">

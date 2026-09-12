@@ -64,9 +64,7 @@ export function CustomSelect(props: CustomSelectProps): JSX.Element {
           <Show when={props.hideIcon !== true}>
             {(() => {
               const CurrentIcon = ActiveIcon();
-              return (
-                <CurrentIcon class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
-              );
+              return <CurrentIcon class="w-4 h-4 text-zinc-400 dark:text-zinc-500 flex-shrink-0" />;
             })()}
           </Show>
           <span class="truncate font-semibold text-zinc-800 dark:text-zinc-200">
@@ -86,7 +84,7 @@ export function CustomSelect(props: CustomSelectProps): JSX.Element {
         </div>
         <ChevronDown
           class={cn(
-            "w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 flex-shrink-0 ml-1",
+            "w-4 h-4 text-zinc-400 transition-transform duration-200 flex-shrink-0 ml-1",
             isOpen() && "rotate-180 text-blue-500",
           )}
         />
@@ -113,7 +111,7 @@ export function CustomSelect(props: CustomSelectProps): JSX.Element {
             <div class="flex items-center gap-2 min-w-0 flex-1 truncate">
               {(() => {
                 const PhIcon = props.placeholderIcon ?? Icon;
-                return <PhIcon class="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />;
+                return <PhIcon class="w-4 h-4 text-zinc-400 flex-shrink-0" />;
               })()}
               <span class="truncate font-medium">{props.placeholder}</span>
             </div>
@@ -124,7 +122,7 @@ export function CustomSelect(props: CustomSelectProps): JSX.Element {
                 </span>
               </Show>
               <Show when={!props.value}>
-                <Check class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <Check class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
               </Show>
             </div>
           </button>
@@ -154,7 +152,7 @@ export function CustomSelect(props: CustomSelectProps): JSX.Element {
                   )}
                 >
                   <div class="flex items-center gap-2 min-w-0 flex-1 truncate">
-                    <OptionIcon class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
+                    <OptionIcon class="w-4 h-4 text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
                     <span class="truncate font-medium">{option.label}</span>
                   </div>
                   <div class="flex items-center gap-1.5 flex-shrink-0">
@@ -170,7 +168,7 @@ export function CustomSelect(props: CustomSelectProps): JSX.Element {
                       </span>
                     </Show>
                     <Show when={isSelected()}>
-                      <Check class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                      <Check class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                     </Show>
                   </div>
                 </button>

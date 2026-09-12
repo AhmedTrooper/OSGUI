@@ -1,5 +1,6 @@
 import { createSignal, createEffect, onCleanup, onMount, Show, type JSX } from "solid-js";
 import { useUIStore } from "./store/useUIStore";
+import { useQueueStore } from "./store/useQueueStore";
 import { safeInvoke } from "./utils/tauri";
 import SplashScreen from "./components/SplashScreen";
 
@@ -52,6 +53,7 @@ export default function App(props: { children?: JSX.Element }) {
           useUIStore.setDownloadPath(FALLBACK_DOWNLOADS_PATH);
         }
       }
+      void useQueueStore.hydrate();
     };
 
     initialize();

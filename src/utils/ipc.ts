@@ -12,6 +12,7 @@ import {
   writeText as tauriWriteText,
 } from "@tauri-apps/plugin-clipboard-manager";
 import { isTauri } from "./tauri";
+import type { DownloadJob, ErrorLog, ParseLog } from "@/core/types/database.types";
 import type {
   AddCookieProfileArgs,
   AddCookieProfileResult,
@@ -240,15 +241,31 @@ export const ipc = {
       : Promise.resolve(mockOk()),
 
   // ── logs ──────────────────────────────────────────────────────────────────
-  getErrorLogs: (): Promise<GetErrorLogsResult> =>
-    isTauri()
-      ? callTauri<GetErrorLogsResult>("get_error_logs")
-      : Promise.resolve({ ...mockOk([]), payload: [] }),
+  getErrorLogs: async (): Promise<GetErrorLogsResult> => {
+    if (!isTauri()) {
+      return { ...mockOk([]), payload: [] };
+    }
+    const raw = await callTauri<ErrorLog[] | GetErrorLogsResult>("get_error_logs");
+    const payload = Array.isArray(raw) ? raw : (raw?.payload ?? []);
+    return Object.assign([...payload], {
+      success: true,
+      message: "ok",
+      payload,
+    }) as unknown as GetErrorLogsResult;
+  },
 
-  getParseLogs: (): Promise<GetParseLogsResult> =>
-    isTauri()
-      ? callTauri<GetParseLogsResult>("get_parse_logs")
-      : Promise.resolve({ ...mockOk([]), payload: [] }),
+  getParseLogs: async (): Promise<GetParseLogsResult> => {
+    if (!isTauri()) {
+      return { ...mockOk([]), payload: [] };
+    }
+    const raw = await callTauri<ParseLog[] | GetParseLogsResult>("get_parse_logs");
+    const payload = Array.isArray(raw) ? raw : (raw?.payload ?? []);
+    return Object.assign([...payload], {
+      success: true,
+      message: "ok",
+      payload,
+    }) as unknown as GetParseLogsResult;
+  },
 
   clearAllLogs: (): Promise<ClearAllLogsResult> =>
     isTauri() ? callTauri<ClearAllLogsResult>("clear_all_logs") : Promise.resolve(mockOk()),
@@ -262,10 +279,18 @@ export const ipc = {
         )
       : Promise.resolve(mockOk()),
 
-  getAllJobs: (): Promise<GetAllJobsResult> =>
-    isTauri()
-      ? callTauri<GetAllJobsResult>("get_all_jobs")
-      : Promise.resolve({ ...mockOk([]), payload: [] }),
+  getAllJobs: async (): Promise<GetAllJobsResult> => {
+    if (!isTauri()) {
+      return { ...mockOk([]), payload: [] };
+    }
+    const raw = await callTauri<DownloadJob[] | GetAllJobsResult>("get_all_jobs");
+    const payload = Array.isArray(raw) ? raw : (raw?.payload ?? []);
+    return Object.assign([...payload], {
+      success: true,
+      message: "ok",
+      payload,
+    }) as unknown as GetAllJobsResult;
+  },
 
   deleteJobRecord: (args: DeleteJobRecordArgs): Promise<DeleteJobRecordResult> =>
     isTauri()

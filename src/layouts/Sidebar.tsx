@@ -89,14 +89,14 @@ export default function Sidebar() {
                   <Tooltip.Trigger
                     as={A}
                     href={item.path}
-                    class={`flex-1 sm:flex-initial flex items-center justify-center p-2.5 rounded-xl transition-all duration-300 relative ${
+                    class={`flex-1 sm:flex-initial flex items-center justify-center p-2.5 rounded-xl transition-all duration-300 relative cursor-pointer ${
                       isActive()
                         ? "bg-white dark:bg-white/10 text-blue-600 dark:text-white shadow-sm"
                         : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-900 dark:hover:text-white"
                     }`}
                   >
                     <Icon
-                      class={`w-5 h-5 ${
+                      class={`w-5.5 h-5.5 ${
                         isActive()
                           ? "text-blue-600 dark:text-white"
                           : "text-zinc-400 dark:text-zinc-500"
@@ -134,8 +134,8 @@ export default function Sidebar() {
             class="flex items-center justify-center p-2 rounded-lg text-zinc-500 hover:bg-zinc-200/50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
             type="button"
           >
-            <Show when={ui.isSidebarExpanded} fallback={<PanelLeftOpen class="w-4 h-4" />}>
-              <PanelLeftClose class="w-4 h-4" />
+            <Show when={ui.isSidebarExpanded} fallback={<PanelLeftOpen class="w-5 h-5" />}>
+              <PanelLeftClose class="w-5 h-5" />
             </Show>
           </Tooltip.Trigger>
           <Tooltip.Portal>

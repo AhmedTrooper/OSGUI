@@ -251,8 +251,8 @@ export default function Home(): JSX.Element {
       {/* Title / Header Bar */}
       <div class="flex items-center justify-between pb-3 border-b border-zinc-200/80 dark:border-zinc-800 gap-3">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20 shadow-xs">
-            <FileDown class="w-4 h-4" />
+          <div class="w-9 h-9 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20 shadow-xs">
+            <FileDown class="w-5 h-5" />
           </div>
           <div>
             <h1 class="text-sm font-bold text-zinc-900 dark:text-white tracking-tight">
@@ -272,7 +272,7 @@ export default function Home(): JSX.Element {
             onClick={() => navigate("/settings")}
             class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/60 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors cursor-pointer text-[11px]"
           >
-            <Folder class="w-3.5 h-3.5 text-zinc-400" />
+            <Folder class="w-4 h-4 text-zinc-400" />
             <span class="truncate max-w-[180px]">
               {useUIStore.state.downloadPath || "~/Downloads"}
             </span>
@@ -300,7 +300,7 @@ export default function Home(): JSX.Element {
 
             <div class="relative flex items-center group">
               <div class="absolute left-3 text-zinc-400 group-focus-within:text-blue-500 dark:text-zinc-500 dark:group-focus-within:text-blue-400 transition-colors pointer-events-none">
-                <Link2 class="w-4 h-4" />
+                <Link2 class="w-5 h-5" />
               </div>
 
               <input
@@ -325,7 +325,7 @@ export default function Home(): JSX.Element {
                       }}
                       class="absolute right-2.5 p-1 rounded-md text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-500/10 transition-colors cursor-pointer"
                     >
-                      <ClipboardPaste class="w-3.5 h-3.5" />
+                      <ClipboardPaste class="w-4.5 h-4.5" />
                     </Tooltip.Trigger>
                     <Tooltip.Portal>
                       <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
@@ -343,7 +343,7 @@ export default function Home(): JSX.Element {
                     onClick={() => setUrl("")}
                     class="absolute right-2.5 p-1 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
                   >
-                    <X class="w-3.5 h-3.5" />
+                    <X class="w-4.5 h-4.5" />
                   </Tooltip.Trigger>
                   <Tooltip.Portal>
                     <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">

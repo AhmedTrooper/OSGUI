@@ -39,10 +39,10 @@ export default function ParsedFiles(): JSX.Element {
                   useParseStore.clearParsedFiles();
                 }
               }}
-              class="flex items-center justify-center p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md transition-colors"
+              class="flex items-center justify-center p-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-md transition-colors cursor-pointer"
               type="button"
             >
-              <Trash2 class="w-3.5 h-3.5" />
+              <Trash2 class="w-4 h-4" />
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
@@ -102,9 +102,9 @@ export default function ParsedFiles(): JSX.Element {
                   <Tooltip.Trigger
                     as={A}
                     href={`/parsed_file/${file.slug}`}
-                    class="flex flex-1 sm:flex-none items-center justify-center p-2 rounded-md bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors flex-shrink-0"
+                    class="flex flex-1 sm:flex-none items-center justify-center p-2 rounded-md bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors flex-shrink-0 cursor-pointer"
                   >
-                    <ArrowRight class="w-3 h-3" />
+                    <ArrowRight class="w-4 h-4" />
                   </Tooltip.Trigger>
                   <Tooltip.Portal>
                     <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
@@ -117,10 +117,10 @@ export default function ParsedFiles(): JSX.Element {
                   <Tooltip.Trigger
                     as="button"
                     onClick={() => useParseStore.removeParsedFile(file.slug)}
-                    class="flex items-center justify-center p-2 rounded-md bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors flex-shrink-0"
+                    class="flex items-center justify-center p-2 rounded-md bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 transition-colors flex-shrink-0 cursor-pointer"
                     type="button"
                   >
-                    <Trash2 class="w-3.5 h-3.5" />
+                    <Trash2 class="w-4 h-4" />
                   </Tooltip.Trigger>
                   <Tooltip.Portal>
                     <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">

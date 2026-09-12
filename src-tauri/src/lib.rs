@@ -546,6 +546,7 @@ fn build_invoke_handler() -> impl Fn(tauri::ipc::Invoke<tauri::Wry>) -> bool {
 
 /// Application entry point. Constructs the Tauri builder, registers
 /// all plugins/commands/handlers, and starts the runtime.
+#[allow(clippy::too_many_lines)]
 pub fn run() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())

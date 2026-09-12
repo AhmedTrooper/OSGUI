@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "tailwindcss-motion";
 @custom-variant dark (&:where(.dark, .dark *));
 
 body {

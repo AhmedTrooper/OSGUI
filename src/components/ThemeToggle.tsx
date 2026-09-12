@@ -10,7 +10,7 @@ const CYCLE: ThemePreference[] = ["dark", "light", "system"];
 
 const nextTheme = (current: ThemePreference): ThemePreference => {
   const idx = CYCLE.indexOf(current);
-  return CYCLE[(idx + 1) % CYCLE.length] ?? CYCLE[0]!;
+  return CYCLE[(idx + 1) % CYCLE.length] ?? "dark";
 };
 
 const titleFor = (theme: ThemePreference): string =>
@@ -25,13 +25,13 @@ export function ThemeToggle() {
       type="button"
     >
       <Show when={useUIStore.state.theme === "dark"}>
-        <Moon class="w-4 h-4" />
+        <Moon class="w-5 h-5" />
       </Show>
       <Show when={useUIStore.state.theme === "light"}>
-        <Sun class="w-4 h-4" />
+        <Sun class="w-5 h-5" />
       </Show>
       <Show when={useUIStore.state.theme === "system"}>
-        <Monitor class="w-4 h-4" />
+        <Monitor class="w-5 h-5" />
       </Show>
     </button>
   );

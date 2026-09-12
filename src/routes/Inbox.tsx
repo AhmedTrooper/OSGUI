@@ -178,7 +178,7 @@ export default function InboxRoute(): JSX.Element {
               class="p-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors border border-zinc-200 dark:border-zinc-800 cursor-pointer disabled:opacity-50"
               type="button"
             >
-              <RefreshCw class={`w-4 h-4 ${loading() ? "animate-spin text-blue-500" : ""}`} />
+              <RefreshCw class={`w-4.5 h-4.5 ${loading() ? "animate-spin text-blue-500" : ""}`} />
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
@@ -205,7 +205,7 @@ export default function InboxRoute(): JSX.Element {
         {/* Quick Filter Search */}
         <div class="relative w-full sm:max-w-xs">
           <div class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 pointer-events-none">
-            <Search class="w-3.5 h-3.5" />
+            <Search class="w-4 h-4" />
           </div>
           <input
             type="text"
@@ -220,7 +220,7 @@ export default function InboxRoute(): JSX.Element {
               onClick={() => setSearchQuery("")}
               class="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
             >
-              <X class="w-3.5 h-3.5" />
+              <X class="w-4 h-4" />
             </button>
           </Show>
         </div>
@@ -280,7 +280,7 @@ export default function InboxRoute(): JSX.Element {
                         <div class="flex items-center gap-2 flex-wrap">
                           {/* Domain Pill */}
                           <div class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-mono font-semibold">
-                            <Globe class="w-3 h-3 text-zinc-400" />
+                            <Globe class="w-3.5 h-3.5 text-zinc-400" />
                             <span>{domain()}</span>
                           </div>
 
@@ -290,12 +290,12 @@ export default function InboxRoute(): JSX.Element {
                           {/* Timestamp */}
                           <div class="flex items-center gap-2 text-zinc-400 dark:text-zinc-500 text-[10px] font-medium ml-1">
                             <span class="flex items-center gap-1">
-                              <Calendar class="w-3 h-3" />
+                              <Calendar class="w-3.5 h-3.5" />
                               {formatDate(item.created_at)}
                             </span>
                             <span>•</span>
                             <span class="flex items-center gap-1">
-                              <Clock class="w-3 h-3" />
+                              <Clock class="w-3.5 h-3.5" />
                               {formatTime(item.created_at)}
                             </span>
                           </div>
@@ -303,7 +303,7 @@ export default function InboxRoute(): JSX.Element {
 
                         {/* URL String */}
                         <div class="flex items-center gap-2 text-zinc-800 dark:text-zinc-200 font-semibold text-xs">
-                          <Link2 class="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+                          <Link2 class="w-4 h-4 text-zinc-400 flex-shrink-0" />
                           <span class="truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                             {item.url}
                           </span>
@@ -320,8 +320,8 @@ export default function InboxRoute(): JSX.Element {
                             class="p-2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
                             type="button"
                           >
-                            <Show when={isCopied()} fallback={<Copy class="w-3.5 h-3.5" />}>
-                              <Check class="w-3.5 h-3.5 text-emerald-500" />
+                            <Show when={isCopied()} fallback={<Copy class="w-4.5 h-4.5" />}>
+                              <Check class="w-4.5 h-4.5 text-emerald-500" />
                             </Show>
                           </Tooltip.Trigger>
                           <Tooltip.Portal>
@@ -340,7 +340,7 @@ export default function InboxRoute(): JSX.Element {
                             class="p-2 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
                             type="button"
                           >
-                            <Trash2 class="w-3.5 h-3.5" />
+                            <Trash2 class="w-4.5 h-4.5" />
                           </Tooltip.Trigger>
                           <Tooltip.Portal>
                             <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
@@ -359,7 +359,7 @@ export default function InboxRoute(): JSX.Element {
                             type="button"
                           >
                             <span>Inspect</span>
-                            <ArrowRight class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" />
+                            <ArrowRight class="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform" />
                           </Tooltip.Trigger>
                           <Tooltip.Portal>
                             <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
@@ -395,7 +395,7 @@ export default function InboxRoute(): JSX.Element {
                 class="p-1.5 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                 aria-label="Previous page"
               >
-                <ChevronLeft class="w-4 h-4" />
+                <ChevronLeft class="w-4.5 h-4.5" />
               </button>
             </AdaptiveTooltip>
 
@@ -407,7 +407,7 @@ export default function InboxRoute(): JSX.Element {
                 class="p-1.5 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                 aria-label="Next page"
               >
-                <ChevronRight class="w-4 h-4" />
+                <ChevronRight class="w-4.5 h-4.5" />
               </button>
             </AdaptiveTooltip>
           </div>

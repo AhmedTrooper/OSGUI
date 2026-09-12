@@ -140,7 +140,7 @@ export default function TitleBar(): JSX.Element {
             class="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-150 cursor-pointer flex items-center justify-center"
             type="button"
           >
-            <Minus class="w-3.5 h-3.5" />
+            <Minus class="w-4.5 h-4.5" />
           </button>
         </AdaptiveTooltip>
 
@@ -152,8 +152,8 @@ export default function TitleBar(): JSX.Element {
             class="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors duration-150 cursor-pointer flex items-center justify-center"
             type="button"
           >
-            <Show when={isFullscreen()} fallback={<Maximize2 class="w-3.5 h-3.5" />}>
-              <Minimize2 class="w-3.5 h-3.5" />
+            <Show when={isFullscreen()} fallback={<Maximize2 class="w-4.5 h-4.5" />}>
+              <Minimize2 class="w-4.5 h-4.5" />
             </Show>
           </button>
         </AdaptiveTooltip>
@@ -166,7 +166,7 @@ export default function TitleBar(): JSX.Element {
             class="p-1.5 rounded-md hover:bg-amber-500/10 text-zinc-500 dark:text-zinc-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors duration-150 cursor-pointer flex items-center justify-center"
             type="button"
           >
-            <EyeOff class="w-3.5 h-3.5" />
+            <EyeOff class="w-4.5 h-4.5" />
           </button>
         </AdaptiveTooltip>
 
@@ -178,7 +178,7 @@ export default function TitleBar(): JSX.Element {
             class="p-1.5 rounded-md hover:bg-red-500 hover:text-white dark:hover:bg-red-600 dark:hover:text-white text-zinc-500 dark:text-zinc-400 transition-colors duration-150 cursor-pointer flex items-center justify-center"
             type="button"
           >
-            <X class="w-3.5 h-3.5" />
+            <X class="w-4.5 h-4.5" />
           </button>
         </AdaptiveTooltip>
       </div>

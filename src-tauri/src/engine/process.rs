@@ -420,6 +420,9 @@ fn materialize_cookie_file(
     app_dir: Option<&std::path::Path>,
     cookies: &str,
 ) -> Option<(PathBuf, CookieFileCleanup)> {
+    if cookies.trim().is_empty() {
+        return None;
+    }
     let app_dir = app_dir?;
     let unique_id = chrono::Utc::now().timestamp_nanos_opt().unwrap_or(0);
     let file_path = app_dir.join(format!("synclime_cookie_{unique_id}.txt"));
@@ -551,9 +554,13 @@ fn build_command_args(
         );
     }
 
-    if let Some(proxy_url) = &config.proxy_string {
+    if let Some(proxy_url) = config
+        .proxy_string
+        .as_deref()
+        .filter(|p| !p.trim().is_empty())
+    {
         command_args.push("--proxy".into());
-        command_args.push(proxy_url.clone());
+        command_args.push(proxy_url.to_string());
     }
 
     if let Some(cookies_path) = cookies_path {
@@ -785,13 +792,15 @@ pub async fn execute_download_worker(
 
     // Cookies are written to a 0600 file before the child starts and
     // deleted on scope exit; this survives panics and early returns.
-    let (_cookie_guard, cookies_path) = match materialize_cookie_file(
-        state.db_path.parent(),
-        config.cookie_data.as_deref().unwrap_or(""),
-    ) {
-        Some((path, guard)) => (guard, Some(path)),
-        None => (CookieFileCleanup(None), Option::<PathBuf>::None),
-    };
+    let (_cookie_guard, cookies_path) = config
+        .cookie_data
+        .as_deref()
+        .filter(|c| !c.trim().is_empty())
+        .and_then(|cookies| materialize_cookie_file(state.db_path.parent(), cookies))
+        .map_or_else(
+            || (CookieFileCleanup(None), None),
+            |(path, guard)| (guard, Some(path)),
+        );
     let cookies_arg_path = cookies_path.as_deref();
 
     let command_args = build_command_args(&config, cookies_arg_path);

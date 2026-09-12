@@ -33,8 +33,10 @@ export function LogsSection(): JSX.Element {
     try {
       if (!isTauri()) return;
       const [errors, parses] = await Promise.all([ipc.getErrorLogs(), ipc.getParseLogs()]);
-      setErrorLogs(errors.payload ?? []);
-      setParseLogs(parses.payload ?? []);
+      const errList = Array.isArray(errors) ? errors : (errors?.payload ?? []);
+      const parseList = Array.isArray(parses) ? parses : (parses?.payload ?? []);
+      setErrorLogs(errList);
+      setParseLogs(parseList);
     } catch (err) {
       console.error("Failed to load logs from SQLite:", err);
     } finally {
