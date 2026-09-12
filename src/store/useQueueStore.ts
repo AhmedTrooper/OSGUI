@@ -1,21 +1,14 @@
+/**
+ * Download queue store. Hydrates on mount via `ipc.getAllJobs` and listens
+ * for high-frequency `download-progress-token` events emitted by the Rust
+ * downloader.
+ */
 import { createStore } from "solid-js/store";
+import { isTauri, safeListen } from "@/utils/tauri";
+import { ipc } from "@/utils/ipc";
+import type { DownloadJob, DownloadStatus, FileType } from "@/core/types/database.types";
 
-export interface DownloadJob {
-  slug: string;
-  name: string;
-  url: string;
-  progress: number;
-  status: "pending" | "downloading" | "paused" | "completed" | "error";
-  message: string;
-  fileType: "video" | "audio" | "subtitle" | "direct_document";
-  formatString?: string;
-  createdAt: string;
-  associatedMediaJobSlug?: string;
-  parsedFileSlug?: string;
-  isPlaylist?: boolean;
-  playlistName?: string;
-  parentPlaylistSlug?: string;
-}
+export type { DownloadJob, DownloadStatus, FileType };
 
 interface QueueState {
   queue: DownloadJob[];
@@ -27,51 +20,92 @@ const [queueState, setQueueState] = createStore<QueueState>({
   progressUpdates: {},
 });
 
+const isDownloadStatus = (value: string): value is DownloadStatus =>
+  value === "pending" ||
+  value === "downloading" ||
+  value === "paused" ||
+  value === "completed" ||
+  value === "error";
+
+interface ProgressEvent {
+  slug: string;
+  progress: number;
+  message: string;
+  status?: string;
+}
+
+const applyProgressEvent = (event: ProgressEvent): void => {
+  const { slug, progress, message, status } = event;
+  useQueueStore.updateJobProgress(slug, progress, message);
+  if (status !== undefined && isDownloadStatus(status)) {
+    useQueueStore.updateJobStatus(slug, status);
+  } else {
+    useQueueStore.updateJobStatus(slug, progress >= 100 ? "completed" : "downloading");
+  }
+};
+
 export const useQueueStore = {
   get state() {
     return queueState;
   },
-  setQueue: (jobs: DownloadJob[]) => setQueueState("queue", jobs),
-  addJob: (job: DownloadJob) =>
-    setQueueState("queue", (queue) => [job, ...queue.filter((j) => j.slug !== job.slug)]),
-  updateJobStatus: (slug: string, status: DownloadJob["status"]) =>
-    setQueueState("queue", (j) => j.slug === slug, "status", status),
-  updateJobProgress: (slug: string, progress: number, message?: string) => {
-    setQueueState("queue", (j) => j.slug === slug, "progress", progress);
+  setQueue: (jobs: DownloadJob[]): void => setQueueState("queue", jobs),
+  addJob: (job: DownloadJob): void => {
+    setQueueState("queue", (current) => [
+      job,
+      ...current.filter((existing) => existing.slug !== job.slug),
+    ]);
+  },
+  updateJobStatus: (slug: string, status: DownloadStatus): void => {
+    setQueueState("queue", (job) => job.slug === slug, "status", status);
+  },
+  updateJobProgress: (slug: string, progress: number, message?: string): void => {
+    setQueueState("queue", (job) => job.slug === slug, "progress", progress);
     if (message !== undefined) {
-      setQueueState("queue", (j) => j.slug === slug, "message", message);
+      setQueueState("queue", (job) => job.slug === slug, "message", message);
     }
     if (progress >= 100) {
-      setQueueState("queue", (j) => j.slug === slug, "status", "completed");
+      setQueueState("queue", (job) => job.slug === slug, "status", "completed");
     }
   },
-  removeJob: (slug: string) => setQueueState("queue", (q) => q.filter((j) => j.slug !== slug)),
-  setProgress: (id: string, progress: number) => setQueueState("progressUpdates", id, progress),
-  clearProgress: (id: string) => setQueueState("progressUpdates", id, undefined as any),
-  clearQueue: () =>
-    setQueueState("queue", (q) => q.filter((j) => j.status !== "completed" && j.status !== "error")),
+  removeJob: (slug: string): void => {
+    setQueueState("queue", (current) => current.filter((job) => job.slug !== slug));
+  },
+  setProgress: (id: string, progress: number): void =>
+    setQueueState("progressUpdates", id, progress),
+  clearProgress: (id: string): void => {
+    setQueueState("progressUpdates", (current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+  },
+  clearQueue: (): void => {
+    setQueueState("queue", (current) =>
+      current.filter((job) => job.status !== "completed" && job.status !== "error"),
+    );
+  },
+  hydrate: async (): Promise<void> => {
+    const result = await ipc.getAllJobs();
+    if (result.success && result.payload) {
+      useQueueStore.setQueue(result.payload);
+    }
+  },
 };
 
-// High-speed Progress Event System (Tauri Emitter)
-if (typeof window !== "undefined" && (window as any).__TAURI_INTERNALS__) {
-  import("@tauri-apps/api/event")
-    .then(({ listen }) => {
-      listen("download-progress-token", (event: any) => {
-        const { slug, progress, message, status } = event.payload as {
-          slug: string;
-          progress: number;
-          message: string;
-          status?: string;
-        };
-        useQueueStore.updateJobProgress(slug, progress, message);
-        if (status) {
-          useQueueStore.updateJobStatus(slug, status as any);
-        } else {
-          useQueueStore.updateJobStatus(slug, progress >= 100 ? "completed" : "downloading");
-        }
-      });
-    })
-    .catch((err) => {
-      console.error("Failed to load Tauri event listener in queue store:", err);
-    });
+// Initialize the live progress listener exactly once.
+let listenerInstalled = false;
+const installProgressListener = (): void => {
+  if (listenerInstalled || !isTauri()) return;
+  listenerInstalled = true;
+  safeListen<ProgressEvent>("download-progress-token", applyProgressEvent).catch((err) => {
+    console.error("Failed to install queue progress listener", err);
+  });
+};
+
+if (typeof window !== "undefined") {
+  if (document.readyState === "complete") {
+    installProgressListener();
+  } else {
+    window.addEventListener("load", installProgressListener, { once: true });
+  }
 }

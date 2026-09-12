@@ -1,22 +1,13 @@
+/**
+ * Parse-result cache singleton. Every `yt-dlp --dump-single-json` call lands
+ * here so the user can revisit past analyses even after a relaunch.
+ */
 import { createStore } from "solid-js/store";
 import { createEffect, on, createRoot } from "solid-js";
 import { nativeStorageAdapter } from "./storageAdapter";
+import type { DiscoveryPayload, ParsedFile } from "@/core/types/ytdlp.types";
 
-export interface ParsedFile {
-  slug: string;
-  url: string;
-  title: string;
-  sanitizedTitle: string;
-  isPlaylist: boolean;
-  thumbnail: string;
-  duration: number; // in seconds
-  author: string;
-  views: number;
-  payload: any; // VideoMetadata or GenericPlaylistMetadata
-  parsedAt: string; // ISO string
-  parentPlaylistSlug?: string;
-  siteConfigSlug?: string;
-}
+export type { ParsedFile };
 
 interface ParseState {
   parsedFiles: ParsedFile[];
@@ -28,46 +19,91 @@ const [parseState, setParseState] = createStore<ParseState>({
   isParsing: false,
 });
 
+const STORAGE_KEY = "synclime-parse-storage";
 let hasHydrated = false;
+
+const isDiscoveryPayload = (value: unknown): value is DiscoveryPayload =>
+  typeof value === "object" && value !== null && "id" in value && "title" in value;
+
+const sanitizeParsedFiles = (raw: unknown): ParsedFile[] => {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((entry): entry is ParsedFile => {
+    if (typeof entry !== "object" || entry === null) return false;
+    const candidate = entry as Record<string, unknown>;
+    return (
+      typeof candidate.slug === "string" &&
+      typeof candidate.url === "string" &&
+      typeof candidate.title === "string" &&
+      typeof candidate.sanitizedTitle === "string" &&
+      typeof candidate.isPlaylist === "boolean" &&
+      typeof candidate.thumbnail === "string" &&
+      typeof candidate.duration === "number" &&
+      typeof candidate.author === "string" &&
+      typeof candidate.views === "number" &&
+      isDiscoveryPayload(candidate.payload) &&
+      typeof candidate.parsedAt === "string"
+    );
+  });
+};
 
 export const useParseStore = {
   get state() {
     return parseState;
   },
-  addParsedFile: (file: ParsedFile) =>
-    setParseState("parsedFiles", (files) => [file, ...files.filter((f) => f.slug !== file.slug)]),
-  removeParsedFile: (slug: string) =>
-    setParseState("parsedFiles", (files) => files.filter((f) => f.slug !== slug)),
-  clearParsedFiles: () => setParseState("parsedFiles", []),
-  setParsing: (parsing: boolean) => setParseState("isParsing", parsing),
+  addParsedFile: (file: ParsedFile): void => {
+    setParseState("parsedFiles", (existing) => [
+      file,
+      ...existing.filter((current) => current.slug !== file.slug),
+    ]);
+  },
+  removeParsedFile: (slug: string): void => {
+    setParseState("parsedFiles", (existing) => existing.filter((file) => file.slug !== slug));
+  },
+  clearParsedFiles: (): void => setParseState("parsedFiles", []),
+  setParsing: (parsing: boolean): void => setParseState("isParsing", parsing),
 };
 
-// Async Hydration
-nativeStorageAdapter.getItem("synclime-parse-storage").then((data) => {
-  if (data) {
-    try {
-      const parsed = JSON.parse(data);
-      if (parsed.state && parsed.state.parsedFiles) {
-        setParseState("parsedFiles", parsed.state.parsedFiles);
-      }
-    } catch (e) {
-      console.warn("Failed to parse hydrated parse state", e);
+// ── Hydration ────────────────────────────────────────────────────────────────
+nativeStorageAdapter
+  .getItem(STORAGE_KEY)
+  .then((raw) => {
+    if (raw === null) {
+      hasHydrated = true;
+      return;
     }
-  }
-  hasHydrated = true;
-});
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (
+        typeof parsed === "object" &&
+        parsed !== null &&
+        "state" in parsed &&
+        typeof (parsed as { state: unknown }).state === "object"
+      ) {
+        const state = (parsed as { state: { parsedFiles?: unknown } }).state;
+        const sanitized = sanitizeParsedFiles(state.parsedFiles);
+        setParseState("parsedFiles", sanitized);
+      }
+    } catch (err) {
+      console.warn("Failed to parse hydrated parse state", err);
+    } finally {
+      hasHydrated = true;
+    }
+  })
+  .catch((err) => {
+    console.warn("Failed to load parse storage", err);
+    hasHydrated = true;
+  });
 
-// Async Persistence (Syncs updates back to store automatically, bound to reactive root context)
 createRoot(() => {
   createEffect(
     on(
       () => parseState.parsedFiles,
-      () => {
+      (files) => {
         if (!hasHydrated) return;
-        const stateToSave = { state: { parsedFiles: parseState.parsedFiles } };
-        nativeStorageAdapter.setItem("synclime-parse-storage", JSON.stringify(stateToSave));
+        const payload = JSON.stringify({ state: { parsedFiles: files } });
+        nativeStorageAdapter.setItem(STORAGE_KEY, payload);
       },
-      { defer: true }
-    )
+      { defer: true },
+    ),
   );
 });

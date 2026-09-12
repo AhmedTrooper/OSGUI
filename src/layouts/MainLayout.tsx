@@ -1,58 +1,50 @@
-import { createEffect, onMount, onCleanup } from "solid-js";
-import { useLocation, useNavigate } from "@solidjs/router";
+import { createEffect, onCleanup, type JSX } from "solid-js";
+import { useLocation } from "@solidjs/router";
 import Sidebar from "./Sidebar";
 import TitleBar from "./TitleBar";
-import { useUIStore } from "../store/useUIStore";
+import { useUIStore } from "@/store/useUIStore";
 
-export default function MainLayout(props: any) {
+const isInPlaylist = (path: string): boolean => path.startsWith("/parsed_file/");
+const isInDownloads = (path: string): boolean => path.startsWith("/downloads/");
+
+const resolveActivePath = (pathname: string): string => {
+  if (isInPlaylist(pathname)) return "/parsed_files";
+  if (isInDownloads(pathname)) return "/downloads";
+  return pathname;
+};
+
+export default function MainLayout(props: { children?: JSX.Element }) {
   const ui = useUIStore.state;
-  const navigate = useNavigate();
   const location = useLocation();
-  let hasRestored = false;
 
   createEffect(() => {
-    const applyTheme = (isDark: boolean) => {
-      if (isDark) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
+    const theme = ui.theme;
+    const apply = (isDark: boolean): void => {
+      document.documentElement.classList.toggle("dark", isDark);
     };
 
-    if (ui.theme === "system") {
+    if (theme === "system") {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      applyTheme(mediaQuery.matches);
-      
-      const listener = (e: MediaQueryListEvent) => applyTheme(e.matches);
+      apply(mediaQuery.matches);
+      const listener = (event: MediaQueryListEvent): void => apply(event.matches);
       mediaQuery.addEventListener("change", listener);
       onCleanup(() => mediaQuery.removeEventListener("change", listener));
     } else {
-      applyTheme(ui.theme === "dark");
+      apply(theme === "dark");
     }
   });
 
-  // this effect checks where you are in the app and highlights correct button in sidebar
   createEffect(() => {
-    const path = location.pathname;
-    if (path.startsWith("/parsed_file/")) {
-      useUIStore.setActivePath("/parsed_files");
-    } else if (path.startsWith("/downloads/")) {
-      useUIStore.setActivePath("/downloads");
-    } else {
-      useUIStore.setActivePath(path);
-    }
+    useUIStore.setActivePath(resolveActivePath(location.pathname));
   });
 
   return (
     <div class="relative h-screen w-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 transition-colors duration-300 overflow-hidden flex flex-col font-sans select-none">
-      {/* Custom OS Titlebar */}
       <TitleBar />
 
       <div class="flex flex-col-reverse sm:flex-row flex-1 overflow-hidden relative z-10 w-full">
-        {/* Native Sidebar / Bottom Nav */}
         <Sidebar />
 
-        {/* Main Content Area */}
         <main class="flex-1 overflow-y-auto custom-scrollbar px-2 py-2 sm:px-6 sm:py-6 w-full relative bg-white dark:bg-zinc-800/20 shadow-inner">
           {props.children}
         </main>

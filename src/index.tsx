@@ -17,7 +17,7 @@ import SitesConfig from "./routes/SitesConfig";
 import Logs from "./routes/Logs";
 import Inbox from "./routes/Inbox";
 import InboxDetail from "./routes/InboxDetail";
-import Extentions from "./routes/Extentions";
+import Extentions from "./routes/Extensions";
 
 const root = document.getElementById("root");
 
@@ -40,5 +40,5 @@ render(
       </Route>
     </Router>
   ),
-  root!
+  root!,
 );

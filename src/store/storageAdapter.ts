@@ -1,67 +1,71 @@
-import { load, Store } from "@tauri-apps/plugin-store";
+/**
+ * Persistence adapter that bridges `@tauri-apps/plugin-store` (when running
+ * inside the desktop shell) and `localStorage` (in the browser preview).
+ *
+ * The Tauri store path uses a single 1-second debounce so rapid preference
+ * changes batch into a single disk flush.
+ */
 
-const isTauri =
-  typeof window !== "undefined" && !!(window as any).__TAURI_INTERNALS__;
+import { load, type Store } from "@tauri-apps/plugin-store";
+import { isTauri } from "@/utils/tauri";
 
 let storePromise: Promise<Store> | null = null;
-if (isTauri) {
-  storePromise = load("synclime_state.bin", { autoSave: false });
+if (isTauri()) {
+  storePromise = load("synclime_state.bin", { autoSave: false, defaults: {} });
 }
 
-let saveTimeout: any = null;
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
-const debounceSave = (tauriStore: Store) => {
-  if (saveTimeout) {
-    clearTimeout(saveTimeout);
-  }
-  saveTimeout = setTimeout(async () => {
-    try {
-      await tauriStore.save();
-    } catch (e) {
-      console.warn("[Tauri Store] Failed to save store to disk:", e);
-    }
-  }, 1000); // Throttle physical writes to 1 second of inactivity
+const debounceSave = (tauriStore: Store): void => {
+  if (saveTimeout !== null) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    saveTimeout = null;
+    tauriStore.save().catch((err) => {
+      console.warn("[Tauri Store] Failed to save store to disk:", err);
+    });
+  }, 1000);
 };
 
 export const nativeStorageAdapter = {
   getItem: async (name: string): Promise<string | null> => {
-    if (isTauri && storePromise) {
+    if (isTauri() && storePromise !== null) {
       try {
         const tauriStore = await storePromise;
-        const value = await tauriStore.get(name);
-        return value ? (value as string) : null;
-      } catch (e) {
-        console.warn(`[Tauri Store] Failed to read ${name}:`, e);
+        const value = await tauriStore.get<string>(name);
+        return value ?? null;
+      } catch (err) {
+        console.warn(`[Tauri Store] Failed to read ${name}:`, err);
         return null;
       }
-    } else {
-      return localStorage.getItem(name);
     }
+    return localStorage.getItem(name);
   },
+
   setItem: async (name: string, value: string): Promise<void> => {
-    if (isTauri && storePromise) {
+    if (isTauri() && storePromise !== null) {
       try {
         const tauriStore = await storePromise;
         await tauriStore.set(name, value);
-        debounceSave(tauriStore); // Optimized debounced disk flush
-      } catch (e) {
-        console.warn(`[Tauri Store] Failed to write ${name}:`, e);
+        debounceSave(tauriStore);
+      } catch (err) {
+        console.warn(`[Tauri Store] Failed to write ${name}:`, err);
       }
-    } else {
-      localStorage.setItem(name, value);
+      return;
     }
+    localStorage.setItem(name, value);
   },
+
   removeItem: async (name: string): Promise<void> => {
-    if (isTauri && storePromise) {
+    if (isTauri() && storePromise !== null) {
       try {
         const tauriStore = await storePromise;
         await tauriStore.delete(name);
-        debounceSave(tauriStore); // Optimized debounced disk flush
-      } catch (e) {
-        console.warn(`[Tauri Store] Failed to remove ${name}:`, e);
+        debounceSave(tauriStore);
+      } catch (err) {
+        console.warn(`[Tauri Store] Failed to remove ${name}:`, err);
       }
-    } else {
-      localStorage.removeItem(name);
+      return;
     }
+    localStorage.removeItem(name);
   },
-};
+} as const;
