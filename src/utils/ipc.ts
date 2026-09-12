@@ -7,6 +7,10 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
+import {
+  readText as tauriReadText,
+  writeText as tauriWriteText,
+} from "@tauri-apps/plugin-clipboard-manager";
 import { isTauri } from "./tauri";
 import type {
   AddCookieProfileArgs,
@@ -110,6 +114,48 @@ export const ipc = {
       "process_clipboard_paste",
       args as unknown as Record<string, unknown>,
     );
+  },
+
+  /**
+   * Read plain text from the system clipboard.
+   *
+   * Prefers the Tauri `clipboard-manager` plugin when running inside
+   * the desktop shell (works in WebView, no permission prompt), and
+   * falls back to the browser `navigator.clipboard` API otherwise so
+   * `vite preview` / Storybook keep working.
+   */
+  readClipboardText: async (): Promise<string> => {
+    if (isTauri()) {
+      try {
+        return await tauriReadText();
+      } catch (err) {
+        console.warn("Tauri clipboard read failed, falling back to browser API:", err);
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      return navigator.clipboard.readText();
+    }
+    return "";
+  },
+
+  /**
+   * Write plain text to the system clipboard.
+   *
+   * Same fallback strategy as `readClipboardText`: Tauri plugin first,
+   * browser API when running outside the desktop shell.
+   */
+  writeClipboardText: async (text: string): Promise<void> => {
+    if (isTauri()) {
+      try {
+        await tauriWriteText(text);
+        return;
+      } catch (err) {
+        console.warn("Tauri clipboard write failed, falling back to browser API:", err);
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+    }
   },
 
   // ── config ───────────────────────────────────────────────────────────────
