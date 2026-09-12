@@ -1,10 +1,14 @@
 /**
  * SyncLime Companion - Popup Controller
- * Supports default port 14221, automatic fallback across range 14221–14230,
- * and user-configurable custom port override.
+ *
+ * Manifest V3 Least-Privilege Architecture:
+ * - Default port 14221 with automatic OS clash range probing (14221–14230).
+ * - Optional "cookies" permission with user-facing Sensitive Data Notice modal.
+ * - Explicit user opt-in & site-by-site consent retention.
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Navigation & Settings Elements
   const statusPill = document.getElementById("status-pill");
   const statusText = document.getElementById("status-text");
   const toggleSettingsBtn = document.getElementById("toggle-settings-btn");
@@ -19,6 +23,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const portProbeResult = document.getElementById("port-probe-result");
   const activePortIndicator = document.getElementById("active-port-indicator");
 
+  // Privacy & Permission Drawer Elements
+  const cookiePermBadge = document.getElementById("cookie-perm-badge");
+  const revokePermsBtn = document.getElementById("revoke-perms-btn");
+
+  // Main Card Elements
   const tabFavicon = document.getElementById("tab-favicon");
   const tabTitle = document.getElementById("tab-title");
   const urlInput = document.getElementById("url-input");
@@ -32,11 +41,29 @@ document.addEventListener("DOMContentLoaded", async () => {
   const feedback = document.getElementById("feedback");
   const feedbackText = document.getElementById("feedback-text");
 
+  // Sensitive Data Consent Modal Elements
+  const sensitiveModal = document.getElementById("sensitive-modal");
+  const modalCloseBtn = document.getElementById("modal-close-btn");
+  const modalDomain = document.getElementById("modal-domain");
+  const modalPortText = document.getElementById("modal-port-text");
+  const rememberConsentCheckbox = document.getElementById("remember-consent");
+  const allowCookieBtn = document.getElementById("allow-cookie-btn");
+  const denyCookieBtn = document.getElementById("deny-cookie-btn");
+
   let activeTabUrl = "";
   let activeTabTitle = "";
   let currentPort = 14221;
   let currentMode = "auto";
   let isAppOnline = false;
+
+  function extractDomain(url) {
+    try {
+      const u = new URL(url);
+      return u.hostname || "";
+    } catch {
+      return "";
+    }
+  }
 
   // 1. Query active tab information
   try {
@@ -57,16 +84,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("Could not query active tab:", err);
   }
 
-  // 2. Load stored port preferences
+  // 2. Load stored port preferences & permission states
   try {
-    const stored = await chrome.storage.local.get(["port_mode", "custom_port"]);
+    const stored = await chrome.storage.local.get(["port_mode", "custom_port", "consented_domains"]);
     currentMode = stored.port_mode || "auto";
     if (stored.custom_port) {
       customPortInput.value = stored.custom_port;
     }
     updateModeUI(currentMode);
+
+    // Check if user previously authorized cookies for this active domain
+    const domain = extractDomain(activeTabUrl);
+    const consented = stored.consented_domains || [];
+    const hasPerm = await checkCookiePermission();
+
+    if (hasPerm && domain && consented.includes(domain)) {
+      syncCookiesCheckbox.checked = true;
+    }
   } catch (err) {
-    console.warn("Error loading stored port settings:", err);
+    console.warn("Error loading stored preferences:", err);
   }
 
   // 3. Probing health check to desktop daemon
@@ -95,10 +131,36 @@ document.addEventListener("DOMContentLoaded", async () => {
         activePortIndicator.textContent = `Port: ${currentPort} (Unreachable)`;
         showFeedback("SyncLime app is offline. Launch desktop app.", "warning");
       }
+      refreshPermissionBadge();
     });
   }
 
   refreshHealth();
+
+  // Check whether optional "cookies" permission is granted
+  async function checkCookiePermission() {
+    try {
+      if (chrome.permissions && chrome.permissions.contains) {
+        return await chrome.permissions.contains({ permissions: ["cookies"] });
+      }
+    } catch {
+      // Fallback
+    }
+    return false;
+  }
+
+  // Update permission status badge in Settings Drawer
+  async function refreshPermissionBadge() {
+    if (!cookiePermBadge) return;
+    const hasCookies = await checkCookiePermission();
+    if (hasCookies) {
+      cookiePermBadge.className = "perm-badge granted";
+      cookiePermBadge.textContent = "Authorized";
+    } else {
+      cookiePermBadge.className = "perm-badge opt-in";
+      cookiePermBadge.textContent = "Opt-in (Safe)";
+    }
+  }
 
   // Settings Drawer Toggle
   function toggleDrawer(open) {
@@ -106,6 +168,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       portDrawer.classList.toggle("hidden", !open);
     } else {
       portDrawer.classList.toggle("hidden");
+    }
+    if (!portDrawer.classList.contains("hidden")) {
+      refreshPermissionBadge();
     }
   }
 
@@ -122,7 +187,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       modeAutoBtn.classList.add("active");
       modeCustomBtn.classList.remove("active");
-      customPortRow.classList.remove("hidden");
       customPortRow.classList.add("hidden");
     }
   }
@@ -168,6 +232,129 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  // Reset Permissions & Authorizations
+  revokePermsBtn.addEventListener("click", async () => {
+    try {
+      await chrome.storage.local.remove(["consented_domains"]);
+      try {
+        if (chrome.permissions && chrome.permissions.remove) {
+          await chrome.permissions.remove({ permissions: ["cookies"] });
+        }
+      } catch (err) {
+        console.debug("Optional permission removal notice:", err);
+      }
+      syncCookiesCheckbox.checked = false;
+      await refreshPermissionBadge();
+      showFeedback("Cookie authorizations reset to default opt-in.", "info");
+    } catch (err) {
+      console.warn("Failed resetting authorizations:", err);
+    }
+  });
+
+  // Sensitive Data Consent Modal Controls
+  function showSensitiveModal(targetUrl) {
+    const domain = extractDomain(targetUrl) || "current website";
+    modalDomain.textContent = domain;
+    modalPortText.textContent = `127.0.0.1:${currentPort}`;
+    sensitiveModal.classList.remove("hidden");
+  }
+
+  function hideSensitiveModal() {
+    sensitiveModal.classList.add("hidden");
+  }
+
+  modalCloseBtn.addEventListener("click", () => {
+    syncCookiesCheckbox.checked = false;
+    hideSensitiveModal();
+  });
+
+  denyCookieBtn.addEventListener("click", () => {
+    syncCookiesCheckbox.checked = false;
+    hideSensitiveModal();
+    showFeedback("Cookie sync disabled. Sending clean URL only.", "info");
+  });
+
+  // Authorize & Request Optional Cookie Permission
+  allowCookieBtn.addEventListener("click", async () => {
+    const targetUrl = urlInput.value.trim() || activeTabUrl;
+    const domain = extractDomain(targetUrl);
+    let originPattern = "*://*/*";
+
+    try {
+      const u = new URL(targetUrl);
+      originPattern = `${u.protocol}//${u.hostname}/*`;
+    } catch {
+      // Keep wildcard fallback
+    }
+
+    try {
+      // Manifest V3 standard: Request optional permissions inside user gesture
+      const granted = await chrome.permissions.request({
+        permissions: ["cookies"],
+        origins: [originPattern],
+      });
+
+      if (granted) {
+        syncCookiesCheckbox.checked = true;
+        if (rememberConsentCheckbox.checked && domain) {
+          const stored = await chrome.storage.local.get(["consented_domains"]);
+          const consentedList = stored.consented_domains || [];
+          if (!consentedList.includes(domain)) {
+            consentedList.push(domain);
+            await chrome.storage.local.set({ consented_domains: consentedList });
+          }
+        }
+        await refreshPermissionBadge();
+        hideSensitiveModal();
+        showFeedback(`Session cookies authorized for ${domain}`, "info");
+      } else {
+        syncCookiesCheckbox.checked = false;
+        hideSensitiveModal();
+        showFeedback("Cookie authorization declined. Sending URL only.", "warning");
+      }
+    } catch (err) {
+      console.warn("Permission request error:", err);
+      // Even if origins failed pattern parsing, attempt cookies permission directly
+      try {
+        const fallbackGranted = await chrome.permissions.request({
+          permissions: ["cookies"],
+        });
+        if (fallbackGranted) {
+          syncCookiesCheckbox.checked = true;
+          await refreshPermissionBadge();
+          hideSensitiveModal();
+          showFeedback("Session cookies authorized.", "info");
+          return;
+        }
+      } catch {
+        // Ignored
+      }
+      syncCookiesCheckbox.checked = false;
+      hideSensitiveModal();
+      showFeedback("Could not request cookie authorization.", "error");
+    }
+  });
+
+  // Checkbox toggle listener
+  syncCookiesCheckbox.addEventListener("change", async () => {
+    if (syncCookiesCheckbox.checked) {
+      const targetUrl = urlInput.value.trim() || activeTabUrl;
+      const domain = extractDomain(targetUrl);
+
+      const hasPerm = await checkCookiePermission();
+      const stored = await chrome.storage.local.get(["consented_domains"]);
+      const consented = stored.consented_domains || [];
+
+      if (hasPerm && domain && consented.includes(domain)) {
+        return; // Already consented and authorized
+      }
+
+      // Revert until explicit modal consent
+      syncCookiesCheckbox.checked = false;
+      showSensitiveModal(targetUrl);
+    }
+  });
+
   // Paste button handler
   pasteBtn.addEventListener("click", async () => {
     try {
@@ -189,14 +376,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    // If user wants cookie sync but hasn't authorized yet, prompt modal
+    if (syncCookiesCheckbox.checked) {
+      const hasPerm = await checkCookiePermission();
+      if (!hasPerm) {
+        showSensitiveModal(targetUrl);
+        return;
+      }
+    }
+
     setLoadingState(true);
 
     let netscapeCookies = "";
     if (syncCookiesCheckbox.checked) {
       try {
-        const cookies = await chrome.cookies.getAll({ url: targetUrl });
-        if (cookies && cookies.length > 0) {
-          netscapeCookies = cookiesToNetscape(cookies);
+        if (chrome.cookies) {
+          const cookies = await chrome.cookies.getAll({ url: targetUrl });
+          if (cookies && cookies.length > 0) {
+            netscapeCookies = cookiesToNetscape(cookies);
+          }
         }
       } catch (err) {
         console.warn("Cookie extraction failed:", err);

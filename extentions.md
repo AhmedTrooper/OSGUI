@@ -66,26 +66,40 @@ The source code for both extensions is included directly in the repository under
 ## 🎯 Usage & Key Features
 
 ### 1. The Popup Interface
+
 Click the SyncLime icon in your toolbar:
-- **Status Indicator:** Shows green `Online :14221` when SyncLime is running, or red `App Offline` if not launched yet.
+
+- **Status Indicator:** Shows green `Online :14221` when SyncLime is running, amber `Shifted :14222` if port 14221 was occupied by the OS, or red `Offline` if not launched yet.
+- **Connection Port Drawer:** Toggle between automatic probing (`14221–14230`) and manual custom port override.
 - **Active URL Field:** Automatically pre-filled with the current page URL (editable, with clipboard paste button).
-- **Session Cookies Checkbox:** Enabled by default. Converts browser session cookies to Netscape format and automatically registers/updates the corresponding cookie profile in SyncLime SQLite database.
+- **Session Cookies Authorization (Sensitive Permission):** Opt-in by default. Synchronizing cookies requires explicit authorization via the **Sensitive Data Disclosure Modal**. Transmits Netscape cookies strictly to your local desktop daemon (`127.0.0.1`) so `yt-dlp` can ingest age-restricted, subscriber-only, or private media.
+- **Privacy & Permissions:** Easily reset or revoke cookie authorizations at any time directly in the Settings Drawer.
 - **Auto-Close:** Automatically dismisses the popup upon successful delivery to the desktop inbox.
 
-### 2. Context Menu (Right-Click)
+### 2. Manifest V3 Security & Privacy Compliance
+
+To guarantee acceptance by Chrome Web Store and Mozilla Add-ons (AMO) review teams:
+
+- **Least-Privilege Baseline:** Extension installs with minimal required permissions (`activeTab`, `storage`, `notifications`, `contextMenus`) and loopback host permissions (`http://127.0.0.1/*`, `http://localhost/*`). It never demands broad `*://*/*` host permissions at install time.
+- **Sensitive Data Disclosure Modal:** When cookie sync is requested, a dedicated dialog explains what data is shared, why (local `yt-dlp` extraction), and confirms that credentials never leave your machine.
+- **Browser-Native Permission Prompts:** Optional permissions are requested in response to explicit user gestures in compliance with MV3 guidelines.
+
+### 3. Context Menu (Right-Click)
+
 - Right-click any link, video player, or blank area of a page.
 - Select **"Send to SyncLime Inbox"**.
 - A desktop notification confirms the link has been queued.
 
-### 3. Keyboard Shortcut
+### 4. Keyboard Shortcut
+
 - Press <kbd>Alt</kbd> + <kbd>S</kbd> on any tab to instantly enqueue the current page to SyncLime without opening the popup.
 
 ---
 
 ## 🔧 Troubleshooting
 
-| Symptom | Cause | Solution |
-| :--- | :--- | :--- |
-| **"App Offline" indicator** | SyncLime desktop application is not open. | Launch the SyncLime desktop application. |
-| **"Could not connect"** | Local firewall blocking loopback port. | Allow incoming localhost connections on ports `14221`–`14230`. |
-| **Cookies not applying** | Private/incognito window restriction. | In extension settings, toggle "Allow in Incognito/Private windows". |
+| Symptom                     | Cause                                     | Solution                                                            |
+| :-------------------------- | :---------------------------------------- | :------------------------------------------------------------------ |
+| **"App Offline" indicator** | SyncLime desktop application is not open. | Launch the SyncLime desktop application.                            |
+| **"Could not connect"**     | Local firewall blocking loopback port.    | Allow incoming localhost connections on ports `14221`–`14230`.      |
+| **Cookies not applying**    | Authorization declined or incognito.      | Re-authorize in popup modal, or allow in incognito settings.        |

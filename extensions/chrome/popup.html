@@ -64,6 +64,19 @@
       </div>
 
       <div id="port-probe-result" class="port-probe-result hidden"></div>
+
+      <!-- Privacy & Permissions Drawer Section -->
+      <div class="drawer-divider"></div>
+      <div class="drawer-header">
+        <span class="drawer-title">Privacy & Permissions (MV3)</span>
+      </div>
+      <div class="perm-status-row">
+        <span class="perm-label">Session Cookies:</span>
+        <span id="cookie-perm-badge" class="perm-badge opt-in">Opt-in</span>
+      </div>
+      <button type="button" id="revoke-perms-btn" class="secondary-btn outline full-width">
+        Reset Cookie Authorizations
+      </button>
     </div>
 
     <!-- Active Tab Media Card -->
@@ -91,10 +104,11 @@
 
       <!-- Sync Options -->
       <div class="options-group">
-        <label class="checkbox-label" title="Extracts Netscape cookies so yt-dlp can access age-restricted or private videos">
-          <input type="checkbox" id="sync-cookies" checked>
+        <label class="checkbox-label" title="Extracts Netscape cookies so yt-dlp can access age-restricted or private videos (Sensitive Permission)">
+          <input type="checkbox" id="sync-cookies">
           <span class="custom-checkbox"></span>
           <span class="checkbox-text">Synchronize session cookies</span>
+          <span class="badge-sensitive" title="Sensitive data: requires explicit authorization">OPT-IN</span>
         </label>
         <label class="checkbox-label">
           <input type="checkbox" id="auto-close" checked>
@@ -124,6 +138,64 @@
       <span class="shortcut-tip">Quick send: <kbd>Alt</kbd> + <kbd>S</kbd></span>
       <span class="app-version">v0.1.1</span>
     </footer>
+  </div>
+
+  <!-- Sensitive Data Consent Modal -->
+  <div id="sensitive-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-badge-row">
+        <span class="modal-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          SENSITIVE DATA NOTICE
+        </span>
+        <button type="button" id="modal-close-btn" class="drawer-close">&times;</button>
+      </div>
+
+      <div class="modal-title">Authorize Session Cookie Sync?</div>
+
+      <p class="modal-desc">
+        Syncing session cookies transfers authentication credentials for:
+      </p>
+      <div id="modal-domain" class="modal-domain-pill font-mono">youtube.com</div>
+
+      <div class="security-points">
+        <div class="security-point">
+          <span class="security-bullet">🔒</span>
+          <div class="security-point-text">
+            <strong>Localhost Only:</strong> Transmitted exclusively to your local desktop daemon (<code id="modal-port-text">127.0.0.1:14221</code>).
+          </div>
+        </div>
+        <div class="security-point">
+          <span class="security-bullet">🛡️</span>
+          <div class="security-point-text">
+            <strong>Single Purpose:</strong> Used solely by <code>yt-dlp</code> on this machine to access age-restricted or member-only videos.
+          </div>
+        </div>
+        <div class="security-point">
+          <span class="security-bullet">🚫</span>
+          <div class="security-point-text">
+            <strong>Zero Remote Storage:</strong> Cookies are never sent to external servers or cloud services.
+          </div>
+        </div>
+      </div>
+
+      <label class="checkbox-label modal-remember">
+        <input type="checkbox" id="remember-consent" checked>
+        <span class="custom-checkbox"></span>
+        <span class="checkbox-text">Remember authorization for this site</span>
+      </label>
+
+      <div class="modal-actions">
+        <button type="button" id="allow-cookie-btn" class="secondary-btn primary-action">
+          Authorize & Sync
+        </button>
+        <button type="button" id="deny-cookie-btn" class="secondary-btn outline">
+          Send URL Only
+        </button>
+      </div>
+    </div>
   </div>
 
   <script src="popup.js"></script>

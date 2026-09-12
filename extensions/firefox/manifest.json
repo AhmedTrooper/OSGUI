@@ -6,19 +6,23 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "synclime-companion@ahmedtrooper.github.com",
-      "strict_min_version": "109.0"
+      "strict_min_version": "113.0"
     }
   },
   "permissions": [
     "activeTab",
-    "cookies",
     "contextMenus",
     "storage",
     "notifications"
   ],
+  "optional_permissions": [
+    "cookies"
+  ],
   "host_permissions": [
-    "http://127.0.0.1:*/*",
-    "http://localhost:*/*",
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
+  "optional_host_permissions": [
     "*://*/*"
   ],
   "action": {

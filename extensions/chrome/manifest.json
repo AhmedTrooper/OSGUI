@@ -5,14 +5,18 @@
   "description": "Send video URLs and Netscape session cookies directly to the SyncLime desktop downloader inbox.",
   "permissions": [
     "activeTab",
-    "cookies",
     "contextMenus",
     "storage",
     "notifications"
   ],
+  "optional_permissions": [
+    "cookies"
+  ],
   "host_permissions": [
-    "http://127.0.0.1:*/*",
-    "http://localhost:*/*",
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
+  "optional_host_permissions": [
     "*://*/*"
   ],
   "action": {

@@ -111,15 +111,22 @@ async function sendToSyncLime(targetUrl, tabTitle = "") {
   const portInfo = await getActivePort();
   const port = portInfo.port;
 
-  // Extract cookies for domain
+  // Extract cookies for domain only if optional permission is currently granted
   let netscapeCookies = "";
   try {
-    const cookies = await chrome.cookies.getAll({ url: targetUrl });
-    if (cookies && cookies.length > 0) {
-      netscapeCookies = cookiesToNetscape(cookies);
+    const hasCookiesPerm =
+      chrome.permissions && chrome.permissions.contains
+        ? await chrome.permissions.contains({ permissions: ["cookies"] })
+        : false;
+
+    if (hasCookiesPerm && chrome.cookies) {
+      const cookies = await chrome.cookies.getAll({ url: targetUrl });
+      if (cookies && cookies.length > 0) {
+        netscapeCookies = cookiesToNetscape(cookies);
+      }
     }
   } catch (err) {
-    console.warn("Could not retrieve cookies for domain:", err);
+    console.debug("Cookie extraction skipped or not authorized:", err);
   }
 
   try {
