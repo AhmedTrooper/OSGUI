@@ -1,16 +1,17 @@
 import { onMount, createSignal, Show, type JSX } from "solid-js";
 import { useNavigate, useParams } from "@solidjs/router";
-import { Switch } from "@kobalte/core/switch";
-import { Tooltip } from "@kobalte/core/tooltip";
 import {
   Play,
   FileDown,
   Link2,
   AlertCircle,
-  GlobeLock,
   ArrowLeft,
   Calendar,
+  Clock,
   Inbox,
+  Copy,
+  Check,
+  Globe,
 } from "lucide-solid";
 import { useUIStore } from "@/store/useUIStore";
 import { useParseStore } from "@/store/useParseStore";
@@ -18,12 +19,20 @@ import { useQueueStore } from "@/store/useQueueStore";
 import { ipc } from "@/utils/ipc";
 import { isTauri } from "@/utils/tauri";
 import { sanitizeTitle } from "@/utils/sanitize";
-import { formatDate } from "@/utils/format";
+import { formatDate, formatTime } from "@/utils/format";
 import { logErrorToDb, logParseToDb } from "@/core/logger";
 import type { SiteConfig, DownloadJob, InboxItem } from "@/core/types/database.types";
-import { isPlaylistPayload, type DiscoveryPayload, type VideoMetadata } from "@/core/types/ytdlp.types";
-import { CustomSelect } from "@/components/CustomSelect";
+import { isPlaylistPayload, type DiscoveryPayload } from "@/core/types/ytdlp.types";
+import { SiteProfilePicker } from "@/features/home/components/SiteProfilePicker";
 
+function extractDomain(urlStr: string): string {
+  try {
+    const parsed = new URL(urlStr);
+    return parsed.hostname.replace(/^www\./, "");
+  } catch {
+    return "external";
+  }
+}
 
 export default function InboxDetail(): JSX.Element {
   const navigate = useNavigate();
@@ -37,6 +46,7 @@ export default function InboxDetail(): JSX.Element {
   const [errorMsg, setErrorMsg] = createSignal("");
   const [siteConfigs, setSiteConfigs] = createSignal<SiteConfig[]>([]);
   const [selectedSiteSlug, setSelectedSiteSlug] = createSignal<string>("");
+  const [copied, setCopied] = createSignal(false);
 
   onMount(() => {
     useUIStore.setActivePath("/inbox");
@@ -65,20 +75,19 @@ export default function InboxDetail(): JSX.Element {
           setFetchingDetails(false);
         }
       } else {
-        setTimeout(() => {
-          setInboxItem({
-            slug: params.slug,
-            url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            status: "pending",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-          setUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-          setFetchingDetails(false);
-        }, 600);
+        setFetchingDetails(false);
+        setErrorMsg("Running in browser preview mode.");
       }
     })();
   });
+
+  const handleCopy = async (): Promise<void> => {
+    const text = url();
+    if (!text) return;
+    await ipc.writeClipboardText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   const sanitizeUrl = async (raw: string): Promise<string> => {
     if (!isTauri()) return raw;
@@ -92,15 +101,15 @@ export default function InboxDetail(): JSX.Element {
   };
 
   const handleDirectDownload = async (cleanUrl: string): Promise<void> => {
-    const domain = new URL(cleanUrl).hostname.replace("www.", "");
+    const domain = extractDomain(cleanUrl);
     const uniqueSlug = `doc-${Date.now()}`;
     const newJob: DownloadJob = {
       slug: uniqueSlug,
-      name: `Direct Document (${domain})`,
+      name: `Direct Download (${domain})`,
       url: cleanUrl,
       progress: 0,
       status: "pending",
-      message: "Queued for direct document parsing...",
+      message: "Queued for direct download...",
       fileType: "direct_document",
       createdAt: new Date().toISOString(),
     };
@@ -195,47 +204,7 @@ export default function InboxDetail(): JSX.Element {
         throw e;
       }
     } else {
-      const mockVideo: VideoMetadata = {
-        id: `vid-${Date.now()}`,
-        title: "Introduction to Tauri & SolidJS - Inbox Processed Guide",
-        uploader: "Synclime Core Platform",
-        duration: 185,
-        view_count: 54200,
-        thumbnail:
-          "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=480&auto=format&fit=crop&q=60",
-        formats: [
-          {
-            format_id: "bestvideo",
-            ext: "mp4",
-            format_note: "1080p 60fps",
-            width: 1920,
-            height: 1080,
-            fps: 60,
-            filesize: 120000000,
-          },
-          {
-            format_id: "720p",
-            ext: "mp4",
-            format_note: "720p 30fps",
-            width: 1280,
-            height: 720,
-            fps: 30,
-            filesize: 60000000,
-          },
-          {
-            format_id: "bestaudio",
-            ext: "m4a",
-            format_note: "HQ Audio",
-            acodec: "aac",
-            abr: 256,
-            filesize: 8000000,
-          },
-        ],
-        subtitles: {},
-        chapters: [],
-        type: "video",
-      };
-      payload = mockVideo;
+      throw new Error("Metadata extraction requires Tauri runtime environment.");
     }
 
     const isPlaylist = payload ? isPlaylistPayload(payload) : false;
@@ -320,254 +289,209 @@ export default function InboxDetail(): JSX.Element {
 
   return (
     <div class="space-y-4 max-w-2xl mx-auto py-2 select-none animate-fade-in text-xs sm:text-sm font-sans text-left">
-      {/* Back button & title */}
-      <div class="flex items-center gap-3">
-        <Tooltip openDelay={200} placement="right">
-          <Tooltip.Trigger
-            as="button"
-            onClick={() => navigate("/inbox")}
-            class="p-2 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+      {/* Header */}
+      <div class="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800">
+        <div class="flex items-center gap-3">
+          <button
             type="button"
+            onClick={() => navigate("/inbox")}
+            class="p-2 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <ArrowLeft class="w-4 h-4" />
-          </Tooltip.Trigger>
-          <Tooltip.Portal>
-            <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-              <Tooltip.Arrow />
-              Back to Inbox Queue
-            </Tooltip.Content>
-          </Tooltip.Portal>
-        </Tooltip>
-        <Tooltip openDelay={200} placement="right">
-          <Tooltip.Trigger as="div" class="cursor-default inline-flex items-center">
-            <Inbox class="w-5 h-5 text-zinc-500 dark:text-zinc-400" />
-          </Tooltip.Trigger>
-          <Tooltip.Portal>
-            <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-              <Tooltip.Arrow />
-              Inbox Action Center
-            </Tooltip.Content>
-          </Tooltip.Portal>
-        </Tooltip>
+          </button>
+          <div>
+            <h1 class="text-sm font-bold text-zinc-900 dark:text-white">
+              Process Inbox Link
+            </h1>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
+              Configure extraction strategy and queue options
+            </p>
+          </div>
+        </div>
       </div>
 
       <Show
         when={!fetchingDetails()}
         fallback={
-          <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/40 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-3">
-            <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <Tooltip openDelay={200} placement="bottom">
-              <Tooltip.Trigger as="span" class="cursor-default text-zinc-400 text-xs font-semibold">
-                ·
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                  <Tooltip.Arrow />
-                  Querying SQLite database details...
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip>
+          <div class="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-3">
+            <div class="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <span class="text-xs text-zinc-400 font-medium">Loading link details...</span>
           </div>
         }
       >
         <Show
           when={inboxItem()}
           fallback={
-            <div class="border border-red-200/60 dark:border-red-900/40 bg-red-500/5 p-4 rounded-xl text-center text-red-500 font-semibold text-xs flex items-center justify-center gap-2">
-              <span>{errorMsg()}</span>
+            <div class="border border-red-200 dark:border-red-900/40 bg-red-500/5 p-4 rounded-xl text-center text-red-500 font-semibold text-xs flex items-center justify-center gap-2">
+              <AlertCircle class="w-4 h-4 flex-shrink-0" />
+              <span>{errorMsg() || "Item not found."}</span>
             </div>
           }
         >
-          <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/40 p-5 rounded-2xl shadow-sm space-y-5">
+          <div class="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-5 rounded-2xl shadow-xs space-y-5">
             {/* Link details box */}
             <Show when={inboxItem()}>
-              {(item) => (
-                <div class="flex items-start gap-3 bg-zinc-50 dark:bg-zinc-950 p-4 rounded-xl border border-zinc-200/50 dark:border-zinc-800/50">
-                  <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
-                    <Inbox class="w-4.5 h-4.5" />
-                  </div>
-                  <div class="space-y-1 overflow-hidden min-w-0">
-                    <div class="flex items-center gap-2 text-[10px] text-zinc-400 font-medium">
-                      <Tooltip openDelay={200} placement="right">
-                        <Tooltip.Trigger as="span" class="cursor-default flex items-center gap-1">
+              {(item) => {
+                const domain = () => extractDomain(item().url);
+                return (
+                  <div class="flex items-start gap-3 bg-zinc-50 dark:bg-zinc-950 p-3.5 rounded-xl border border-zinc-200/70 dark:border-zinc-800/70">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Inbox class="w-4 h-4" />
+                    </div>
+                    <div class="space-y-1 overflow-hidden min-w-0 flex-1">
+                      <div class="flex items-center gap-2 text-[10px] text-zinc-400 font-medium flex-wrap">
+                        <span class="inline-flex items-center gap-1 font-mono text-zinc-700 dark:text-zinc-300 font-semibold">
+                          <Globe class="w-3 h-3 text-zinc-400" />
+                          {domain()}
+                        </span>
+                        <span>•</span>
+                        <span class="flex items-center gap-1">
                           <Calendar class="w-3 h-3" />
                           {formatDate(item().created_at)}
-                        </Tooltip.Trigger>
-                        <Tooltip.Portal>
-                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                            <Tooltip.Arrow />
-                            Date Received
-                          </Tooltip.Content>
-                        </Tooltip.Portal>
-                      </Tooltip>
-                      <span>•</span>
-                      <Tooltip openDelay={200} placement="right">
-                        <Tooltip.Trigger as="span" class="cursor-default">
-                          <strong class="text-blue-500 capitalize">{item().status}</strong>
-                        </Tooltip.Trigger>
-                        <Tooltip.Portal>
-                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                            <Tooltip.Arrow />
-                            Status
-                          </Tooltip.Content>
-                        </Tooltip.Portal>
-                      </Tooltip>
+                        </span>
+                        <span>•</span>
+                        <span class="flex items-center gap-1">
+                          <Clock class="w-3 h-3" />
+                          {formatTime(item().created_at)}
+                        </span>
+                        <span>•</span>
+                        <span class="capitalize font-semibold text-blue-600 dark:text-blue-400">
+                          {item().status}
+                        </span>
+                      </div>
+                      <p class="text-zinc-800 dark:text-zinc-200 font-semibold break-all text-xs">
+                        {item().url}
+                      </p>
                     </div>
-                    <p class="text-zinc-800 dark:text-zinc-100 font-semibold break-all text-xs">
-                      {item().url}
-                    </p>
                   </div>
-                </div>
-              )}
+                );
+              }}
             </Show>
 
-            <form
-              onSubmit={(e) => {
-                void handleAction(e);
-              }}
-              class="space-y-5"
-            >
-              {/* Asset URL field - readonly for safety */}
-              <div class="space-y-1.5">
-                <Tooltip openDelay={200} placement="right">
-                  <Tooltip.Trigger
-                    as="label"
-                    class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
-                  >
-                    ·
-                  </Tooltip.Trigger>
-                  <Tooltip.Portal>
-                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                      <Tooltip.Arrow />
-                      Target Link Address
-                    </Tooltip.Content>
-                  </Tooltip.Portal>
-                </Tooltip>
+            <form onSubmit={(e) => void handleAction(e)} class="space-y-4">
+              {/* Asset URL field - readonly with copy button */}
+              <div class="space-y-1.5 text-left">
+                <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  Target Link Address
+                </label>
                 <div class="relative flex items-center">
-                  <div class="absolute left-3.5 text-zinc-400 dark:text-zinc-500">
-                    <Link2 class="w-4.5 h-4.5" />
+                  <div class="absolute left-3 text-zinc-400">
+                    <Link2 class="w-4 h-4" />
                   </div>
                   <input
                     type="url"
                     value={url()}
-                    onInput={(e) => setUrl(e.currentTarget.value)}
+                    disabled
+                    class="w-full pl-9 pr-10 py-2 bg-zinc-100/70 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs text-zinc-600 dark:text-zinc-400 outline-none select-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleCopy()}
+                    class="absolute right-2.5 p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-200/50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                  >
+                    <Show when={copied()} fallback={<Copy class="w-3.5 h-3.5" />}>
+                      <Check class="w-3.5 h-3.5 text-emerald-500" />
+                    </Show>
+                  </button>
+                </div>
+              </div>
+
+              {/* Mode Selection Segmented Control */}
+              <div class="space-y-1.5 text-left">
+                <span class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  Download Strategy
+                </span>
+                <div class="grid grid-cols-2 p-1 bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setDirectDownload(false)}
                     disabled={loading()}
-                    class="w-full pl-10 pr-4 py-2.5 bg-zinc-100/50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 cursor-not-allowed outline-none shadow-inner"
-                    readonly
-                  />
+                    class={`flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      !directDownload()
+                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                        : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                    }`}
+                  >
+                    <Play class="w-3.5 h-3.5" />
+                    <span>Metadata Analysis</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDirectDownload(true)}
+                    disabled={loading()}
+                    class={`flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      directDownload()
+                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                        : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                    }`}
+                  >
+                    <FileDown class="w-3.5 h-3.5" />
+                    <span>Direct Queue</span>
+                  </button>
                 </div>
+                <p class="text-[11px] text-zinc-400 dark:text-zinc-500">
+                  {directDownload()
+                    ? "Directly adds to download queue and fetches with best available quality."
+                    : "Probes metadata, formats, audio codecs, and subtitles before queueing."}
+                </p>
               </div>
 
-              {/* Toggle switch for direct download */}
-              <div class="flex items-center justify-between p-3.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/60 dark:border-zinc-800/80 rounded-xl shadow-inner">
-                <div class="flex items-start gap-3">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="div"
-                      class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 cursor-default inline-flex"
-                    >
-                      <FileDown class="w-4.5 h-4.5" />
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        Direct Single File Download
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
+              {/* Site Profile & Proxy Picker */}
+              <div class="space-y-1.5 text-left">
+                <div class="flex items-center justify-between">
+                  <span class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    Network Rule & Proxy Profile
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/sites_config")}
+                    class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                  >
+                    Manage
+                  </button>
                 </div>
 
-                <Switch
-                  checked={directDownload()}
-                  onChange={setDirectDownload}
-                  disabled={loading()}
-                  class="flex items-center"
-                >
-                  <Switch.Input class="sr-only" />
-                  <Switch.Control class="w-10 h-6 bg-zinc-200 dark:bg-zinc-800 rounded-full transition-colors flex items-center cursor-pointer p-0.5 data-[checked]:bg-emerald-500">
-                    <Switch.Thumb class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform translate-x-0 data-[checked]:translate-x-4" />
-                  </Switch.Control>
-                </Switch>
+                <SiteProfilePicker
+                  configs={siteConfigs()}
+                  selectedSlug={selectedSiteSlug()}
+                  onSelect={setSelectedSiteSlug}
+                  onManageClick={() => navigate("/sites_config")}
+                />
               </div>
-
-              {/* Site configs */}
-              <Show when={!directDownload()}>
-                <div class="space-y-1.5 animate-fade-in text-left">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="label"
-                      class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
-                    >
-                      ·
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        Site Configuration Profile (Cookies & Proxy)
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-
-                  <CustomSelect
-                    value={selectedSiteSlug()}
-                    onChange={setSelectedSiteSlug}
-                    options={siteConfigs().map((c) => ({
-                      value: c.slug,
-                      label: `${c.title} (${c.domain})`,
-                    }))}
-                    placeholder="No Site Profile (Direct network fallback)"
-                    icon={GlobeLock}
-                  />
-                </div>
-              </Show>
 
               {/* Error block */}
               <Show when={errorMsg()}>
-                <div class="flex items-start gap-2.5 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 animate-fade-in text-xs">
-                  <AlertCircle class="w-4.5 h-4.5 flex-shrink-0 mt-0.5" />
+                <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 animate-fade-in text-xs">
+                  <AlertCircle class="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span class="font-medium text-left leading-normal">{errorMsg()}</span>
                 </div>
               </Show>
 
-              {/* Submit Buttons */}
-              <div class="pt-2">
-                <Tooltip openDelay={200} placement="top">
-                  <Tooltip.Trigger
-                    as="button"
-                    type="submit"
-                    disabled={loading()}
-                    class={`w-full flex items-center justify-center gap-2 py-3 px-4 font-bold text-white rounded-xl shadow-lg hover:shadow-xl transition-all outline-none ${
-                      directDownload()
-                        ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-emerald-500/15"
-                        : "bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 shadow-blue-500/15"
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+              {/* Submit Button */}
+              <div class="pt-1">
+                <button
+                  type="submit"
+                  disabled={loading()}
+                  class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs hover:shadow transition-all active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none cursor-pointer tracking-wide"
+                >
+                  <Show
+                    when={loading()}
+                    fallback={
+                      <>
+                        <Show when={directDownload()} fallback={<Play class="w-3.5 h-3.5" />}>
+                          <FileDown class="w-3.5 h-3.5" />
+                        </Show>
+                        <span>
+                          {directDownload() ? "Enqueue & Start Download" : "Analyze Resource"}
+                        </span>
+                      </>
+                    }
                   >
-                    <Show
-                      when={loading()}
-                      fallback={
-                        <>
-                          <Show when={directDownload()} fallback={<Play class="w-4 h-4" />}>
-                            <FileDown class="w-4 h-4" />
-                          </Show>
-                        </>
-                      }
-                    >
-                      <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    </Show>
-                  </Tooltip.Trigger>
-                  <Tooltip.Portal>
-                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                      <Tooltip.Arrow />
-                      {loading()
-                        ? directDownload()
-                          ? "Connecting to stream threads..."
-                          : "Polling manifest pipelines..."
-                        : directDownload()
-                          ? "Begin Direct File Download"
-                          : "Analyze & Extract Video Metadata"}
-                    </Tooltip.Content>
-                  </Tooltip.Portal>
-                </Tooltip>
+                    <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Extracting Parameters...</span>
+                  </Show>
+                </button>
               </div>
             </form>
           </div>
