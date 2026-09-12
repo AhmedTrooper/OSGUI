@@ -1,6 +1,8 @@
 import { Show, For, type Accessor, type Setter, type JSX } from "solid-js";
-import { Sliders, Download, Globe, List, Square, CheckSquare } from "lucide-solid";
+import { Sliders, Download, Globe, List } from "lucide-solid";
 import { cn } from "@/utils/cn";
+import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
+import { Checkbox } from "@/components/Checkbox";
 import type {
   DiscoveryPayload,
   GenericPlaylistMetadata,
@@ -134,16 +136,25 @@ function PlaylistHeader(props: PlaylistHeaderProps): JSX.Element {
             </For>
           </select>
 
-          <button
-            onClick={props.downloadAllPlaylist}
-            class="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded shadow-sm hover:-translate-y-0.5 active:translate-y-0 transition-all overflow-hidden min-h-[36px]"
-            type="button"
+          <AdaptiveTooltip
+            content={
+              props.selectedCount > 0
+                ? `Queue ${props.selectedCount} selected tracks for download`
+                : "Queue all playlist tracks for download"
+            }
           >
-            <Download class="w-4 h-4 flex-shrink-0" />
-            <span class="truncate text-[10px] uppercase tracking-wider font-extrabold">
-              {props.selectedCount > 0 ? `Download (${props.selectedCount})` : "Download Playlist"}
-            </span>
-          </button>
+            <button
+              onClick={props.downloadAllPlaylist}
+              class="w-full sm:w-auto flex items-center justify-center bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded shadow-sm hover:-translate-y-0.5 active:translate-y-0 transition-all overflow-hidden min-h-[36px] cursor-pointer"
+              type="button"
+            >
+              <span class="truncate text-[10px] uppercase tracking-wider font-extrabold">
+                {props.selectedCount > 0
+                  ? `Download (${props.selectedCount})`
+                  : "Download Playlist"}
+              </span>
+            </button>
+          </AdaptiveTooltip>
         </div>
       </div>
     </div>
@@ -188,13 +199,15 @@ function SubtitleStrip(props: SubtitleStripProps): JSX.Element {
                       : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800/85 text-zinc-700 dark:text-zinc-300 hover:border-purple-500",
                   )}
                 >
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={isChecked()}
                     onChange={() => props.toggleSub(option.lang)}
-                    class="accent-purple-500 w-3 h-3 cursor-pointer"
+                    color="purple"
+                    size="sm"
                   />
-                  {option.name} {option.lang !== "all" && `(${option.lang.toUpperCase()})`}
+                  <span>
+                    {option.name} {option.lang !== "all" && `(${option.lang.toUpperCase()})`}
+                  </span>
                 </label>
               );
             }}
@@ -235,19 +248,21 @@ function TrackList(props: TrackListProps): JSX.Element {
           </h3>
         </div>
 
-        <button
-          onClick={() => {
-            if (props.allSelected) {
-              props.setSelectedTracks([]);
-            } else {
-              props.setSelectedTracks(props.list.map((track) => track.id));
-            }
-          }}
-          class="text-[10px] text-purple-600 dark:text-purple-400 font-extrabold uppercase tracking-wider hover:underline select-none"
-          type="button"
-        >
-          {props.allSelected ? "Deselect All" : "Select All"}
-        </button>
+        <AdaptiveTooltip content={props.allSelected ? "Deselect all tracks" : "Select all tracks"}>
+          <button
+            onClick={() => {
+              if (props.allSelected) {
+                props.setSelectedTracks([]);
+              } else {
+                props.setSelectedTracks(props.list.map((track) => track.id));
+              }
+            }}
+            class="text-[10px] text-purple-600 dark:text-purple-400 font-extrabold uppercase tracking-wider hover:underline select-none cursor-pointer"
+            type="button"
+          >
+            {props.allSelected ? "Deselect All" : "Select All"}
+          </button>
+        </AdaptiveTooltip>
       </div>
 
       <div class="grid grid-cols-1 gap-2 w-full">
@@ -292,16 +307,15 @@ function TrackRow(props: TrackRowProps): JSX.Element {
   return (
     <div class="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded-md shadow-sm transition-colors hover:bg-zinc-50/20 dark:hover:bg-zinc-900/10">
       <div class="p-2 sm:p-2.5 flex flex-row items-center justify-between gap-1.5 sm:gap-4 min-w-0">
-        <button
-          onClick={props.onToggle}
-          class="p-1 text-zinc-400 hover:text-purple-500 transition-colors flex-shrink-0"
-          type="button"
-          aria-label={props.isSelected() ? "Deselect track" : "Select track"}
-        >
-          <Show when={props.isSelected()} fallback={<Square class="w-4 h-4" />}>
-            <CheckSquare class="w-4 h-4 text-purple-500" />
-          </Show>
-        </button>
+        <div class="flex-shrink-0 flex items-center">
+          <Checkbox
+            checked={props.isSelected()}
+            onChange={props.onToggle}
+            color="purple"
+            size="sm"
+            ariaLabel={props.isSelected() ? "Deselect track" : "Select track"}
+          />
+        </div>
 
         <div class="flex items-center gap-2 sm:gap-3 flex-grow text-left min-w-0">
           <span class="text-[9px] font-bold text-zinc-400 font-mono w-4">
@@ -328,30 +342,24 @@ function TrackRow(props: TrackRowProps): JSX.Element {
           <TooltipedButton
             label="Configure Streams"
             disabled={props.isParsing()}
-            accent="blue"
             onClick={props.onConfigure}
-            icon={
-              <Show when={props.isParsing()} fallback={<Sliders class="w-3.5 h-3.5" />}>
-                <span class="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              </Show>
-            }
+            accent="blue"
+            icon={<Sliders class="w-3.5 h-3.5" />}
           />
-
           <Show when={props.showSubtitleButton}>
             <TooltipedButton
-              label="Download Captions"
-              accent="purple"
+              label="Download Subtitle"
               onClick={props.onDownloadSubtitle}
+              accent="zinc"
               icon={<Globe class="w-3.5 h-3.5" />}
             />
           </Show>
-
           <TooltipedButton
-            label="Queue Media"
-            accent="zinc"
+            label="Queue Download"
             onClick={props.onQueue}
-            icon={<Download class="w-3.5 h-3.5" />}
+            accent="purple"
             tooltipAlign="right"
+            icon={<Download class="w-3.5 h-3.5" />}
           />
         </div>
       </div>
@@ -369,10 +377,6 @@ interface TooltipedButtonProps {
 }
 
 function TooltipedButton(props: TooltipedButtonProps): JSX.Element {
-  const tooltipClasses = (): string =>
-    props.tooltipAlign === "right"
-      ? "absolute bottom-full right-0 sm:left-1/2 sm:-translate-x-1/2"
-      : "absolute bottom-full left-1/2 -translate-x-1/2";
   const accentClass = (): string => {
     switch (props.accent) {
       case "blue":
@@ -385,12 +389,12 @@ function TooltipedButton(props: TooltipedButtonProps): JSX.Element {
   };
 
   return (
-    <div class="group relative inline-block">
+    <AdaptiveTooltip content={props.label}>
       <button
         onClick={props.onClick}
         disabled={props.disabled}
         class={cn(
-          "p-1.5 rounded transition-colors min-h-[30px] flex items-center justify-center border",
+          "p-1.5 rounded transition-colors min-h-[30px] flex items-center justify-center border cursor-pointer",
           accentClass(),
           props.disabled && "opacity-50 cursor-not-allowed",
         )}
@@ -398,11 +402,6 @@ function TooltipedButton(props: TooltipedButtonProps): JSX.Element {
       >
         {props.icon}
       </button>
-      <div
-        class={`${tooltipClasses()} mb-2 hidden group-hover:block bg-zinc-900 dark:bg-zinc-950 text-white text-[9px] font-bold uppercase tracking-wider shadow-md px-2 py-1 rounded z-[99] border border-zinc-800 whitespace-nowrap`}
-      >
-        {props.label}
-      </div>
-    </div>
+    </AdaptiveTooltip>
   );
 }

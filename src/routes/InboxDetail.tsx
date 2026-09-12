@@ -1,8 +1,7 @@
 import { onMount, createSignal, Show, type JSX } from "solid-js";
 import { useNavigate, useParams } from "@solidjs/router";
+import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
 import {
-  Play,
-  FileDown,
   Link2,
   AlertCircle,
   ArrowLeft,
@@ -291,17 +290,17 @@ export default function InboxDetail(): JSX.Element {
       {/* Header */}
       <div class="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800">
         <div class="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate("/inbox")}
-            class="p-2 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-          >
-            <ArrowLeft class="w-4 h-4" />
-          </button>
+          <AdaptiveTooltip content="Return to inbox">
+            <button
+              type="button"
+              onClick={() => navigate("/inbox")}
+              class="p-2 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            >
+              <ArrowLeft class="w-4 h-4" />
+            </button>
+          </AdaptiveTooltip>
           <div>
-            <h1 class="text-sm font-bold text-zinc-900 dark:text-white">
-              Process Inbox Link
-            </h1>
+            <h1 class="text-sm font-bold text-zinc-900 dark:text-white">Process Inbox Link</h1>
             <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
               Configure extraction strategy and queue options
             </p>
@@ -383,15 +382,17 @@ export default function InboxDetail(): JSX.Element {
                     disabled
                     class="w-full pl-9 pr-10 py-2 bg-zinc-100/70 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs text-zinc-600 dark:text-zinc-400 outline-none select-all"
                   />
-                  <button
-                    type="button"
-                    onClick={() => void handleCopy()}
-                    class="absolute right-2.5 p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-200/50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-                  >
-                    <Show when={copied()} fallback={<Copy class="w-3.5 h-3.5" />}>
-                      <Check class="w-3.5 h-3.5 text-emerald-500" />
-                    </Show>
-                  </button>
+                  <AdaptiveTooltip content="Copy URL to clipboard">
+                    <button
+                      type="button"
+                      onClick={() => void handleCopy()}
+                      class="absolute right-2.5 p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-200/50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                    >
+                      <Show when={copied()} fallback={<Copy class="w-3.5 h-3.5" />}>
+                        <Check class="w-3.5 h-3.5 text-emerald-500" />
+                      </Show>
+                    </button>
+                  </AdaptiveTooltip>
                 </div>
               </div>
 
@@ -400,34 +401,36 @@ export default function InboxDetail(): JSX.Element {
                 <span class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                   Download Strategy
                 </span>
-                <div class="grid grid-cols-2 p-1 bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => setDirectDownload(false)}
-                    disabled={loading()}
-                    class={`flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      !directDownload()
-                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
-                        : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-                    }`}
-                  >
-                    <Play class="w-3.5 h-3.5" />
-                    <span>Metadata Analysis</span>
-                  </button>
+                <div class="grid grid-cols-2 p-1 bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl gap-1">
+                  <AdaptiveTooltip content="Probe metadata, format streams, codecs, and subtitles before queueing">
+                    <button
+                      type="button"
+                      onClick={() => setDirectDownload(false)}
+                      disabled={loading()}
+                      class={`w-full flex items-center justify-center py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        !directDownload()
+                          ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                          : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                      }`}
+                    >
+                      Metadata Analysis
+                    </button>
+                  </AdaptiveTooltip>
 
-                  <button
-                    type="button"
-                    onClick={() => setDirectDownload(true)}
-                    disabled={loading()}
-                    class={`flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      directDownload()
-                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
-                        : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-                    }`}
-                  >
-                    <FileDown class="w-3.5 h-3.5" />
-                    <span>Direct Queue</span>
-                  </button>
+                  <AdaptiveTooltip content="Immediately add download job to queue with best available quality">
+                    <button
+                      type="button"
+                      onClick={() => setDirectDownload(true)}
+                      disabled={loading()}
+                      class={`w-full flex items-center justify-center py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        directDownload()
+                          ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                          : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                      }`}
+                    >
+                      Direct Queue
+                    </button>
+                  </AdaptiveTooltip>
                 </div>
                 <p class="text-[11px] text-zinc-400 dark:text-zinc-500">
                   {directDownload()
@@ -442,13 +445,15 @@ export default function InboxDetail(): JSX.Element {
                   <span class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                     Network Rule & Proxy Profile
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/sites_config")}
-                    class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                  >
-                    Manage
-                  </button>
+                  <AdaptiveTooltip content="Manage domain routing rules and proxy profiles">
+                    <button
+                      type="button"
+                      onClick={() => navigate("/sites_config")}
+                      class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                    >
+                      Manage
+                    </button>
+                  </AdaptiveTooltip>
                 </div>
 
                 <SiteProfilePicker
@@ -469,28 +474,29 @@ export default function InboxDetail(): JSX.Element {
 
               {/* Submit Button */}
               <div class="pt-1">
-                <button
-                  type="submit"
-                  disabled={loading()}
-                  class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs hover:shadow transition-all active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none cursor-pointer tracking-wide"
+                <AdaptiveTooltip
+                  content={
+                    directDownload()
+                      ? "Directly enqueue resource with best quality"
+                      : "Inspect formats, codecs, and subtitles"
+                  }
                 >
-                  <Show
-                    when={loading()}
-                    fallback={
-                      <>
-                        <Show when={directDownload()} fallback={<Play class="w-3.5 h-3.5" />}>
-                          <FileDown class="w-3.5 h-3.5" />
-                        </Show>
-                        <span>
-                          {directDownload() ? "Enqueue & Start Download" : "Analyze Resource"}
-                        </span>
-                      </>
-                    }
+                  <button
+                    type="submit"
+                    disabled={loading()}
+                    class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs hover:shadow transition-all active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none cursor-pointer tracking-wide"
                   >
-                    <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Extracting Parameters...</span>
-                  </Show>
-                </button>
+                    <Show
+                      when={loading()}
+                      fallback={directDownload() ? "Enqueue & Start Download" : "Analyze Resource"}
+                    >
+                      <span class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Extracting Parameters...</span>
+                      </span>
+                    </Show>
+                  </button>
+                </AdaptiveTooltip>
               </div>
             </form>
           </div>

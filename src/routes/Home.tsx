@@ -1,15 +1,8 @@
 import { onMount, createSignal, Show, type JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { Tooltip } from "@kobalte/core/tooltip";
-import {
-  Play,
-  FileDown,
-  Link2,
-  AlertCircle,
-  X,
-  ClipboardPaste,
-  Folder,
-} from "lucide-solid";
+import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
+import { Link2, AlertCircle, X, ClipboardPaste, Folder, FileDown } from "lucide-solid";
 import { useUIStore } from "@/store/useUIStore";
 import { useParseStore } from "@/store/useParseStore";
 import { useQueueStore } from "@/store/useQueueStore";
@@ -298,7 +291,10 @@ export default function Home(): JSX.Element {
         <form onSubmit={handleAction} class="space-y-4">
           {/* Resource URL Input */}
           <div class="space-y-1.5 text-left">
-            <label for="media-url-input" class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <label
+              for="media-url-input"
+              class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+            >
               Media Link or Resource URL
             </label>
 
@@ -367,34 +363,36 @@ export default function Home(): JSX.Element {
             </span>
             <div class="grid grid-cols-2 p-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-xl gap-1">
               {/* Option 1: Analysis */}
-              <button
-                type="button"
-                onClick={() => setDirectDownload(false)}
-                disabled={loading()}
-                class={`flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  !directDownload()
-                    ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
-                    : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-                }`}
-              >
-                <Play class="w-3.5 h-3.5" />
-                <span>Metadata Analysis</span>
-              </button>
+              <AdaptiveTooltip content="Probe metadata, format streams, codecs, and subtitles before queueing">
+                <button
+                  type="button"
+                  onClick={() => setDirectDownload(false)}
+                  disabled={loading()}
+                  class={`w-full flex items-center justify-center py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    !directDownload()
+                      ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                  }`}
+                >
+                  Metadata Analysis
+                </button>
+              </AdaptiveTooltip>
 
               {/* Option 2: Direct Download */}
-              <button
-                type="button"
-                onClick={() => setDirectDownload(true)}
-                disabled={loading()}
-                class={`flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  directDownload()
-                    ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
-                    : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-                }`}
-              >
-                <FileDown class="w-3.5 h-3.5" />
-                <span>Direct Queue</span>
-              </button>
+              <AdaptiveTooltip content="Immediately add download job to queue with best available quality">
+                <button
+                  type="button"
+                  onClick={() => setDirectDownload(true)}
+                  disabled={loading()}
+                  class={`w-full flex items-center justify-center py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    directDownload()
+                      ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                      : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                  }`}
+                >
+                  Direct Queue
+                </button>
+              </AdaptiveTooltip>
             </div>
             <p class="text-[11px] text-zinc-400 dark:text-zinc-500">
               {directDownload()
@@ -409,13 +407,15 @@ export default function Home(): JSX.Element {
               <span class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                 Network Rule & Proxy Profile
               </span>
-              <button
-                type="button"
-                onClick={() => navigate("/sites_config")}
-                class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-              >
-                Manage
-              </button>
+              <AdaptiveTooltip content="Manage domain routing rules and proxy profiles">
+                <button
+                  type="button"
+                  onClick={() => navigate("/sites_config")}
+                  class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                >
+                  Manage
+                </button>
+              </AdaptiveTooltip>
             </div>
 
             <SiteProfilePicker
@@ -448,28 +448,29 @@ export default function Home(): JSX.Element {
 
           {/* Submit Action Button */}
           <div class="pt-1">
-            <button
-              type="submit"
-              disabled={loading() || !url().trim()}
-              class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs hover:shadow transition-all active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none tracking-wide cursor-pointer"
+            <AdaptiveTooltip
+              content={
+                directDownload()
+                  ? "Directly enqueue resource with best quality"
+                  : "Inspect formats, codecs, and subtitles"
+              }
             >
-              <Show
-                when={loading()}
-                fallback={
-                  <>
-                    <Show when={directDownload()} fallback={<Play class="w-3.5 h-3.5" />}>
-                      <FileDown class="w-3.5 h-3.5" />
-                    </Show>
-                    <span>
-                      {directDownload() ? "Enqueue & Start Download" : "Analyze Resource"}
-                    </span>
-                  </>
-                }
+              <button
+                type="submit"
+                disabled={loading() || !url().trim()}
+                class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-xs hover:shadow transition-all active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none tracking-wide cursor-pointer"
               >
-                <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Extracting Parameters...</span>
-              </Show>
-            </button>
+                <Show
+                  when={loading()}
+                  fallback={directDownload() ? "Enqueue & Start Download" : "Analyze Resource"}
+                >
+                  <span class="flex items-center gap-2">
+                    <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Extracting Parameters...</span>
+                  </span>
+                </Show>
+              </button>
+            </AdaptiveTooltip>
           </div>
         </form>
       </div>

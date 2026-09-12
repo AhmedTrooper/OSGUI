@@ -128,7 +128,6 @@ export const isPlaylistPayload = (
   ("_type" in payload && (payload as { _type?: string })._type === "playlist") ||
   Array.isArray((payload as { entries?: unknown[] }).entries);
 
-
 export interface ParsedFile {
   slug: string;
   url: string;

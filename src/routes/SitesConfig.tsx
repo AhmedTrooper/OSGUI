@@ -3,6 +3,8 @@ import { useUIStore } from "@/store/useUIStore";
 import { ipc } from "@/utils/ipc";
 import type { CookieProfile, ProxyProfile, SiteConfig } from "@/core/types/database.types";
 import { CustomSelect } from "@/components/CustomSelect";
+import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
+import { Checkbox } from "@/components/Checkbox";
 import {
   Plus,
   Trash2,
@@ -13,8 +15,6 @@ import {
   ShieldCheck,
   Database,
   GlobeLock,
-  CheckSquare,
-  Square,
   Search,
   ChevronLeft,
   ChevronRight,
@@ -289,8 +289,7 @@ export default function SitesConfig(): JSX.Element {
       (s) => s.title.toLowerCase().includes(q) || s.domain.toLowerCase().includes(q),
     );
   };
-  const totalSitesPages = (): number =>
-    Math.max(1, Math.ceil(filteredSites().length / PAGE_SIZE));
+  const totalSitesPages = (): number => Math.max(1, Math.ceil(filteredSites().length / PAGE_SIZE));
   const paginatedSites = (): SiteConfig[] => {
     const p = Math.min(sitesPage(), totalSitesPages());
     return filteredSites().slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE);
@@ -333,9 +332,7 @@ export default function SitesConfig(): JSX.Element {
             <GlobeLock class="w-5 h-5" />
           </div>
           <div>
-            <h1 class="text-base font-bold text-zinc-900 dark:text-white">
-              Network Preferences
-            </h1>
+            <h1 class="text-base font-bold text-zinc-900 dark:text-white">Network Preferences</h1>
             <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
               Configure domain routing rules, Netscape cookies, and proxy endpoints
             </p>
@@ -344,53 +341,56 @@ export default function SitesConfig(): JSX.Element {
 
         {/* Segmented Top Navigation Tabs */}
         <div class="inline-flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => setActiveTab("sites")}
-            class={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab() === "sites"
-                ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
-                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-            }`}
-          >
-            <Database class="w-3.5 h-3.5" />
-            <span>Domain Rules</span>
-            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-150 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
-              {sites().length}
-            </span>
-          </button>
+          <AdaptiveTooltip content="Manage domain-specific routing rules and credentials">
+            <button
+              type="button"
+              onClick={() => setActiveTab("sites")}
+              class={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab() === "sites"
+                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              }`}
+            >
+              <span>Domain Rules</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-150 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
+                {sites().length}
+              </span>
+            </button>
+          </AdaptiveTooltip>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("cookies")}
-            class={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab() === "cookies"
-                ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
-                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-            }`}
-          >
-            <ShieldCheck class="w-3.5 h-3.5" />
-            <span>Cookie Vault</span>
-            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-150 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
-              {cookies().length}
-            </span>
-          </button>
+          <AdaptiveTooltip content="Manage Netscape cookie vault profiles">
+            <button
+              type="button"
+              onClick={() => setActiveTab("cookies")}
+              class={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab() === "cookies"
+                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              }`}
+            >
+              <span>Cookie Vault</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-150 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
+                {cookies().length}
+              </span>
+            </button>
+          </AdaptiveTooltip>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab("proxies")}
-            class={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-2 ${
-              activeTab() === "proxies"
-                ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
-                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
-            }`}
-          >
-            <Settings2 class="w-3.5 h-3.5" />
-            <span>Proxy Networks</span>
-            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-150 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
-              {proxies().length}
-            </span>
-          </button>
+          <AdaptiveTooltip content="Manage HTTP/HTTPS/SOCKS proxy endpoints">
+            <button
+              type="button"
+              onClick={() => setActiveTab("proxies")}
+              class={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab() === "proxies"
+                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              }`}
+            >
+              <span>Proxy Networks</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-150 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
+                {proxies().length}
+              </span>
+            </button>
+          </AdaptiveTooltip>
         </div>
       </div>
 
@@ -402,8 +402,12 @@ export default function SitesConfig(): JSX.Element {
             <div class="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-4 rounded-2xl shadow-xs space-y-3">
               <div class="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
                 <div class="flex items-center gap-2">
-                  <h2 class="text-xs font-bold text-zinc-900 dark:text-white">Active Domain Rules</h2>
-                  <span class="text-[10px] font-mono text-zinc-400">({filteredSites().length})</span>
+                  <h2 class="text-xs font-bold text-zinc-900 dark:text-white">
+                    Active Domain Rules
+                  </h2>
+                  <span class="text-[10px] font-mono text-zinc-400">
+                    ({filteredSites().length})
+                  </span>
                 </div>
 
                 {/* Search */}
@@ -463,14 +467,15 @@ export default function SitesConfig(): JSX.Element {
                             </span>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => void handleDeleteSite(site.slug)}
-                            class="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-                            title="Delete Rule"
-                          >
-                            <Trash2 class="w-3.5 h-3.5" />
-                          </button>
+                          <AdaptiveTooltip content="Delete domain rule">
+                            <button
+                              type="button"
+                              onClick={() => void handleDeleteSite(site.slug)}
+                              class="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Trash2 class="w-3.5 h-3.5" />
+                            </button>
+                          </AdaptiveTooltip>
                         </div>
 
                         {/* Associated Profiles */}
@@ -485,7 +490,11 @@ export default function SitesConfig(): JSX.Element {
                             <CustomSelect
                               value={site.cookie_profile_slug ?? ""}
                               onChange={(val) => {
-                                void handleUpdateSite(site.slug, val || null, site.proxy_profile_slug);
+                                void handleUpdateSite(
+                                  site.slug,
+                                  val || null,
+                                  site.proxy_profile_slug,
+                                );
                               }}
                               options={cookies().map((c) => ({
                                 value: c.slug,
@@ -513,7 +522,11 @@ export default function SitesConfig(): JSX.Element {
                             <CustomSelect
                               value={site.proxy_profile_slug ?? ""}
                               onChange={(val) => {
-                                void handleUpdateSite(site.slug, site.cookie_profile_slug, val || null);
+                                void handleUpdateSite(
+                                  site.slug,
+                                  site.cookie_profile_slug,
+                                  val || null,
+                                );
                               }}
                               options={proxies().map((p) => ({
                                 value: p.slug,
@@ -540,7 +553,9 @@ export default function SitesConfig(): JSX.Element {
                   <div class="text-center py-10 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50/50 dark:bg-zinc-950/20">
                     <Database class="w-6 h-6 text-zinc-400 mx-auto mb-2" />
                     <span class="text-xs font-semibold text-zinc-500">
-                      {sitesSearch() ? "No domain rules match search." : "No domain routing rules configured."}
+                      {sitesSearch()
+                        ? "No domain rules match search."
+                        : "No domain routing rules configured."}
                     </span>
                   </div>
                 </Show>
@@ -657,13 +672,14 @@ export default function SitesConfig(): JSX.Element {
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-xs transition-all active:scale-[0.99] cursor-pointer mt-2"
-                >
-                  <Save class="w-3.5 h-3.5" />
-                  <span>Save Domain Rule</span>
-                </button>
+                <AdaptiveTooltip content="Persist domain rule configuration to database">
+                  <button
+                    type="submit"
+                    class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-xs transition-all active:scale-[0.99] cursor-pointer mt-2"
+                  >
+                    Save Domain Rule
+                  </button>
+                </AdaptiveTooltip>
               </form>
             </div>
           </div>
@@ -678,35 +694,38 @@ export default function SitesConfig(): JSX.Element {
             <div class="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-4 rounded-2xl shadow-xs space-y-3">
               <div class="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
                 <div class="flex items-center gap-2">
-                  <h2 class="text-xs font-bold text-zinc-900 dark:text-white">Netscape Credentials</h2>
-                  <span class="text-[10px] font-mono text-zinc-400">({filteredCookies().length})</span>
+                  <h2 class="text-xs font-bold text-zinc-900 dark:text-white">
+                    Netscape Credentials
+                  </h2>
+                  <span class="text-[10px] font-mono text-zinc-400">
+                    ({filteredCookies().length})
+                  </span>
                 </div>
 
                 <div class="flex items-center gap-2">
                   {/* Select All / Batch Delete */}
                   <Show when={cookies().length > 0}>
-                    <button
-                      type="button"
-                      onClick={toggleSelectAllCookies}
-                      class="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
-                      title={selectedCookies().length === cookies().length ? "Deselect All" : "Select All"}
-                    >
-                      <Show
-                        when={selectedCookies().length === cookies().length}
-                        fallback={<Square class="w-3.5 h-3.5" />}
-                      >
-                        <CheckSquare class="w-3.5 h-3.5 text-blue-600" />
-                      </Show>
-                    </button>
+                    <Checkbox
+                      checked={
+                        selectedCookies().length === cookies().length && cookies().length > 0
+                      }
+                      onChange={toggleSelectAllCookies}
+                      ariaLabel={
+                        selectedCookies().length === cookies().length
+                          ? "Deselect All"
+                          : "Select All"
+                      }
+                    />
                     <Show when={selectedCookies().length > 0}>
-                      <button
-                        type="button"
-                        onClick={() => void handleBatchDeleteCookies()}
-                        class="flex items-center gap-1 px-2 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                      >
-                        <Trash2 class="w-3 h-3" />
-                        <span>Delete ({selectedCookies().length})</span>
-                      </button>
+                      <AdaptiveTooltip content="Permanently delete selected cookie profiles">
+                        <button
+                          type="button"
+                          onClick={() => void handleBatchDeleteCookies()}
+                          class="flex items-center px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                        >
+                          Delete ({selectedCookies().length})
+                        </button>
+                      </AdaptiveTooltip>
                     </Show>
                   </Show>
 
@@ -733,11 +752,10 @@ export default function SitesConfig(): JSX.Element {
                     <div class="border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-3 rounded-xl space-y-2 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
                       <div class="flex items-start justify-between gap-3">
                         <div class="flex items-center gap-2.5 min-w-0">
-                          <input
-                            type="checkbox"
+                          <Checkbox
                             checked={selectedCookies().includes(cookie.slug)}
                             onChange={() => toggleSelectCookie(cookie.slug)}
-                            class="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-blue-600 cursor-pointer"
+                            ariaLabel={`Select ${cookie.title}`}
                           />
                           <div class="min-w-0">
                             <span class="text-xs font-bold text-zinc-900 dark:text-white block truncate">
@@ -750,31 +768,40 @@ export default function SitesConfig(): JSX.Element {
                         </div>
 
                         <div class="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (editingCookie() === cookie.slug) {
-                                setEditingCookie(null);
-                              } else {
-                                setEditingCookie(cookie.slug);
-                                setEditCookieData(cookie.cookie_data);
-                              }
-                            }}
-                            class="p-1.5 text-zinc-400 hover:text-blue-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
-                            title="Edit Data"
+                          <AdaptiveTooltip
+                            content={
+                              editingCookie() === cookie.slug ? "Cancel edit" : "Edit cookie data"
+                            }
                           >
-                            <Show when={editingCookie() === cookie.slug} fallback={<Edit2 class="w-3.5 h-3.5" />}>
-                              <X class="w-3.5 h-3.5" />
-                            </Show>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void handleDeleteCookie(cookie.slug)}
-                            class="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-                            title="Delete"
-                          >
-                            <Trash2 class="w-3.5 h-3.5" />
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (editingCookie() === cookie.slug) {
+                                  setEditingCookie(null);
+                                } else {
+                                  setEditingCookie(cookie.slug);
+                                  setEditCookieData(cookie.cookie_data);
+                                }
+                              }}
+                              class="p-1.5 text-zinc-400 hover:text-blue-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Show
+                                when={editingCookie() === cookie.slug}
+                                fallback={<Edit2 class="w-3.5 h-3.5" />}
+                              >
+                                <X class="w-3.5 h-3.5" />
+                              </Show>
+                            </button>
+                          </AdaptiveTooltip>
+                          <AdaptiveTooltip content="Delete cookie profile">
+                            <button
+                              type="button"
+                              onClick={() => void handleDeleteCookie(cookie.slug)}
+                              class="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Trash2 class="w-3.5 h-3.5" />
+                            </button>
+                          </AdaptiveTooltip>
                         </div>
                       </div>
 
@@ -813,7 +840,9 @@ export default function SitesConfig(): JSX.Element {
                   <div class="text-center py-10 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50/50 dark:bg-zinc-950/20">
                     <ShieldCheck class="w-6 h-6 text-zinc-400 mx-auto mb-2" />
                     <span class="text-xs font-semibold text-zinc-500">
-                      {cookiesSearch() ? "No cookie profiles match search." : "No Netscape cookie profiles imported."}
+                      {cookiesSearch()
+                        ? "No cookie profiles match search."
+                        : "No Netscape cookie profiles imported."}
                     </span>
                   </div>
                 </Show>
@@ -823,7 +852,8 @@ export default function SitesConfig(): JSX.Element {
               <Show when={totalCookiesPages() > 1}>
                 <div class="flex items-center justify-between pt-2 border-t border-zinc-200 dark:border-zinc-800 text-xs">
                   <span class="text-zinc-400">
-                    Page <strong class="text-zinc-700 dark:text-zinc-300">{cookiesPage()}</strong> of{" "}
+                    Page <strong class="text-zinc-700 dark:text-zinc-300">{cookiesPage()}</strong>{" "}
+                    of{" "}
                     <strong class="text-zinc-700 dark:text-zinc-300">{totalCookiesPages()}</strong>
                   </span>
                   <div class="flex items-center gap-1">
@@ -854,7 +884,9 @@ export default function SitesConfig(): JSX.Element {
             <div class="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-4 rounded-2xl shadow-xs space-y-3.5">
               <div class="flex items-center gap-2 pb-2 border-b border-zinc-200 dark:border-zinc-800">
                 <Plus class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <h2 class="text-xs font-bold text-zinc-900 dark:text-white">Import Netscape Cookies</h2>
+                <h2 class="text-xs font-bold text-zinc-900 dark:text-white">
+                  Import Netscape Cookies
+                </h2>
               </div>
 
               <form onSubmit={(e) => void handleAddCookie(e)} class="space-y-3">
@@ -902,17 +934,19 @@ export default function SitesConfig(): JSX.Element {
                 <div class="flex items-start gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px] leading-relaxed">
                   <AlertCircle class="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>
-                    Only raw Netscape format text is valid for yt-dlp authentication. JSON format is rejected.
+                    Only raw Netscape format text is valid for yt-dlp authentication. JSON format is
+                    rejected.
                   </span>
                 </div>
 
-                <button
-                  type="submit"
-                  class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-xs transition-all active:scale-[0.99] cursor-pointer"
-                >
-                  <Save class="w-3.5 h-3.5" />
-                  <span>Save Cookie Profile</span>
-                </button>
+                <AdaptiveTooltip content="Store Netscape cookie credentials in vault">
+                  <button
+                    type="submit"
+                    class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+                  >
+                    Save Cookie Profile
+                  </button>
+                </AdaptiveTooltip>
               </form>
             </div>
           </div>
@@ -928,34 +962,35 @@ export default function SitesConfig(): JSX.Element {
               <div class="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
                 <div class="flex items-center gap-2">
                   <h2 class="text-xs font-bold text-zinc-900 dark:text-white">Proxy Endpoints</h2>
-                  <span class="text-[10px] font-mono text-zinc-400">({filteredProxies().length})</span>
+                  <span class="text-[10px] font-mono text-zinc-400">
+                    ({filteredProxies().length})
+                  </span>
                 </div>
 
                 <div class="flex items-center gap-2">
                   {/* Select All / Batch Delete */}
                   <Show when={proxies().length > 0}>
-                    <button
-                      type="button"
-                      onClick={toggleSelectAllProxies}
-                      class="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
-                      title={selectedProxies().length === proxies().length ? "Deselect All" : "Select All"}
-                    >
-                      <Show
-                        when={selectedProxies().length === proxies().length}
-                        fallback={<Square class="w-3.5 h-3.5" />}
-                      >
-                        <CheckSquare class="w-3.5 h-3.5 text-blue-600" />
-                      </Show>
-                    </button>
+                    <Checkbox
+                      checked={
+                        selectedProxies().length === proxies().length && proxies().length > 0
+                      }
+                      onChange={toggleSelectAllProxies}
+                      ariaLabel={
+                        selectedProxies().length === proxies().length
+                          ? "Deselect All"
+                          : "Select All"
+                      }
+                    />
                     <Show when={selectedProxies().length > 0}>
-                      <button
-                        type="button"
-                        onClick={() => void handleBatchDeleteProxies()}
-                        class="flex items-center gap-1 px-2 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                      >
-                        <Trash2 class="w-3 h-3" />
-                        <span>Delete ({selectedProxies().length})</span>
-                      </button>
+                      <AdaptiveTooltip content="Permanently delete selected proxy profiles">
+                        <button
+                          type="button"
+                          onClick={() => void handleBatchDeleteProxies()}
+                          class="flex items-center px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                        >
+                          Delete ({selectedProxies().length})
+                        </button>
+                      </AdaptiveTooltip>
                     </Show>
                   </Show>
 
@@ -982,11 +1017,10 @@ export default function SitesConfig(): JSX.Element {
                     <div class="border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-3 rounded-xl space-y-2 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
                       <div class="flex items-start justify-between gap-3">
                         <div class="flex items-center gap-2.5 min-w-0">
-                          <input
-                            type="checkbox"
+                          <Checkbox
                             checked={selectedProxies().includes(proxy.slug)}
                             onChange={() => toggleSelectProxy(proxy.slug)}
-                            class="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700 text-blue-600 cursor-pointer"
+                            ariaLabel={`Select ${proxy.title}`}
                           />
                           <div class="min-w-0">
                             <span class="text-xs font-bold text-zinc-900 dark:text-white block truncate">
@@ -999,31 +1033,40 @@ export default function SitesConfig(): JSX.Element {
                         </div>
 
                         <div class="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (editingProxy() === proxy.slug) {
-                                setEditingProxy(null);
-                              } else {
-                                setEditingProxy(proxy.slug);
-                                setEditProxyData(proxy.proxy_string);
-                              }
-                            }}
-                            class="p-1.5 text-zinc-400 hover:text-blue-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
-                            title="Edit String"
+                          <AdaptiveTooltip
+                            content={
+                              editingProxy() === proxy.slug ? "Cancel edit" : "Edit proxy endpoint"
+                            }
                           >
-                            <Show when={editingProxy() === proxy.slug} fallback={<Edit2 class="w-3.5 h-3.5" />}>
-                              <X class="w-3.5 h-3.5" />
-                            </Show>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void handleDeleteProxy(proxy.slug)}
-                            class="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-                            title="Delete"
-                          >
-                            <Trash2 class="w-3.5 h-3.5" />
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (editingProxy() === proxy.slug) {
+                                  setEditingProxy(null);
+                                } else {
+                                  setEditingProxy(proxy.slug);
+                                  setEditProxyData(proxy.proxy_string);
+                                }
+                              }}
+                              class="p-1.5 text-zinc-400 hover:text-blue-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Show
+                                when={editingProxy() === proxy.slug}
+                                fallback={<Edit2 class="w-3.5 h-3.5" />}
+                              >
+                                <X class="w-3.5 h-3.5" />
+                              </Show>
+                            </button>
+                          </AdaptiveTooltip>
+                          <AdaptiveTooltip content="Delete proxy profile">
+                            <button
+                              type="button"
+                              onClick={() => void handleDeleteProxy(proxy.slug)}
+                              class="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Trash2 class="w-3.5 h-3.5" />
+                            </button>
+                          </AdaptiveTooltip>
                         </div>
                       </div>
 
@@ -1063,7 +1106,9 @@ export default function SitesConfig(): JSX.Element {
                   <div class="text-center py-10 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50/50 dark:bg-zinc-950/20">
                     <Settings2 class="w-6 h-6 text-zinc-400 mx-auto mb-2" />
                     <span class="text-xs font-semibold text-zinc-500">
-                      {proxiesSearch() ? "No proxies match search." : "No proxy network profiles configured."}
+                      {proxiesSearch()
+                        ? "No proxies match search."
+                        : "No proxy network profiles configured."}
                     </span>
                   </div>
                 </Show>
@@ -1073,7 +1118,8 @@ export default function SitesConfig(): JSX.Element {
               <Show when={totalProxiesPages() > 1}>
                 <div class="flex items-center justify-between pt-2 border-t border-zinc-200 dark:border-zinc-800 text-xs">
                   <span class="text-zinc-400">
-                    Page <strong class="text-zinc-700 dark:text-zinc-300">{proxiesPage()}</strong> of{" "}
+                    Page <strong class="text-zinc-700 dark:text-zinc-300">{proxiesPage()}</strong>{" "}
+                    of{" "}
                     <strong class="text-zinc-700 dark:text-zinc-300">{totalProxiesPages()}</strong>
                   </span>
                   <div class="flex items-center gap-1">
@@ -1139,17 +1185,19 @@ export default function SitesConfig(): JSX.Element {
                 <div class="flex items-start gap-2 p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
                   <Settings2 class="w-4 h-4 flex-shrink-0 mt-0.5 text-zinc-400" />
                   <span>
-                    Supported schemes: <code>http://</code>, <code>https://</code>, <code>socks4://</code>, and <code>socks5://</code>.
+                    Supported schemes: <code>http://</code>, <code>https://</code>,{" "}
+                    <code>socks4://</code>, and <code>socks5://</code>.
                   </span>
                 </div>
 
-                <button
-                  type="submit"
-                  class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-xs transition-all active:scale-[0.99] cursor-pointer"
-                >
-                  <Save class="w-3.5 h-3.5" />
-                  <span>Save Proxy Profile</span>
-                </button>
+                <AdaptiveTooltip content="Persist proxy endpoint configuration">
+                  <button
+                    type="submit"
+                    class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-xs transition-all active:scale-[0.99] cursor-pointer"
+                  >
+                    Save Proxy Profile
+                  </button>
+                </AdaptiveTooltip>
               </form>
             </div>
           </div>

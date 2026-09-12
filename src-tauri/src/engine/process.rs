@@ -367,7 +367,7 @@ pub fn resolve_job_parameters(
         )
         .ok()
         .and_then(|v| v.parse().ok())
-        .unwrap_or(4);
+        .unwrap_or(1);
 
     let root_destination = pick_root_destination(conn, parts.base_path.clone());
     let (final_path, clean_video_name) = apply_layout_to_path(root_destination, &parts);

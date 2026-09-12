@@ -1,13 +1,5 @@
 import { createSignal, Show, For, type JSX } from "solid-js";
-import {
-  Globe,
-  GlobeLock,
-  ChevronDown,
-  Check,
-  Shield,
-  Cookie,
-  ExternalLink,
-} from "lucide-solid";
+import { Globe, GlobeLock, ChevronDown, Check, Shield, Cookie, ExternalLink } from "lucide-solid";
 import type { SiteConfig } from "@/core/types/database.types";
 
 export interface SiteProfilePickerProps {
@@ -90,10 +82,7 @@ export function SiteProfilePicker(props: SiteProfilePickerProps): JSX.Element {
 
         {/* Popover Menu */}
         <Show when={isOpen()}>
-          <div
-            class="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
+          <div class="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
 
           <div class="absolute z-50 left-0 right-0 top-full mt-1.5 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden animate-fade-in origin-top">
             {/* Popover Header */}
@@ -175,9 +164,7 @@ export function SiteProfilePicker(props: SiteProfilePickerProps): JSX.Element {
                               {cfg.proxy_profile_slug ? "Custom Proxy" : "Direct Routing"}
                             </span>
                             <span>•</span>
-                            <span>
-                              {cfg.cookie_profile_slug ? "Cookie Session" : "No Auth"}
-                            </span>
+                            <span>{cfg.cookie_profile_slug ? "Cookie Session" : "No Auth"}</span>
                           </div>
                         </div>
                       </div>

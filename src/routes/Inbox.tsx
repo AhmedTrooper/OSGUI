@@ -1,6 +1,7 @@
 import { onMount, createSignal, For, Show, onCleanup, type JSX } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { Tooltip } from "@kobalte/core/tooltip";
+import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
 import {
   Inbox,
   Trash2,
@@ -14,8 +15,6 @@ import {
   Check,
   X,
   Globe,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-solid";
 import { useUIStore } from "@/store/useUIStore";
 import { ipc } from "@/utils/ipc";
@@ -386,29 +385,30 @@ export default function InboxRoute(): JSX.Element {
           </div>
 
           <div class="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={handlePrevPage}
-              disabled={page() <= 1 || loading()}
-              class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
-            >
-              <ChevronLeft class="w-3.5 h-3.5" />
-              <span>Previous</span>
-            </button>
+            <AdaptiveTooltip content="Navigate to previous page">
+              <button
+                type="button"
+                onClick={handlePrevPage}
+                disabled={page() <= 1 || loading()}
+                class="flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+              >
+                Previous
+              </button>
+            </AdaptiveTooltip>
 
-            <button
-              type="button"
-              onClick={handleNextPage}
-              disabled={page() >= totalPages() || loading()}
-              class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
-            >
-              <span>Next</span>
-              <ChevronRight class="w-3.5 h-3.5" />
-            </button>
+            <AdaptiveTooltip content="Navigate to next page">
+              <button
+                type="button"
+                onClick={handleNextPage}
+                disabled={page() >= totalPages() || loading()}
+                class="flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+              >
+                Next
+              </button>
+            </AdaptiveTooltip>
           </div>
         </div>
       </Show>
-
     </div>
   );
 }

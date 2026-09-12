@@ -1,6 +1,8 @@
 import { Show, For, type Accessor, type Setter, type JSX } from "solid-js";
-import { Sliders, ToggleLeft, Film, Music, CheckCircle2, Download, Globe } from "lucide-solid";
+import { Sliders, ToggleLeft, Film, Music, CheckCircle2, Globe } from "lucide-solid";
 import { cn } from "@/utils/cn";
+import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
+import { Checkbox } from "@/components/Checkbox";
 import type { Format, PresetOption, SubtitleOption } from "@/core/types/ytdlp.types";
 
 export type SelectionMode = "custom" | "fallback";
@@ -313,16 +315,17 @@ function DownloadPanel(props: DownloadPanelProps): JSX.Element {
               {props.formatString}
             </div>
           </div>
-          <button
-            onClick={() => props.startDownload(props.formatString)}
-            class="flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold w-full py-2.5 rounded hover:-translate-y-0.5 active:translate-y-0 transition-all overflow-hidden px-2 min-h-[36px]"
-            type="button"
-          >
-            <Download class="w-4 h-4 flex-shrink-0" />
-            <span class="truncate text-[11px] uppercase tracking-wider font-extrabold">
-              Queue Download
-            </span>
-          </button>
+          <AdaptiveTooltip content="Add selected media stream format to download queue">
+            <button
+              onClick={() => props.startDownload(props.formatString)}
+              class="flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold w-full py-2.5 rounded hover:-translate-y-0.5 active:translate-y-0 transition-all overflow-hidden px-2 min-h-[36px] cursor-pointer"
+              type="button"
+            >
+              <span class="truncate text-[11px] uppercase tracking-wider font-extrabold">
+                Queue Download
+              </span>
+            </button>
+          </AdaptiveTooltip>
         </div>
       </div>
     </div>
@@ -375,28 +378,31 @@ function SubtitlePanel(props: SubtitlePanelProps): JSX.Element {
                             : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-purple-500",
                         )}
                       >
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={isChecked()}
                           onChange={() => props.toggleSub(option.lang)}
-                          class="accent-purple-500 w-3 h-3 cursor-pointer"
+                          color="purple"
+                          size="sm"
                         />
-                        {option.name} {option.lang !== "all" && `(${option.lang.toUpperCase()})`}
+                        <span>
+                          {option.name} {option.lang !== "all" && `(${option.lang.toUpperCase()})`}
+                        </span>
                       </label>
                     );
                   }}
                 </For>
               </div>
             </div>
-            <button
-              onClick={props.downloadSubtitle}
-              disabled={props.selectedSubs().length === 0}
-              class="flex items-center justify-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 font-bold border border-zinc-200 dark:border-zinc-700 w-full py-2 rounded shadow-sm disabled:opacity-50 min-h-[34px] px-2 text-[10px] uppercase tracking-wider"
-              type="button"
-            >
-              <Download class="w-3.5 h-3.5" />
-              Download Subtitle
-            </button>
+            <AdaptiveTooltip content="Download selected subtitles for this media">
+              <button
+                onClick={props.downloadSubtitle}
+                disabled={props.selectedSubs().length === 0}
+                class="flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 font-bold border border-zinc-200 dark:border-zinc-700 w-full py-2 rounded shadow-sm disabled:opacity-50 min-h-[34px] px-2 text-[10px] uppercase tracking-wider cursor-pointer"
+                type="button"
+              >
+                Download Subtitle
+              </button>
+            </AdaptiveTooltip>
           </Show>
         </div>
       </div>

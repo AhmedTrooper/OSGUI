@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
     value TEXT NOT NULL
 );
 INSERT OR IGNORE INTO app_settings (key, value) VALUES ('concurrency_limit', '3');
-INSERT OR IGNORE INTO app_settings (key, value) VALUES ('download_chunks', '4');
+INSERT OR IGNORE INTO app_settings (key, value) VALUES ('download_chunks', '1');
 
 CREATE TABLE IF NOT EXISTS parsed_files (
     slug TEXT PRIMARY KEY NOT NULL,
@@ -236,6 +236,10 @@ fn initialize_database(app: &tauri::App) -> Result<PathBuf, Box<dyn std::error::
     // build that pre-dated the site-config relationship.
     let _ = conn.execute(
         "ALTER TABLE parsed_files ADD COLUMN site_config_slug TEXT REFERENCES site_configs(slug) ON DELETE SET NULL;",
+        [],
+    );
+    let _ = conn.execute(
+        "UPDATE app_settings SET value = '1' WHERE key = 'download_chunks' AND value = '4';",
         [],
     );
 

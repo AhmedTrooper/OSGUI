@@ -420,7 +420,7 @@ pub async fn update_download_chunks(
     })
 }
 
-/// Read the persisted chunk count; default 4.
+/// Read the persisted chunk count; default 1.
 #[tauri::command]
 #[allow(clippy::unused_async)]
 pub async fn get_download_chunks(state: State<'_, AppEngineState>) -> Result<usize, String> {
@@ -436,5 +436,5 @@ pub async fn get_download_chunks(state: State<'_, AppEngineState>) -> Result<usi
             }
         }
     }
-    Ok(4)
+    Ok(1)
 }

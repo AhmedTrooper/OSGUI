@@ -159,20 +159,39 @@ export const ipc = {
   },
 
   // ── config ───────────────────────────────────────────────────────────────
-  getConcurrencyLimit: (): Promise<GetConcurrencyLimitResult> =>
-    isTauri()
-      ? callTauri<GetConcurrencyLimitResult>("get_concurrency_limit")
-      : Promise.resolve({ ...mockOk(0), limit: 3 }),
+  getConcurrencyLimit: async (): Promise<GetConcurrencyLimitResult> => {
+    if (!isTauri()) {
+      return { ...mockOk(3), limit: 3 };
+    }
+    const res = await callTauri<number | { limit: number }>("get_concurrency_limit");
+    const limit = typeof res === "number" ? res : (res?.limit ?? 3);
+    return { ...mockOk(limit), limit };
+  },
 
-  getDownloadChunks: (): Promise<GetDownloadChunksResult> =>
-    isTauri()
-      ? callTauri<GetDownloadChunksResult>("get_download_chunks")
-      : Promise.resolve({ ...mockOk(0), chunks: 4 }),
+  getDownloadChunks: async (): Promise<GetDownloadChunksResult> => {
+    if (!isTauri()) {
+      return { ...mockOk(1), chunks: 1 };
+    }
+    const res = await callTauri<number | { chunks: number }>("get_download_chunks");
+    const chunks = typeof res === "number" ? res : (res?.chunks ?? 1);
+    return { ...mockOk(chunks), chunks };
+  },
 
-  updateConfig: (args: UpdateConfigArgs): Promise<UpdateConfigResult> =>
-    isTauri()
-      ? callTauri<UpdateConfigResult>("update_config", args as unknown as Record<string, unknown>)
-      : Promise.resolve(mockOk()),
+  updateConfig: async (args: UpdateConfigArgs): Promise<UpdateConfigResult> => {
+    if (!isTauri()) {
+      return mockOk();
+    }
+    if (args.concurrency_limit !== undefined) {
+      await callTauri("update_concurrency_limit", { limit: args.concurrency_limit });
+    }
+    if (args.chunks !== undefined) {
+      await callTauri("update_download_chunks", { chunks: args.chunks });
+    }
+    if (args.path !== undefined) {
+      await callTauri("update_download_path", { path: args.path });
+    }
+    return mockOk();
+  },
 
   // ── discovery ────────────────────────────────────────────────────────────
   discoverAssetMetadata: (args: DiscoverAssetMetadataArgs): Promise<DiscoverAssetMetadataResult> =>
@@ -186,10 +205,7 @@ export const ipc = {
   // ── inbox ─────────────────────────────────────────────────────────────────
   getInboxUrls: (args?: GetInboxUrlsArgs): Promise<GetInboxUrlsResult> =>
     isTauri()
-      ? callTauri<GetInboxUrlsResult>(
-          "get_inbox_urls",
-          args as unknown as Record<string, unknown>,
-        )
+      ? callTauri<GetInboxUrlsResult>("get_inbox_urls", args as unknown as Record<string, unknown>)
       : Promise.resolve({
           items: [],
           total: 0,

@@ -1,5 +1,6 @@
 import { createSignal, For, Show, onMount, type JSX } from "solid-js";
 import { Tooltip } from "@kobalte/core/tooltip";
+import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
 import {
   FileWarning,
   Database,
@@ -8,7 +9,6 @@ import {
   ChevronDown,
   CheckCircle2,
   AlertTriangle,
-  Copy,
   Check,
   Download,
   Cpu,
@@ -82,9 +82,8 @@ export function LogsSection(): JSX.Element {
     <div class="space-y-4 text-xs sm:text-sm font-sans">
       <div class="flex items-center justify-end pb-2 border-b border-zinc-200 dark:border-zinc-800/80">
         <Show when={hasLogs()}>
-          <Tooltip openDelay={200} placement="bottom-end">
-            <Tooltip.Trigger
-              as="button"
+          <AdaptiveTooltip content="Flush all exception and discovery logs">
+            <button
               onClick={() => {
                 void handleClearLogs();
               }}
@@ -92,23 +91,16 @@ export function LogsSection(): JSX.Element {
               type="button"
             >
               <Trash2 class="w-3.5 h-3.5" />
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                <Tooltip.Arrow />
-                Flush Logs
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip>
+            </button>
+          </AdaptiveTooltip>
         </Show>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-        {/* Left: Tabs (icon-only) */}
+        {/* Left: Tabs */}
         <div class="lg:col-span-3 flex flex-col gap-1 border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/10 p-2 rounded-xl">
-          <Tooltip openDelay={200} placement="right">
-            <Tooltip.Trigger
-              as="button"
+          <AdaptiveTooltip content="View download exceptions and execution failures">
+            <button
               onClick={() => switchTab("errors")}
               class={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all cursor-pointer ${
                 activeTab() === "errors"
@@ -117,24 +109,15 @@ export function LogsSection(): JSX.Element {
               }`}
               type="button"
             >
-              <AlertTriangle
-                class={`w-4 h-4 ${activeTab() === "errors" ? "text-red-500" : "text-zinc-400"}`}
-              />
+              <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-200">Exceptions</span>
               <span class="text-[10px] bg-red-500/10 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded-md font-mono font-bold">
                 {errorLogs().length}
               </span>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                <Tooltip.Arrow />
-                Download Exceptions
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip>
+            </button>
+          </AdaptiveTooltip>
 
-          <Tooltip openDelay={200} placement="right">
-            <Tooltip.Trigger
-              as="button"
+          <AdaptiveTooltip content="View URL metadata discovery and probe history">
+            <button
               onClick={() => switchTab("parses")}
               class={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all cursor-pointer ${
                 activeTab() === "parses"
@@ -143,20 +126,12 @@ export function LogsSection(): JSX.Element {
               }`}
               type="button"
             >
-              <Database
-                class={`w-4 h-4 ${activeTab() === "parses" ? "text-indigo-500" : "text-zinc-400"}`}
-              />
+              <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-200">Discovery</span>
               <span class="text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-md font-mono font-bold">
                 {parseLogs().length}
               </span>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                <Tooltip.Arrow />
-                Metadata Discovery
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip>
+            </button>
+          </AdaptiveTooltip>
         </div>
 
         {/* Right: Log terminal */}
@@ -245,27 +220,22 @@ export function LogsSection(): JSX.Element {
                                         </Tooltip.Content>
                                       </Tooltip.Portal>
                                     </Tooltip>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        void handleCopyText(
-                                          log.command_executed,
-                                          `${log.slug}-cmd`,
-                                        );
-                                      }}
-                                      class="text-blue-500 hover:text-blue-400 transition-colors cursor-pointer flex items-center gap-1 text-[10px] font-bold"
-                                    >
-                                      <Show
-                                        when={copiedKey() === `${log.slug}-cmd`}
-                                        fallback={
-                                          <>
-                                            <Copy class="w-3 h-3" /> Copy Command
-                                          </>
-                                        }
+                                    <AdaptiveTooltip content="Copy executed command to clipboard">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          void handleCopyText(
+                                            log.command_executed,
+                                            `${log.slug}-cmd`,
+                                          );
+                                        }}
+                                        class="text-blue-500 hover:text-blue-400 transition-colors cursor-pointer flex items-center text-[10px] font-bold"
                                       >
-                                        <Check class="w-3 h-3" /> Copied!
-                                      </Show>
-                                    </button>
+                                        {copiedKey() === `${log.slug}-cmd`
+                                          ? "Copied!"
+                                          : "Copy Command"}
+                                      </button>
+                                    </AdaptiveTooltip>
                                   </div>
                                   <div class="bg-zinc-100 dark:bg-black p-2 rounded-lg border border-zinc-250 dark:border-zinc-900 break-all text-zinc-800 dark:text-zinc-300">
                                     {log.command_executed}
@@ -288,24 +258,19 @@ export function LogsSection(): JSX.Element {
                                         </Tooltip.Content>
                                       </Tooltip.Portal>
                                     </Tooltip>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        void handleCopyText(log.error_message, `${log.slug}-msg`);
-                                      }}
-                                      class="text-red-500 hover:text-red-400 transition-colors cursor-pointer flex items-center gap-1 text-[10px] font-bold"
-                                    >
-                                      <Show
-                                        when={copiedKey() === `${log.slug}-msg`}
-                                        fallback={
-                                          <>
-                                            <Copy class="w-3 h-3" /> Copy Payload
-                                          </>
-                                        }
+                                    <AdaptiveTooltip content="Copy error payload to clipboard">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          void handleCopyText(log.error_message, `${log.slug}-msg`);
+                                        }}
+                                        class="text-red-500 hover:text-red-400 transition-colors cursor-pointer flex items-center text-[10px] font-bold"
                                       >
-                                        <Check class="w-3 h-3" /> Copied!
-                                      </Show>
-                                    </button>
+                                        {copiedKey() === `${log.slug}-msg`
+                                          ? "Copied!"
+                                          : "Copy Payload"}
+                                      </button>
+                                    </AdaptiveTooltip>
                                   </div>
                                   <div class="bg-red-500/5 text-red-700 dark:text-red-400 p-2 rounded-lg border border-red-500/15 dark:border-red-500/10 break-words whitespace-pre-wrap leading-relaxed select-text">
                                     {log.error_message}
@@ -404,27 +369,22 @@ export function LogsSection(): JSX.Element {
                                         </Tooltip.Content>
                                       </Tooltip.Portal>
                                     </Tooltip>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        void handleCopyText(
-                                          log.command_executed,
-                                          `${log.slug}-cmd`,
-                                        );
-                                      }}
-                                      class="text-blue-500 hover:text-blue-400 transition-colors cursor-pointer flex items-center gap-1 text-[10px] font-bold"
-                                    >
-                                      <Show
-                                        when={copiedKey() === `${log.slug}-cmd`}
-                                        fallback={
-                                          <>
-                                            <Copy class="w-3 h-3" /> Copy Command
-                                          </>
-                                        }
+                                    <AdaptiveTooltip content="Copy executed command to clipboard">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          void handleCopyText(
+                                            log.command_executed,
+                                            `${log.slug}-cmd`,
+                                          );
+                                        }}
+                                        class="text-blue-500 hover:text-blue-400 transition-colors cursor-pointer flex items-center text-[10px] font-bold"
                                       >
-                                        <Check class="w-3 h-3" /> Copied!
-                                      </Show>
-                                    </button>
+                                        {copiedKey() === `${log.slug}-cmd`
+                                          ? "Copied!"
+                                          : "Copy Command"}
+                                      </button>
+                                    </AdaptiveTooltip>
                                   </div>
                                   <div class="bg-zinc-100 dark:bg-black p-2 rounded-lg border border-zinc-250 dark:border-zinc-900 break-all text-zinc-800 dark:text-zinc-300">
                                     {log.command_executed}
