@@ -17,7 +17,7 @@ import SitesConfig from "./routes/SitesConfig";
 import Logs from "./routes/Logs";
 import Inbox from "./routes/Inbox";
 import InboxDetail from "./routes/InboxDetail";
-import Extentions from "./routes/Extensions";
+import Extensions from "./routes/Extensions";
 
 const root = document.getElementById("root");
 
@@ -36,7 +36,7 @@ render(
         <Route path="/logs" component={Logs} />
         <Route path="/inbox" component={Inbox} />
         <Route path="/inbox/:slug" component={InboxDetail} />
-        <Route path="/extentions" component={Extentions} />
+        <Route path="/extensions" component={Extensions} />
       </Route>
     </Router>
   ),
