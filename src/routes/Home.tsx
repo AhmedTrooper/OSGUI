@@ -8,9 +8,8 @@ import {
   AlertCircle,
   X,
   GlobeLock,
-  HardDrive,
-  LayoutGrid,
   ClipboardPaste,
+  Folder,
 } from "lucide-solid";
 import { useUIStore } from "@/store/useUIStore";
 import { useParseStore } from "@/store/useParseStore";
@@ -20,20 +19,8 @@ import { isTauri } from "@/utils/tauri";
 import { sanitizeTitle } from "@/utils/sanitize";
 import { logErrorToDb, logParseToDb } from "@/core/logger";
 import type { SiteConfig, DownloadJob } from "@/core/types/database.types";
-import type {
-  DiscoveryPayload,
-  GenericPlaylistMetadata,
-  PlaylistEntry,
-  VideoMetadata,
-} from "@/core/types/ytdlp.types";
+import { isPlaylistPayload, type DiscoveryPayload } from "@/core/types/ytdlp.types";
 import { CustomSelect } from "@/components/CustomSelect";
-
-const isPlaylistPayload = (
-  payload: DiscoveryPayload | { entries?: unknown[]; _type?: string },
-): payload is GenericPlaylistMetadata =>
-  "_type" in payload
-    ? (payload as { _type?: string })._type === "playlist"
-    : Array.isArray((payload as { entries?: unknown[] }).entries);
 
 export default function Home(): JSX.Element {
   const navigate = useNavigate();
@@ -64,7 +51,7 @@ export default function Home(): JSX.Element {
   const handlePasteClipboard = async (): Promise<void> => {
     try {
       const text = await ipc.readClipboardText();
-      if (text) {
+      if (text.trim()) {
         setUrl(text.trim());
       }
     } catch (e) {
@@ -84,129 +71,29 @@ export default function Home(): JSX.Element {
     return raw;
   };
 
-  const buildMockPlaylist = (cleanUrl: string): GenericPlaylistMetadata => ({
-    id: `play-${Date.now()}`,
-    title: "Synclime Platform Development Playlist",
-    description:
-      "Complete list of active structured components designed for the premium user shell layer.",
-    playlist_count: 3,
-    webpage_url: cleanUrl,
-    original_url: cleanUrl,
-    extractor: "youtube:playlist",
-    thumbnails: [
-      {
-        url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=480&auto=format&fit=crop&q=60",
-      },
-    ],
-    entries: [
-      {
-        type: "url",
-        id: "vid-1",
-        url: "https://youtube.com/watch?v=1",
-        title: "1. Core IPC Architecture & Rust Bridges",
-        description: "Full overview of Tauri backend systems.",
-        duration: 245,
-        thumbnails: [
-          {
-            url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=480&auto=format&fit=crop&q=60",
-          },
-        ],
-      },
-      {
-        type: "url",
-        id: "vid-2",
-        url: "https://youtube.com/watch?v=2",
-        title: "2. SQLite Transactions and Schema Indexing",
-        description: "Understanding deep database caching.",
-        duration: 412,
-        thumbnails: [
-          {
-            url: "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=480&auto=format&fit=crop&q=60",
-          },
-        ],
-      },
-      {
-        type: "url",
-        id: "vid-3",
-        url: "https://youtube.com/watch?v=3",
-        title: "3. React and Zustand State Debouncing",
-        description: "Maintaining fluid high-performance render lines.",
-        duration: 188,
-        thumbnails: [
-          {
-            url: "https://images.unsplash.com/photo-1614850523060-8da1d56ae167?w=480&auto=format&fit=crop&q=60",
-          },
-        ],
-      },
-    ] satisfies PlaylistEntry[],
-  });
-
-  const buildMockVideo = (cleanUrl: string): VideoMetadata => ({
-    id: `vid-${Date.now()}`,
-    title: "Introduction to Tauri & React - Premium Development Guide",
-    uploader: "Synclime Core Platform",
-    duration: 185,
-    view_count: 54200,
-    thumbnail:
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=480&auto=format&fit=crop&q=60",
-    formats: [
-      {
-        format_id: "bestvideo",
-        ext: "mp4",
-        format_note: "1080p 60fps",
-        width: 1920,
-        height: 1080,
-        fps: 60,
-        filesize: 120000000,
-      },
-      {
-        format_id: "720p",
-        ext: "mp4",
-        format_note: "720p 30fps",
-        width: 1280,
-        height: 720,
-        fps: 30,
-        filesize: 60000000,
-      },
-      {
-        format_id: "bestaudio",
-        ext: "m4a",
-        format_note: "HQ Audio",
-        acodec: "aac",
-        abr: 256,
-        filesize: 8000000,
-      },
-    ],
-    subtitles: {
-      en: [{ ext: "vtt", url: "", name: "English" }],
-      es: [{ ext: "vtt", url: "", name: "Spanish" }],
-    },
-    chapters: [
-      { start_time: 0, end_time: 45, title: "Introduction" },
-      { start_time: 45, end_time: 120, title: "IPC Bridges" },
-      { start_time: 120, end_time: 185, title: "SQLite Design" },
-    ],
-    type: "video",
-    webpage_url: cleanUrl,
-    original_url: cleanUrl,
-  });
-
   const handleAction = async (e: Event): Promise<void> => {
     e.preventDefault();
-    if (!url().trim()) {
-      setErrorMsg("Please provide a valid asset web URL address first.");
+    const trimmed = url().trim();
+    if (!trimmed) {
+      setErrorMsg("Please enter a valid media link or web URL.");
       return;
     }
+
     setErrorMsg("");
     setLoading(true);
 
-    const targetUrl = url().trim();
-
     try {
-      const cleanUrl = await sanitizeUrl(targetUrl);
+      const cleanUrl = await sanitizeUrl(trimmed);
 
+      // Direct Download Mode
       if (directDownload()) {
-        const domain = new URL(cleanUrl).hostname.replace("www.", "");
+        let domain = "web";
+        try {
+          domain = new URL(cleanUrl).hostname.replace("www.", "");
+        } catch {
+          // ignore parsing error for domain
+        }
+
         const uniqueSlug = `doc-${Date.now()}`;
         const newJob: DownloadJob = {
           slug: uniqueSlug,
@@ -235,19 +122,19 @@ export default function Home(): JSX.Element {
               },
             });
             if (!insertRes.success) {
-              throw new Error(insertRes.message ?? "insert_job_record failed");
+              throw new Error(insertRes.message ?? "Failed to insert job record.");
             }
           } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
             await logErrorToDb(msg, "insert_job_record_direct", newJob.slug);
-            throw new Error(msg || "Failed to construct the initial job record in SQLite.");
+            throw new Error(msg || "Failed to create download job in database.");
           }
         }
 
         try {
           const res = await ipc.triggerJobStart({ jobSlug: uniqueSlug });
           if (!res.success) {
-            throw new Error(res.message ?? "trigger_job_start failed");
+            throw new Error(res.message ?? "Failed to trigger download start.");
           }
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
@@ -256,7 +143,7 @@ export default function Home(): JSX.Element {
           useQueueStore.updateJobProgress(
             uniqueSlug,
             0,
-            msg || "Failed to initialize native direct downloader.",
+            msg || "Failed to start native download worker.",
           );
         }
 
@@ -264,6 +151,7 @@ export default function Home(): JSX.Element {
         return;
       }
 
+      // Metadata Extraction Mode
       useParseStore.setParsing(true);
       const startedAt = new Date().toISOString();
       const startTime = Date.now();
@@ -303,9 +191,11 @@ export default function Home(): JSX.Element {
           0,
         );
         await logErrorToDb(msg, "discover_asset_metadata");
+        throw e;
+      }
 
-        const isPlaylistUrl = cleanUrl.includes("list=") || cleanUrl.includes("playlist");
-        payload = isPlaylistUrl ? buildMockPlaylist(cleanUrl) : buildMockVideo(cleanUrl);
+      if (!payload) {
+        throw new Error("No metadata returned for the provided URL.");
       }
 
       const isPlaylist = isPlaylistPayload(payload);
@@ -357,597 +247,275 @@ export default function Home(): JSX.Element {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       await logErrorToDb(msg, "home_action_failure");
-      setErrorMsg(msg || "Failed to initialize task action.");
+      setErrorMsg(msg || "Failed to process the URL.");
     } finally {
       setLoading(false);
       useParseStore.setParsing(false);
     }
   };
 
+  const selectedConfig = (): SiteConfig | undefined =>
+    siteConfigs().find((c) => c.slug === selectedSiteSlug());
+
   return (
-    <div class="w-full max-w-5xl mx-auto space-y-4.5 select-none animate-fade-in text-xs sm:text-sm font-sans px-1">
-      {/* Native-feeling Title Panel / Toolbar Header */}
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800/80 gap-3">
+    <div class="w-full max-w-3xl mx-auto space-y-6 select-none animate-fade-in text-xs sm:text-sm font-sans px-2 sm:px-4 py-2">
+      {/* Title / Header Bar */}
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800 gap-3">
         <div class="flex items-center gap-3">
-          <Tooltip openDelay={200} placement="bottom">
-            <Tooltip.Trigger
-              as="div"
-              class="w-10 h-10 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20 shadow-sm cursor-default inline-flex"
-            >
-              <FileDown class="w-5 h-5" />
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                <Tooltip.Arrow />
-                Task Controller
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip>
+          <div class="w-9 h-9 flex items-center justify-center bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20 shadow-sm">
+            <FileDown class="w-4 h-4" />
+          </div>
+          <div>
+            <h1 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-white tracking-tight">
+              Task Controller
+            </h1>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
+              Analyze media metadata or start direct background downloads.
+            </p>
+          </div>
         </div>
 
-        {/* Engine Diagnostics Pills */}
-        <div class="flex items-center gap-2 overflow-x-auto py-1 scrollbar-hide">
-          <Tooltip openDelay={200} placement="left">
-            <Tooltip.Trigger
-              as="div"
-              class="cursor-default flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold rounded-full whitespace-nowrap"
-            >
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                <Tooltip.Arrow />
-                Aria2 Daemon Active
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip>
-          <Tooltip openDelay={200} placement="left">
-            <Tooltip.Trigger
-              as="div"
-              class="cursor-default flex items-center gap-1.5 px-2.5 py-1 bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded-full whitespace-nowrap"
-            >
-              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                <Tooltip.Arrow />
-                SQLite Connected
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip>
-        </div>
+        {/* Destination Path indicator */}
+        <Tooltip openDelay={200} placement="left">
+          <Tooltip.Trigger
+            as="button"
+            type="button"
+            onClick={() => navigate("/settings")}
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors cursor-pointer text-[11px] self-start sm:self-auto"
+          >
+            <Folder class="w-3.5 h-3.5 text-zinc-400" />
+            <span class="truncate max-w-[220px]">
+              {useUIStore.state.downloadPath || "~/Downloads"}
+            </span>
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+              <Tooltip.Arrow />
+              Download Destination (Click to change in Settings)
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        </Tooltip>
       </div>
 
-      {/* Main Workspace Layout Grid */}
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* Left Side: Create Task Control Panel */}
-        <div class="lg:col-span-7 xl:col-span-8 flex flex-col">
-          <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/20 p-5 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] flex-1 flex flex-col justify-between">
-            <form
-              onSubmit={(e) => {
-                void handleAction(e);
-              }}
-              class="space-y-5 flex-1 flex flex-col justify-between"
-            >
-              <div class="space-y-5">
-                {/* Asset URL Section */}
-                <div class="space-y-2 text-left">
-                  <div class="flex items-center justify-between">
-                    <Tooltip openDelay={200} placement="right">
-                      <Tooltip.Trigger
-                        as="label"
-                        class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
-                      >
-                        ·
-                      </Tooltip.Trigger>
-                      <Tooltip.Portal>
-                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                          <Tooltip.Arrow />
-                          Resource URL / Address Link
-                        </Tooltip.Content>
-                      </Tooltip.Portal>
-                    </Tooltip>
-                    <Tooltip openDelay={200} placement="left">
-                      <Tooltip.Trigger
-                        as="button"
-                        type="button"
-                        onClick={() => {
-                          void handlePasteClipboard();
-                        }}
-                        class="flex items-center justify-center p-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors cursor-pointer"
-                      >
-                        <ClipboardPaste class="w-3.5 h-3.5" />
-                      </Tooltip.Trigger>
-                      <Tooltip.Portal>
-                        <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                          <Tooltip.Arrow />
-                          Paste Clipboard
-                        </Tooltip.Content>
-                      </Tooltip.Portal>
-                    </Tooltip>
-                  </div>
+      {/* Main Form Card */}
+      <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/40 p-5 sm:p-6 rounded-2xl shadow-sm">
+        <form onSubmit={handleAction} class="space-y-5">
+          {/* Resource URL Input */}
+          <div class="space-y-2 text-left">
+            <label for="media-url-input" class="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              Resource URL
+            </label>
 
-                  <div class="relative flex items-center group">
-                    <div class="absolute left-3.5 text-zinc-400 group-focus-within:text-blue-500 dark:text-zinc-500 dark:group-focus-within:text-blue-400 transition-colors">
-                      <Link2 class="w-4 h-4" />
-                    </div>
-
-                    <input
-                      type="url"
-                      placeholder="Paste media link, video URL, playlist or custom document..."
-                      value={url()}
-                      onInput={(e) => setUrl(e.currentTarget.value)}
-                      onPaste={(e) => {
-                        // Use the Tauri clipboard bridge on paste so URLs
-                        // can carry tracking parameters that browser paste
-                        // events strip (and so behaviour is consistent
-                        // across webview / desktop).
-                        e.preventDefault();
-                        const clipboardData = e.clipboardData;
-                        const pasted = clipboardData ? clipboardData.getData("text") : "";
-                        if (pasted.trim()) {
-                          setUrl(pasted.trim());
-                        } else {
-                          void handlePasteClipboard();
-                        }
-                      }}
-                      disabled={loading()}
-                      class="w-full pl-10 pr-10 py-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-zinc-950 focus:ring-4 focus:ring-blue-500/10 dark:focus:ring-blue-500/5 transition-all outline-none text-xs sm:text-sm text-zinc-900 dark:text-white shadow-inner font-sans font-medium"
-                    />
-
-                    <Show
-                      when={url()}
-                      fallback={
-                        <Tooltip openDelay={200} placement="left">
-                          <Tooltip.Trigger
-                            as="button"
-                            type="button"
-                            onClick={() => {
-                              void handlePasteClipboard();
-                            }}
-                            class="absolute right-3 p-1.5 rounded-md text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 hover:bg-blue-500/10 dark:hover:bg-blue-500/20 transition-colors cursor-pointer"
-                          >
-                            <ClipboardPaste class="w-3.5 h-3.5" />
-                          </Tooltip.Trigger>
-                          <Tooltip.Portal>
-                            <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                              <Tooltip.Arrow />
-                              Paste from Clipboard
-                            </Tooltip.Content>
-                          </Tooltip.Portal>
-                        </Tooltip>
-                      }
-                    >
-                      <Tooltip openDelay={200} placement="left">
-                        <Tooltip.Trigger
-                          as="button"
-                          type="button"
-                          onClick={() => setUrl("")}
-                          class="absolute right-3 p-1 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
-                        >
-                          <X class="w-3.5 h-3.5" />
-                        </Tooltip.Trigger>
-                        <Tooltip.Portal>
-                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                            <Tooltip.Arrow />
-                            Clear Resource Link
-                          </Tooltip.Content>
-                        </Tooltip.Portal>
-                      </Tooltip>
-                    </Show>
-                  </div>
-                </div>
-
-                {/* Task Execution Mode (Segment Selector Grid) */}
-                <div class="space-y-2 text-left">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="label"
-                      class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
-                    >
-                      ·
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        Task Execution Strategy
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Mode 1: Metadata Extraction */}
-                    <button
-                      type="button"
-                      onClick={() => setDirectDownload(false)}
-                      disabled={loading()}
-                      class={`flex flex-col items-start text-left p-3.5 rounded-xl border transition-all relative overflow-hidden cursor-pointer ${
-                        !directDownload()
-                          ? "border-blue-500/80 bg-blue-500/[0.03] dark:bg-blue-500/[0.04] text-zinc-900 dark:text-white shadow-sm ring-1 ring-blue-500/30"
-                          : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/10 text-zinc-500 dark:text-zinc-400"
-                      }`}
-                    >
-                      <div class="flex items-center gap-2 mb-1">
-                        <div
-                          class={`p-1.5 rounded-lg ${!directDownload() ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400"}`}
-                        >
-                          <Play class="w-3.5 h-3.5" />
-                        </div>
-                        <span class="text-xs font-black uppercase tracking-tight">
-                          Metadata Extract
-                        </span>
-                      </div>
-                      <p class="text-[10px] text-zinc-400 dark:text-zinc-500 leading-normal pl-0.5 mt-0.5">
-                        Deep analyze formats, subtitles, and segments before queue creation.
-                      </p>
-                      <Show when={!directDownload()}>
-                        <span class="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-blue-500" />
-                      </Show>
-                    </button>
-
-                    {/* Mode 2: Direct Downloader */}
-                    <button
-                      type="button"
-                      onClick={() => setDirectDownload(true)}
-                      disabled={loading()}
-                      class={`flex flex-col items-start text-left p-3.5 rounded-xl border transition-all relative overflow-hidden cursor-pointer ${
-                        directDownload()
-                          ? "border-blue-500/80 bg-blue-500/[0.03] dark:bg-blue-500/[0.04] text-zinc-900 dark:text-white shadow-sm ring-1 ring-blue-500/30"
-                          : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/10 text-zinc-500 dark:text-zinc-400"
-                      }`}
-                    >
-                      <div class="flex items-center gap-2 mb-1">
-                        <div
-                          class={`p-1.5 rounded-lg ${directDownload() ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400"}`}
-                        >
-                          <FileDown class="w-3.5 h-3.5" />
-                        </div>
-                        <span class="text-xs font-black uppercase tracking-tight">
-                          Direct Queue
-                        </span>
-                      </div>
-                      <p class="text-[10px] text-zinc-400 dark:text-zinc-500 leading-normal pl-0.5 mt-0.5">
-                        Bypass parameter analyses and start direct multithreaded network write.
-                      </p>
-                      <Show when={directDownload()}>
-                        <span class="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-blue-500" />
-                      </Show>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Site Profile Picker */}
-                <div class="space-y-2 text-left">
-                  <Tooltip openDelay={200} placement="right">
-                    <Tooltip.Trigger
-                      as="label"
-                      class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
-                    >
-                      ·
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                        <Tooltip.Arrow />
-                        Site Access Rule / Authentication Proxy
-                      </Tooltip.Content>
-                    </Tooltip.Portal>
-                  </Tooltip>
-                  <CustomSelect
-                    value={selectedSiteSlug()}
-                    onChange={setSelectedSiteSlug}
-                    options={siteConfigs().map((c) => ({
-                      value: c.slug,
-                      label: `${c.title} (${c.domain})`,
-                    }))}
-                    placeholder="Direct Connection (Default Network Bypass)"
-                    icon={GlobeLock}
-                  />
-                </div>
-
-                {/* Error Box */}
-                <Show when={errorMsg()}>
-                  <div class="flex items-start gap-2.5 text-xs font-semibold text-red-500 dark:text-red-400 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 p-3.5 rounded-xl animate-shake select-text text-left">
-                    <AlertCircle class="w-4 h-4 flex-shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
-                    <div class="space-y-0.5">
-                      <div class="font-bold text-red-600 dark:text-red-400">Analysis Exception</div>
-                      <div class="text-[10px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                        {errorMsg()}
-                      </div>
-                    </div>
-                  </div>
-                </Show>
+            <div class="relative flex items-center group">
+              <div class="absolute left-3.5 text-zinc-400 group-focus-within:text-blue-500 dark:text-zinc-500 dark:group-focus-within:text-blue-400 transition-colors pointer-events-none">
+                <Link2 class="w-4 h-4" />
               </div>
 
-              {/* Primary Tactile Button */}
-              <div class="pt-6">
-                <Tooltip openDelay={200}>
+              <input
+                id="media-url-input"
+                type="url"
+                placeholder="Paste media link, video URL, playlist, or file URL..."
+                value={url()}
+                onInput={(e) => setUrl(e.currentTarget.value)}
+                disabled={loading()}
+                class="w-full pl-10 pr-10 py-2.5 bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-zinc-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-zinc-950 focus:ring-2 focus:ring-blue-500/10 transition-all outline-none text-xs sm:text-sm text-zinc-900 dark:text-white shadow-inner font-sans font-medium"
+              />
+
+              <Show
+                when={url()}
+                fallback={
+                  <Tooltip openDelay={200} placement="left">
+                    <Tooltip.Trigger
+                      as="button"
+                      type="button"
+                      onClick={() => {
+                        void handlePasteClipboard();
+                      }}
+                      class="absolute right-3 p-1.5 rounded-md text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-500/10 transition-colors cursor-pointer"
+                    >
+                      <ClipboardPaste class="w-4 h-4" />
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
+                        <Tooltip.Arrow />
+                        Paste from Clipboard
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip>
+                }
+              >
+                <Tooltip openDelay={200} placement="left">
                   <Tooltip.Trigger
                     as="button"
-                    type="submit"
-                    disabled={loading() || !url().trim()}
-                    class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400 text-white text-xs font-black py-3 px-5 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none min-h-[46px] border border-blue-500/20 dark:border-blue-400/20 tracking-wider uppercase cursor-pointer"
+                    type="button"
+                    onClick={() => setUrl("")}
+                    class="absolute right-3 p-1 rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
                   >
-                    <Show
-                      when={loading()}
-                      fallback={
-                        <>
-                          <Show when={directDownload()} fallback={<Play class="w-4 h-4" />}>
-                            <FileDown class="w-4 h-4" />
-                          </Show>
-                        </>
-                      }
-                    >
-                      <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    </Show>
+                    <X class="w-4 h-4" />
                   </Tooltip.Trigger>
                   <Tooltip.Portal>
                     <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
                       <Tooltip.Arrow />
-                      {loading()
-                        ? "Extracting Resource Parameters..."
-                        : directDownload()
-                          ? "Initialize Direct Download"
-                          : "Analyze Resource Parameters"}
+                      Clear URL
                     </Tooltip.Content>
                   </Tooltip.Portal>
                 </Tooltip>
-              </div>
-            </form>
+              </Show>
+            </div>
           </div>
-        </div>
 
-        {/* Right Side: Desktop Engine Status & Info Panel */}
-        <div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-4 text-left">
-          {/* Active Config Connection */}
-          <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/10 p-4.5 rounded-2xl space-y-3.5 backdrop-blur-md">
-            <Tooltip openDelay={200} placement="right">
-              <Tooltip.Trigger
-                as="h3"
-                class="cursor-default text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between"
+          {/* Download Mode Selection */}
+          <div class="space-y-2 text-left">
+            <span class="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              Download Mode
+            </span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Mode 1: Metadata Extraction */}
+              <button
+                type="button"
+                onClick={() => setDirectDownload(false)}
+                disabled={loading()}
+                class={`flex flex-col items-start text-left p-3.5 rounded-xl border transition-all relative overflow-hidden cursor-pointer ${
+                  !directDownload()
+                    ? "border-blue-500/80 bg-blue-500/[0.04] dark:bg-blue-500/[0.06] text-zinc-900 dark:text-white shadow-sm ring-1 ring-blue-500/30"
+                    : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 text-zinc-500 dark:text-zinc-400"
+                }`}
               >
-                <GlobeLock class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                  <Tooltip.Arrow />
-                  Access Environment
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip>
-
-            <Show
-              when={selectedSiteSlug()}
-              fallback={
-                <div class="space-y-3.5 py-1">
-                  <p class="text-[10px] text-zinc-400 dark:text-zinc-500 leading-relaxed font-semibold">
-                    Currently running in native direct connection mode. No custom cookies, logins,
-                    or HTTP proxy pipelines will be applied.
-                  </p>
-                  <div class="flex items-center gap-2 p-2 bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/15 rounded-xl">
-                    <div class="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                    <span class="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-                      Default Direct Network Active
-                    </span>
+                <div class="flex items-center gap-2 mb-1">
+                  <div
+                    class={`p-1.5 rounded-lg ${
+                      !directDownload()
+                        ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400"
+                    }`}
+                  >
+                    <Play class="w-3.5 h-3.5" />
                   </div>
+                  <span class="text-xs font-bold">Metadata Analysis</span>
                 </div>
-              }
-            >
-              {(() => {
-                const activeCfg = (): SiteConfig | undefined =>
-                  siteConfigs().find((c) => c.slug === selectedSiteSlug());
-                return (
-                  <div class="space-y-3 font-sans font-medium text-[11px] text-zinc-600 dark:text-zinc-400">
-                    <div class="flex items-center justify-between">
-                      <Tooltip openDelay={200} placement="right">
-                        <Tooltip.Trigger
-                          as="span"
-                          class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase"
-                        >
-                          ·
-                        </Tooltip.Trigger>
-                        <Tooltip.Portal>
-                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                            <Tooltip.Arrow />
-                            Selected Profile
-                          </Tooltip.Content>
-                        </Tooltip.Portal>
-                      </Tooltip>
-                      <span class="font-extrabold text-blue-600 dark:text-blue-400 truncate max-w-[150px]">
-                        {activeCfg()?.title}
-                      </span>
-                    </div>
-                    <div class="flex items-center justify-between font-mono">
-                      <Tooltip openDelay={200} placement="right">
-                        <Tooltip.Trigger
-                          as="span"
-                          class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase font-sans"
-                        >
-                          ·
-                        </Tooltip.Trigger>
-                        <Tooltip.Portal>
-                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                            <Tooltip.Arrow />
-                            Target Domain
-                          </Tooltip.Content>
-                        </Tooltip.Portal>
-                      </Tooltip>
-                      <span class="truncate max-w-[150px] font-semibold text-zinc-700 dark:text-zinc-300">
-                        {activeCfg()?.domain}
-                      </span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <Tooltip openDelay={200} placement="right">
-                        <Tooltip.Trigger
-                          as="span"
-                          class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase"
-                        >
-                          ·
-                        </Tooltip.Trigger>
-                        <Tooltip.Portal>
-                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                            <Tooltip.Arrow />
-                            Cookies Integration
-                          </Tooltip.Content>
-                        </Tooltip.Portal>
-                      </Tooltip>
-                      <div class="flex items-center gap-1.5">
-                        <span
-                          class={`w-1.5 h-1.5 rounded-full ${activeCfg()?.cookie_profile_slug ? "bg-emerald-500" : "bg-zinc-400"}`}
-                        />
-                        <span class="text-[10px] font-bold text-zinc-700 dark:text-zinc-300">
-                          {activeCfg()?.cookie_profile_slug ? "Enabled" : "Bypassed"}
-                        </span>
-                      </div>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <Tooltip openDelay={200} placement="right">
-                        <Tooltip.Trigger
-                          as="span"
-                          class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase"
-                        >
-                          ·
-                        </Tooltip.Trigger>
-                        <Tooltip.Portal>
-                          <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                            <Tooltip.Arrow />
-                            Proxy Access
-                          </Tooltip.Content>
-                        </Tooltip.Portal>
-                      </Tooltip>
-                      <div class="flex items-center gap-1.5">
-                        <span
-                          class={`w-1.5 h-1.5 rounded-full ${activeCfg()?.proxy_profile_slug ? "bg-emerald-500" : "bg-zinc-400"}`}
-                        />
-                        <span class="text-[10px] font-bold text-zinc-700 dark:text-zinc-300">
-                          {activeCfg()?.proxy_profile_slug ? "Active" : "None"}
-                        </span>
-                      </div>
-                    </div>
+                <p class="text-[11px] text-zinc-400 dark:text-zinc-500 leading-normal pl-0.5">
+                  Inspect video qualities, audio formats, and subtitles before queueing.
+                </p>
+              </button>
+
+              {/* Mode 2: Direct Downloader */}
+              <button
+                type="button"
+                onClick={() => setDirectDownload(true)}
+                disabled={loading()}
+                class={`flex flex-col items-start text-left p-3.5 rounded-xl border transition-all relative overflow-hidden cursor-pointer ${
+                  directDownload()
+                    ? "border-blue-500/80 bg-blue-500/[0.04] dark:bg-blue-500/[0.06] text-zinc-900 dark:text-white shadow-sm ring-1 ring-blue-500/30"
+                    : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 text-zinc-500 dark:text-zinc-400"
+                }`}
+              >
+                <div class="flex items-center gap-2 mb-1">
+                  <div
+                    class={`p-1.5 rounded-lg ${
+                      directDownload()
+                        ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400"
+                    }`}
+                  >
+                    <FileDown class="w-3.5 h-3.5" />
                   </div>
-                );
-              })()}
+                  <span class="text-xs font-bold">Direct Queue</span>
+                </div>
+                <p class="text-[11px] text-zinc-400 dark:text-zinc-500 leading-normal pl-0.5">
+                  Bypass parameter analysis and download immediately with best quality.
+                </p>
+              </button>
+            </div>
+          </div>
+
+          {/* Site Profile Picker */}
+          <div class="space-y-2 text-left">
+            <span class="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              Site Profile & Proxy
+            </span>
+            <CustomSelect
+              value={selectedSiteSlug()}
+              onChange={setSelectedSiteSlug}
+              options={siteConfigs().map((c) => ({
+                value: c.slug,
+                label: `${c.title} (${c.domain})`,
+              }))}
+              placeholder="Direct Connection (Default Network Bypass)"
+              icon={GlobeLock}
+            />
+
+            {/* Active profile summary badge when selected */}
+            <Show when={selectedConfig()}>
+              {(cfg) => (
+                <div class="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                  <span class="font-semibold text-zinc-700 dark:text-zinc-300">
+                    {cfg().domain}
+                  </span>
+                  <span>•</span>
+                  <span>
+                    Cookies:{" "}
+                    <strong class="text-zinc-700 dark:text-zinc-300">
+                      {cfg().cookie_profile_slug ? "Enabled" : "None"}
+                    </strong>
+                  </span>
+                  <span>•</span>
+                  <span>
+                    Proxy:{" "}
+                    <strong class="text-zinc-700 dark:text-zinc-300">
+                      {cfg().proxy_profile_slug ? "Active" : "None"}
+                    </strong>
+                  </span>
+                </div>
+              )}
             </Show>
           </div>
 
-          {/* Quick Engine Diagnostics */}
-          <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/10 p-4.5 rounded-2xl space-y-3 backdrop-blur-md">
-            <Tooltip openDelay={200} placement="right">
-              <Tooltip.Trigger
-                as="h3"
-                class="cursor-default text-xs font-black text-zinc-800 dark:text-zinc-200 tracking-tight uppercase border-b border-zinc-200/80 dark:border-zinc-800/80 pb-2 flex items-center justify-between"
+          {/* Error Alert Banner */}
+          <Show when={errorMsg()}>
+            <div class="flex items-start gap-2.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-500/5 dark:bg-red-500/10 border border-red-500/20 p-3.5 rounded-xl animate-fade-in text-left">
+              <AlertCircle class="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <div class="flex-1 min-w-0">
+                <div class="font-bold">Extraction Error</div>
+                <div class="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5 break-words">
+                  {errorMsg()}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setErrorMsg("")}
+                class="p-1 rounded text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors cursor-pointer"
               >
-                <HardDrive class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                  <Tooltip.Arrow />
-                  System Core Services (1.0.0-PRO)
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip>
+                <X class="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </Show>
 
-            <div class="space-y-2.5 font-sans font-medium text-[11px]">
-              <div class="flex items-center justify-between text-xs">
-                <Tooltip openDelay={200} placement="right">
-                  <Tooltip.Trigger
-                    as="span"
-                    class="cursor-default text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold"
-                  >
-                    ·
-                  </Tooltip.Trigger>
-                  <Tooltip.Portal>
-                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                      <Tooltip.Arrow />
-                      Tauri Rust Core Server
-                    </Tooltip.Content>
-                  </Tooltip.Portal>
-                </Tooltip>
-                <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  ACTIVE
-                </span>
-              </div>
-              <div class="flex items-center justify-between text-xs">
-                <Tooltip openDelay={200} placement="right">
-                  <Tooltip.Trigger
-                    as="span"
-                    class="cursor-default text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold"
-                  >
-                    ·
-                  </Tooltip.Trigger>
-                  <Tooltip.Portal>
-                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                      <Tooltip.Arrow />
-                      Metadata Engine (yt-dlp)
-                    </Tooltip.Content>
-                  </Tooltip.Portal>
-                </Tooltip>
-                <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  READY
-                </span>
-              </div>
-              <div class="flex items-center justify-between text-xs">
-                <Tooltip openDelay={200} placement="right">
-                  <Tooltip.Trigger
-                    as="span"
-                    class="cursor-default text-[11px] text-zinc-500 dark:text-zinc-400 font-semibold"
-                  >
-                    ·
-                  </Tooltip.Trigger>
-                  <Tooltip.Portal>
-                    <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                      <Tooltip.Arrow />
-                      Multi-Thread Daemon (aria2)
-                    </Tooltip.Content>
-                  </Tooltip.Portal>
-                </Tooltip>
-                <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  STANDBY
-                </span>
-              </div>
-            </div>
+          {/* Submit Action Button */}
+          <div class="pt-2">
+            <button
+              type="submit"
+              disabled={loading() || !url().trim()}
+              class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-3 px-5 rounded-xl shadow-sm hover:shadow transition-all active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none min-h-[44px] tracking-wide uppercase cursor-pointer"
+            >
+              <Show
+                when={loading()}
+                fallback={
+                  <>
+                    <Show when={directDownload()} fallback={<Play class="w-4 h-4" />}>
+                      <FileDown class="w-4 h-4" />
+                    </Show>
+                    <span>
+                      {directDownload() ? "Start Direct Download" : "Analyze Resource"}
+                    </span>
+                  </>
+                }
+              >
+                <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Processing...</span>
+              </Show>
+            </button>
           </div>
-
-          {/* Library and Queue Stats Quick widgets */}
-          <div class="grid grid-cols-2 gap-3.5">
-            <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/10 p-3.5 rounded-2xl backdrop-blur-md">
-              <Tooltip openDelay={200} placement="right">
-                <Tooltip.Trigger
-                  as="div"
-                  class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
-                >
-                  <HardDrive class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                    <Tooltip.Arrow />
-                    Queue Jobs
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip>
-              <div class="text-xl font-black text-zinc-800 dark:text-white tracking-tight mt-1">
-                {useQueueStore.state.queue.length}
-              </div>
-            </div>
-            <div class="border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/10 p-3.5 rounded-2xl backdrop-blur-md">
-              <Tooltip openDelay={200} placement="right">
-                <Tooltip.Trigger
-                  as="div"
-                  class="cursor-default text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider"
-                >
-                  <LayoutGrid class="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content class="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white text-[11px] font-semibold border border-zinc-200/80 dark:border-zinc-800 shadow-md px-2.5 py-1 rounded-lg z-[9999] select-none font-sans">
-                    <Tooltip.Arrow />
-                    Saved Cache
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip>
-              <div class="text-xl font-black text-zinc-800 dark:text-white tracking-tight mt-1">
-                {useParseStore.state.parsedFiles.length}
-              </div>
-            </div>
-          </div>
-        </div>
+        </form>
       </div>
     </div>
   );
