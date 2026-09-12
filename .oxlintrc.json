@@ -1,0 +1,20 @@
+{
+  "$schema": "https://oxc-project.github.io/oxlint/oxlintrc.schema.json",
+  "rules": {
+    "no-unused-vars": "error",
+    "no-explicit-any": "error",
+    "no-non-null-assertion": "warn",
+    "no-console": "off",
+    "prefer-const": "error",
+    "eqeqeq": ["error", "always", { "null": "ignore" }],
+    "no-var": "error"
+  },
+  "env": {
+    "browser": true,
+    "es2022": true
+  },
+  "globals": {
+    "JSX": "readonly"
+  },
+  "ignorePatterns": ["src/**/*.d.ts", "dist/**", "node_modules/**", "src-tauri/**"]
+}
