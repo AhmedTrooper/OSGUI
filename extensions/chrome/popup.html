@@ -17,11 +17,54 @@
           <span class="brand-badge">COMPANION</span>
         </div>
       </div>
-      <div id="status-pill" class="status-pill checking">
-        <span class="status-dot"></span>
-        <span id="status-text" class="status-text">Probing...</span>
+      <div class="header-controls">
+        <div id="status-pill" class="status-pill checking" title="Click to configure connection port">
+          <span class="status-dot"></span>
+          <span id="status-text" class="status-text">14221</span>
+        </div>
+        <button type="button" id="toggle-settings-btn" class="icon-btn" title="Configure daemon port settings">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
       </div>
     </header>
+
+    <!-- Collapsible Port Settings Drawer -->
+    <div id="port-drawer" class="port-drawer hidden">
+      <div class="drawer-header">
+        <span class="drawer-title">Connection Port Settings</span>
+        <button type="button" id="close-drawer-btn" class="drawer-close">&times;</button>
+      </div>
+
+      <div class="port-info-notice">
+        SyncLime opens on port <strong>14221</strong> by default. If clashed with the OS, it probes <strong>14221–14230</strong> automatically.
+      </div>
+
+      <div class="port-mode-toggle">
+        <button type="button" id="mode-auto-btn" class="mode-pill active">
+          Auto (14221–14230)
+        </button>
+        <button type="button" id="mode-custom-btn" class="mode-pill">
+          Custom Port
+        </button>
+      </div>
+
+      <div id="custom-port-row" class="custom-port-row hidden">
+        <label for="custom-port-input" class="input-label">Custom Port</label>
+        <div class="input-wrapper">
+          <input type="number" id="custom-port-input" min="1024" max="65535" placeholder="14221" class="url-input font-mono">
+        </div>
+      </div>
+
+      <div class="drawer-actions">
+        <button type="button" id="save-port-btn" class="secondary-btn">Save Port</button>
+        <button type="button" id="scan-ports-btn" class="secondary-btn outline">Probe Range</button>
+      </div>
+
+      <div id="port-probe-result" class="port-probe-result hidden"></div>
+    </div>
 
     <!-- Active Tab Media Card -->
     <main class="main-card">
@@ -31,9 +74,12 @@
       </div>
 
       <div class="input-group">
-        <label for="url-input" class="input-label">Target URL</label>
+        <div class="input-label-row">
+          <label for="url-input" class="input-label">Target URL</label>
+          <span id="active-port-indicator" class="active-port-indicator">Port: 14221</span>
+        </div>
         <div class="input-wrapper">
-          <input type="text" id="url-input" class="url-input" placeholder="https://www.youtube.com/watch?v=..." spellcheck="false">
+          <input type="text" id="url-input" class="url-input font-mono" placeholder="https://www.youtube.com/watch?v=..." spellcheck="false">
           <button type="button" id="paste-btn" class="icon-btn" title="Paste from clipboard">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>

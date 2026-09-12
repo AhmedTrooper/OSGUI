@@ -39,7 +39,7 @@
 }
 
 body {
-  width: 350px;
+  width: 360px;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-size: 13px;
@@ -97,15 +97,27 @@ body {
   letter-spacing: 0.04em;
 }
 
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   padding: 3px 8px;
   border-radius: 9999px;
   font-family: ui-monospace, monospace;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.status-pill:hover {
+  opacity: 0.85;
 }
 
 .status-dot {
@@ -117,17 +129,26 @@ body {
 .status-pill.online {
   background: rgba(16, 185, 129, 0.1);
   color: var(--accent-emerald);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 .status-pill.online .status-dot {
   background: var(--accent-emerald);
   box-shadow: 0 0 6px var(--accent-emerald);
 }
 
+.status-pill.clashed {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--accent-amber);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+.status-pill.clashed .status-dot {
+  background: var(--accent-amber);
+}
+
 .status-pill.offline {
   background: rgba(239, 68, 68, 0.1);
   color: var(--accent-red);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 .status-pill.offline .status-dot {
   background: var(--accent-red);
@@ -146,6 +167,125 @@ body {
 @keyframes pulse {
   from { opacity: 0.3; }
   to { opacity: 1; }
+}
+
+/* Port Drawer */
+.port-drawer {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.18s ease-out;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.drawer-close {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.drawer-close:hover {
+  color: var(--text-primary);
+}
+
+.port-info-notice {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  background: rgba(0, 0, 0, 0.02);
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px dashed var(--border-color);
+}
+
+.port-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: var(--bg-card);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.mode-pill {
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mode-pill.active {
+  background: var(--bg-primary);
+  color: var(--accent-blue);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.drawer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.secondary-btn {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 7px;
+  cursor: pointer;
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  transition: all 0.15s;
+}
+
+.secondary-btn:hover {
+  background: var(--accent-blue-hover);
+}
+
+.secondary-btn.outline {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.secondary-btn.outline:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.port-probe-result {
+  font-size: 10.5px;
+  font-family: ui-monospace, monospace;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  max-height: 80px;
+  overflow-y: auto;
 }
 
 /* Main Card */
@@ -188,12 +328,28 @@ body {
   gap: 4px;
 }
 
+.input-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .input-label {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
+}
+
+.active-port-indicator {
+  font-size: 9.5px;
+  font-weight: 700;
+  font-family: ui-monospace, monospace;
+  color: var(--accent-blue);
+  background: rgba(37, 99, 235, 0.08);
+  padding: 1px 5px;
+  border-radius: 4px;
 }
 
 .input-wrapper {

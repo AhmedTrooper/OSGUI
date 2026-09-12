@@ -49,6 +49,7 @@ const EXTENSIONS_DOCS_URL = "https://github.com/AhmedTrooper/Synclime/blob/main/
 
 export function ExtensionsSection(): JSX.Element {
   const [currentVersion, setCurrentVersion] = createSignal("0.1.1");
+  const [activePort, setActivePort] = createSignal<number>(14221);
   const [updatesData, setUpdatesData] = createSignal<UpdatesSchema | null>(null);
   const [loading, setLoading] = createSignal(true);
   const [errorMsg, setErrorMsg] = createSignal("");
@@ -69,6 +70,15 @@ export function ExtensionsSection(): JSX.Element {
       } catch (e) {
         console.error("Failed to query app version:", e);
       }
+    }
+
+    try {
+      const portResult = await ipc.getActiveApiPort();
+      if (portResult?.port) {
+        setActivePort(portResult.port);
+      }
+    } catch (e) {
+      console.debug("Failed to query active API port:", e);
     }
 
     try {
@@ -167,7 +177,10 @@ export function ExtensionsSection(): JSX.Element {
                 </li>
                 <li class="flex items-center gap-2">
                   <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
-                  <span>Integrated with local Axum HTTP daemon on port 8000</span>
+                  <span>
+                    Integrated with local Axum HTTP daemon on port {activePort()} (Range:
+                    14221–14230)
+                  </span>
                 </li>
               </ul>
             </div>
