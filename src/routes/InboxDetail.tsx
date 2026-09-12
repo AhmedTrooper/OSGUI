@@ -21,11 +21,9 @@ import { sanitizeTitle } from "@/utils/sanitize";
 import { formatDate } from "@/utils/format";
 import { logErrorToDb, logParseToDb } from "@/core/logger";
 import type { SiteConfig, DownloadJob, InboxItem } from "@/core/types/database.types";
-import type { DiscoveryPayload, VideoMetadata } from "@/core/types/ytdlp.types";
+import { isPlaylistPayload, type DiscoveryPayload, type VideoMetadata } from "@/core/types/ytdlp.types";
 import { CustomSelect } from "@/components/CustomSelect";
 
-const isPlaylistPayload = (payload: DiscoveryPayload): boolean =>
-  ("type" in payload && payload.type === "playlist") || "entries" in payload;
 
 export default function InboxDetail(): JSX.Element {
   const navigate = useNavigate();

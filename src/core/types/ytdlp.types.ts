@@ -121,6 +121,14 @@ export interface GenericPlaylistMetadata {
 
 export type DiscoveryPayload = VideoMetadata | GenericPlaylistMetadata;
 
+export const isPlaylistPayload = (
+  payload: DiscoveryPayload | { entries?: unknown[]; _type?: string; type?: string },
+): payload is GenericPlaylistMetadata =>
+  ("type" in payload && payload.type === "playlist") ||
+  ("_type" in payload && (payload as { _type?: string })._type === "playlist") ||
+  Array.isArray((payload as { entries?: unknown[] }).entries);
+
+
 export interface ParsedFile {
   slug: string;
   url: string;
