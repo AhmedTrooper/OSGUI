@@ -8,7 +8,7 @@ export interface CheckboxProps {
   onChange?: (checked: boolean) => void;
   disabled?: boolean;
   label?: JSX.Element | string;
-  color?: "blue" | "purple";
+  color?: "blue" | "purple" | "amber";
   size?: "sm" | "md";
   class?: string;
   id?: string;
@@ -38,13 +38,15 @@ export function Checkbox(props: CheckboxProps): JSX.Element {
       <KCheckbox.Input class="sr-only" />
       <KCheckbox.Control
         class={cn(
-          "rounded flex items-center justify-center transition-all duration-150 border",
+          "rounded-md flex items-center justify-center transition-all duration-150 border",
           size() === "sm" ? "w-3.5 h-3.5" : "w-4 h-4",
           props.checked
-            ? color() === "purple"
-              ? "bg-purple-600 border-purple-600 text-white shadow-xs"
-              : "bg-blue-600 border-blue-600 text-white shadow-xs"
-            : "bg-white dark:bg-zinc-950 border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600",
+            ? color() === "amber"
+              ? "bg-amber-500 border-amber-500 text-white shadow-xs ring-1 ring-amber-500/20"
+              : color() === "purple"
+                ? "bg-purple-600 border-purple-600 text-white shadow-xs ring-1 ring-purple-500/20"
+                : "bg-blue-600 border-blue-600 text-white shadow-xs ring-1 ring-blue-500/20"
+            : "bg-white dark:bg-zinc-950 border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 group-hover:border-zinc-400 dark:group-hover:border-zinc-500",
           "focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-zinc-900 outline-none",
         )}
       >

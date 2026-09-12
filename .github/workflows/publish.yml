@@ -2,12 +2,14 @@ name: "publish"
 
 on:
   push:
-    branches:
-      - release
+    tags:
+      - 'v*'
+      - 'roletect-v*'
+      - 'synclime-v*'
 
 jobs:
   publish-tauri:
-    # FIXED: Forces GitHub Actions (checkout and setup-bun) to use Node 24, fixing the deprecation warning
+    # Forces GitHub Actions (checkout and setup-bun) to use Node 24, fixing the deprecation warning
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     permissions:
@@ -20,9 +22,6 @@ jobs:
           - platform: "macos-latest" # Apple Silicon
             target: "aarch64-apple-darwin"
             args: "--target aarch64-apple-darwin"
-          # - platform: "macos-13" # Intel Mac
-          # target: "x86_64-apple-darwin"
-          # args: "--target x86_64-apple-darwin"
 
           # --- LINUX ---
           - platform: "ubuntu-22.04" # Linux x64
@@ -35,11 +34,9 @@ jobs:
           # --- WINDOWS ---
           - platform: "windows-latest" # Windows x64
             target: "x86_64-pc-windows-msvc"
-            vcpkg_triplet: "x64-windows-static-md"
             args: ""
           - platform: "windows-latest" # Windows ARM64
             target: "aarch64-pc-windows-msvc"
-            vcpkg_triplet: "arm64-windows-static-md"
             args: "--target aarch64-pc-windows-msvc"
 
     runs-on: ${{ matrix.platform }}
@@ -47,48 +44,28 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: setup bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          # Uses the target defined in the matrix above
           targets: ${{ matrix.target }}
 
-      # --- UBUNTU SETUP (PRESERVED) ---
+      # --- UBUNTU SETUP ---
       - name: install dependencies (ubuntu only)
         if: startsWith(matrix.platform, 'ubuntu')
         run: |
           sudo apt-get update
-          # PRESERVED: Includes xdg-utils to fix the Tauri AppImage bundle error
-          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf pkg-config libicu-dev libpng-dev libharfbuzz-dev libgraphite2-dev xdg-utils
-          # PRESERVED: Force the Rust linker to include the C++ standard library and Graphite2
-          echo "RUSTFLAGS=-C link-arg=-lstdc++ -C link-arg=-lgraphite2" >> $GITHUB_ENV
-
-      # --- MACOS SETUP (PRESERVED) ---
-      - name: Setup Tectonic Dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install pkg-config icu4c libpng
-          # PRESERVED: Specific brew paths for tectonic
-          echo "PKG_CONFIG_PATH=/opt/homebrew/opt/icu4c/lib/pkgconfig:/opt/homebrew/opt/libpng/lib/pkgconfig:/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libpng/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
-
-      # --- WINDOWS SETUP (PRESERVED & EXTENDED) ---
-      - name: Setup vcpkg and Dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git ${{ github.workspace }}\vcpkg
-          ${{ github.workspace }}\vcpkg\bootstrap-vcpkg.bat
-          # PRESERVED: Using the static-md triplet, now arch-aware via matrix
-          ${{ github.workspace }}\vcpkg\vcpkg.exe install icu:${{ matrix.vcpkg_triplet }} libpng:${{ matrix.vcpkg_triplet }} harfbuzz:${{ matrix.vcpkg_triplet }} graphite2:${{ matrix.vcpkg_triplet }} fontconfig:${{ matrix.vcpkg_triplet }}
-
-          echo "TECTONIC_DEP_BACKEND=vcpkg" >> $env:GITHUB_ENV
-          echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" >> $env:GITHUB_ENV
-          echo "VCPKGRS_TRIPLET=${{ matrix.vcpkg_triplet }}" >> $env:GITHUB_ENV
-          # PRESERVED: Force MSVC to use C++17 standard
-          echo "CXXFLAGS=/std:c++17" >> $env:GITHUB_ENV
+          sudo apt-get install -y \
+            libwebkit2gtk-4.0-dev \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            pkg-config \
+            xdg-utils
 
       # --- BUILD AND PUBLISH ---
       - name: install frontend dependencies
@@ -97,10 +74,27 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: synclime-v__VERSION__
-          releaseName: "Synclime v__VERSION__"
-          releaseBody: "This version is the 1st complete version that includes from proxy to cookies, to directories add support. Completely database redesigned, focusing real user's requests."
+          tagName: roletect-v__VERSION__
+          releaseName: "RoleTect v__VERSION__"
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+          releaseBody: |
+            ## 📥 Which file should I download?
+            Select the correct file from the **Assets** list below based on your operating system and computer architecture.
+
+            ### 🍎 macOS
+            * **Apple Silicon (M1/M2/M3/M4)**: Download the `aarch64` file (e.g., `.dmg` or `.app.tar.gz`)
+
+            ### 🪟 Windows
+            * **Standard PC (Most Intel/AMD)**: Download the `x64` file (e.g., `-setup.exe` or `.msi`)
+            * **Windows on ARM (Snapdragon/Copilot+)**: Download the `arm64` or `aarch64` file (e.g., `-setup.exe`)
+
+            ### 🐧 Linux
+            * **Standard PC (Intel/AMD)**: Download the `amd64` or `x64` file (e.g., `.AppImage` or `.deb`)
+            * **ARM 64-bit (Raspberry Pi/ARM Servers)**: Download the `aarch64` file (e.g., `.AppImage` or `.deb`)

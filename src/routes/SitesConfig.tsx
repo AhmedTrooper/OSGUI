@@ -2,6 +2,7 @@ import { createSignal, onMount, Show, For, type JSX } from "solid-js";
 import { useUIStore } from "@/store/useUIStore";
 import { ipc } from "@/utils/ipc";
 import type { CookieProfile, ProxyProfile, SiteConfig } from "@/core/types/database.types";
+import { cn } from "@/utils/cn";
 import { CustomSelect } from "@/components/CustomSelect";
 import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
 import { Checkbox } from "@/components/Checkbox";
@@ -705,25 +706,36 @@ export default function SitesConfig(): JSX.Element {
                 <div class="flex items-center gap-2">
                   {/* Select All / Batch Delete */}
                   <Show when={cookies().length > 0}>
-                    <Checkbox
-                      checked={
-                        selectedCookies().length === cookies().length && cookies().length > 0
-                      }
-                      onChange={toggleSelectAllCookies}
-                      ariaLabel={
-                        selectedCookies().length === cookies().length
-                          ? "Deselect All"
-                          : "Select All"
-                      }
-                    />
+                    <div class="flex items-center gap-1.5 px-2 py-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-lg border border-zinc-200 dark:border-zinc-700/60 shadow-xs">
+                      <Checkbox
+                        checked={
+                          selectedCookies().length === cookies().length && cookies().length > 0
+                        }
+                        onChange={toggleSelectAllCookies}
+                        color="amber"
+                        ariaLabel={
+                          selectedCookies().length === cookies().length
+                            ? "Deselect All"
+                            : "Select All"
+                        }
+                        label={
+                          <span class="text-[11px] font-medium text-zinc-600 dark:text-zinc-300">
+                            All
+                          </span>
+                        }
+                      />
+                    </div>
                     <Show when={selectedCookies().length > 0}>
-                      <AdaptiveTooltip content="Permanently delete selected cookie profiles">
+                      <AdaptiveTooltip
+                        content={`Permanently delete ${selectedCookies().length} selected cookie profiles`}
+                      >
                         <button
                           type="button"
                           onClick={() => void handleBatchDeleteCookies()}
-                          class="flex items-center px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                          class="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-colors cursor-pointer border border-red-500/20 shadow-xs flex items-center justify-center"
+                          aria-label={`Delete ${selectedCookies().length} selected`}
                         >
-                          Delete ({selectedCookies().length})
+                          <Trash2 class="w-3.5 h-3.5" />
                         </button>
                       </AdaptiveTooltip>
                     </Show>
@@ -749,12 +761,20 @@ export default function SitesConfig(): JSX.Element {
               <div class="space-y-2.5">
                 <For each={paginatedCookies()}>
                   {(cookie) => (
-                    <div class="border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-3 rounded-xl space-y-2 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+                    <div
+                      class={cn(
+                        "border p-3 rounded-xl space-y-2 transition-all duration-150",
+                        selectedCookies().includes(cookie.slug)
+                          ? "border-amber-500/50 bg-amber-500/5 dark:bg-amber-500/10 shadow-xs"
+                          : "border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-700",
+                      )}
+                    >
                       <div class="flex items-start justify-between gap-3">
                         <div class="flex items-center gap-2.5 min-w-0">
                           <Checkbox
                             checked={selectedCookies().includes(cookie.slug)}
                             onChange={() => toggleSelectCookie(cookie.slug)}
+                            color="amber"
                             ariaLabel={`Select ${cookie.title}`}
                           />
                           <div class="min-w-0">
@@ -970,25 +990,36 @@ export default function SitesConfig(): JSX.Element {
                 <div class="flex items-center gap-2">
                   {/* Select All / Batch Delete */}
                   <Show when={proxies().length > 0}>
-                    <Checkbox
-                      checked={
-                        selectedProxies().length === proxies().length && proxies().length > 0
-                      }
-                      onChange={toggleSelectAllProxies}
-                      ariaLabel={
-                        selectedProxies().length === proxies().length
-                          ? "Deselect All"
-                          : "Select All"
-                      }
-                    />
+                    <div class="flex items-center gap-1.5 px-2 py-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-lg border border-zinc-200 dark:border-zinc-700/60 shadow-xs">
+                      <Checkbox
+                        checked={
+                          selectedProxies().length === proxies().length && proxies().length > 0
+                        }
+                        onChange={toggleSelectAllProxies}
+                        color="purple"
+                        ariaLabel={
+                          selectedProxies().length === proxies().length
+                            ? "Deselect All"
+                            : "Select All"
+                        }
+                        label={
+                          <span class="text-[11px] font-medium text-zinc-600 dark:text-zinc-300">
+                            All
+                          </span>
+                        }
+                      />
+                    </div>
                     <Show when={selectedProxies().length > 0}>
-                      <AdaptiveTooltip content="Permanently delete selected proxy profiles">
+                      <AdaptiveTooltip
+                        content={`Permanently delete ${selectedProxies().length} selected proxy profiles`}
+                      >
                         <button
                           type="button"
                           onClick={() => void handleBatchDeleteProxies()}
-                          class="flex items-center px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                          class="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-colors cursor-pointer border border-red-500/20 shadow-xs flex items-center justify-center"
+                          aria-label={`Delete ${selectedProxies().length} selected`}
                         >
-                          Delete ({selectedProxies().length})
+                          <Trash2 class="w-3.5 h-3.5" />
                         </button>
                       </AdaptiveTooltip>
                     </Show>
@@ -1014,12 +1045,20 @@ export default function SitesConfig(): JSX.Element {
               <div class="space-y-2.5">
                 <For each={paginatedProxies()}>
                   {(proxy) => (
-                    <div class="border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 p-3 rounded-xl space-y-2 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+                    <div
+                      class={cn(
+                        "border p-3 rounded-xl space-y-2 transition-all duration-150",
+                        selectedProxies().includes(proxy.slug)
+                          ? "border-purple-500/50 bg-purple-500/5 dark:bg-purple-500/10 shadow-xs"
+                          : "border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-700",
+                      )}
+                    >
                       <div class="flex items-start justify-between gap-3">
                         <div class="flex items-center gap-2.5 min-w-0">
                           <Checkbox
                             checked={selectedProxies().includes(proxy.slug)}
                             onChange={() => toggleSelectProxy(proxy.slug)}
+                            color="purple"
                             ariaLabel={`Select ${proxy.title}`}
                           />
                           <div class="min-w-0">

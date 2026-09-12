@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Check,
+  Copy,
   Download,
   Cpu,
 } from "lucide-solid";
@@ -220,7 +221,13 @@ export function LogsSection(): JSX.Element {
                                         </Tooltip.Content>
                                       </Tooltip.Portal>
                                     </Tooltip>
-                                    <AdaptiveTooltip content="Copy executed command to clipboard">
+                                    <AdaptiveTooltip
+                                      content={
+                                        copiedKey() === `${log.slug}-cmd`
+                                          ? "Copied!"
+                                          : "Copy executed command"
+                                      }
+                                    >
                                       <button
                                         type="button"
                                         onClick={() => {
@@ -229,11 +236,15 @@ export function LogsSection(): JSX.Element {
                                             `${log.slug}-cmd`,
                                           );
                                         }}
-                                        class="text-blue-500 hover:text-blue-400 transition-colors cursor-pointer flex items-center text-[10px] font-bold"
+                                        class="p-1 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors cursor-pointer flex items-center justify-center"
+                                        aria-label="Copy executed command"
                                       >
-                                        {copiedKey() === `${log.slug}-cmd`
-                                          ? "Copied!"
-                                          : "Copy Command"}
+                                        <Show
+                                          when={copiedKey() === `${log.slug}-cmd`}
+                                          fallback={<Copy class="w-3.5 h-3.5" />}
+                                        >
+                                          <Check class="w-3.5 h-3.5 text-emerald-500" />
+                                        </Show>
                                       </button>
                                     </AdaptiveTooltip>
                                   </div>
@@ -258,17 +269,27 @@ export function LogsSection(): JSX.Element {
                                         </Tooltip.Content>
                                       </Tooltip.Portal>
                                     </Tooltip>
-                                    <AdaptiveTooltip content="Copy error payload to clipboard">
+                                    <AdaptiveTooltip
+                                      content={
+                                        copiedKey() === `${log.slug}-msg`
+                                          ? "Copied!"
+                                          : "Copy error payload"
+                                      }
+                                    >
                                       <button
                                         type="button"
                                         onClick={() => {
                                           void handleCopyText(log.error_message, `${log.slug}-msg`);
                                         }}
-                                        class="text-red-500 hover:text-red-400 transition-colors cursor-pointer flex items-center text-[10px] font-bold"
+                                        class="p-1 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors cursor-pointer flex items-center justify-center"
+                                        aria-label="Copy error payload"
                                       >
-                                        {copiedKey() === `${log.slug}-msg`
-                                          ? "Copied!"
-                                          : "Copy Payload"}
+                                        <Show
+                                          when={copiedKey() === `${log.slug}-msg`}
+                                          fallback={<Copy class="w-3.5 h-3.5" />}
+                                        >
+                                          <Check class="w-3.5 h-3.5 text-emerald-500" />
+                                        </Show>
                                       </button>
                                     </AdaptiveTooltip>
                                   </div>
@@ -369,7 +390,13 @@ export function LogsSection(): JSX.Element {
                                         </Tooltip.Content>
                                       </Tooltip.Portal>
                                     </Tooltip>
-                                    <AdaptiveTooltip content="Copy executed command to clipboard">
+                                    <AdaptiveTooltip
+                                      content={
+                                        copiedKey() === `${log.slug}-cmd`
+                                          ? "Copied!"
+                                          : "Copy executed command"
+                                      }
+                                    >
                                       <button
                                         type="button"
                                         onClick={() => {
@@ -378,11 +405,15 @@ export function LogsSection(): JSX.Element {
                                             `${log.slug}-cmd`,
                                           );
                                         }}
-                                        class="text-blue-500 hover:text-blue-400 transition-colors cursor-pointer flex items-center text-[10px] font-bold"
+                                        class="p-1 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 rounded transition-colors cursor-pointer flex items-center justify-center"
+                                        aria-label="Copy executed command"
                                       >
-                                        {copiedKey() === `${log.slug}-cmd`
-                                          ? "Copied!"
-                                          : "Copy Command"}
+                                        <Show
+                                          when={copiedKey() === `${log.slug}-cmd`}
+                                          fallback={<Copy class="w-3.5 h-3.5" />}
+                                        >
+                                          <Check class="w-3.5 h-3.5 text-emerald-500" />
+                                        </Show>
                                       </button>
                                     </AdaptiveTooltip>
                                   </div>

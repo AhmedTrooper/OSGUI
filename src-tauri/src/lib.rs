@@ -32,6 +32,7 @@
 #![allow(clippy::significant_drop_tightening)]
 // Long doc-comment opening paragraphs; pure style preference.
 #![allow(clippy::too_long_first_doc_paragraph)]
+#![allow(clippy::large_stack_frames)]
 #![cfg_attr(mobile, tauri::mobile_entry_point)]
 
 pub mod commands;
@@ -545,6 +546,13 @@ fn build_invoke_handler() -> impl Fn(tauri::ipc::Invoke<tauri::Wry>) -> bool {
 /// all plugins/commands/handlers, and starts the runtime.
 pub fn run() {
     let builder = tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_notification::init())

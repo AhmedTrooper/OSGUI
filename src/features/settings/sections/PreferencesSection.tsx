@@ -1,5 +1,6 @@
 import { createEffect, createSignal, onMount, Show, type JSX } from "solid-js";
 import { open } from "@tauri-apps/plugin-dialog";
+import { Folder, RotateCcw, Save, Check } from "lucide-solid";
 import { AdaptiveTooltip } from "@/components/AdaptiveTooltip";
 import { useUIStore } from "@/store/useUIStore";
 import { ipc } from "@/utils/ipc";
@@ -114,16 +115,17 @@ export function PreferencesSection(): JSX.Element {
               onInput={(e) => setTempPath(e.currentTarget.value)}
               class="w-full sm:flex-grow px-3 py-2.5 sm:py-2 bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none text-xs sm:text-sm text-zinc-900 dark:text-white"
             />
-            <div class="flex flex-row gap-2 w-full sm:w-auto">
-              <AdaptiveTooltip content="Browse for download destination folder">
+            <div class="flex flex-row items-center gap-1.5 w-full sm:w-auto">
+              <AdaptiveTooltip content="Browse download folder">
                 <button
                   type="button"
                   onClick={() => {
                     void handleBrowse();
                   }}
-                  class="flex-1 sm:flex-none flex items-center justify-center px-3 py-2.5 sm:py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs sm:text-[13px] font-semibold transition-colors cursor-pointer"
+                  class="p-2 sm:p-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-lg transition-colors cursor-pointer"
+                  aria-label="Browse download folder"
                 >
-                  Browse
+                  <Folder class="w-4 h-4" />
                 </button>
               </AdaptiveTooltip>
 
@@ -133,9 +135,10 @@ export function PreferencesSection(): JSX.Element {
                   onClick={() => {
                     void handleResetToDefault();
                   }}
-                  class="flex-1 sm:flex-none flex items-center justify-center px-3 py-2.5 sm:py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs sm:text-[13px] font-semibold transition-colors cursor-pointer"
+                  class="p-2 sm:p-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-lg transition-colors cursor-pointer"
+                  aria-label="Reset to default download folder"
                 >
-                  Reset
+                  <RotateCcw class="w-4 h-4" />
                 </button>
               </AdaptiveTooltip>
             </div>
@@ -217,12 +220,15 @@ export function PreferencesSection(): JSX.Element {
           </span>
         </Show>
 
-        <AdaptiveTooltip content="Save and apply preferences to system database">
+        <AdaptiveTooltip content={savedSuccess() ? "Preferences applied" : "Save preferences"}>
           <button
             type="submit"
-            class="flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2.5 sm:py-2 rounded-xl sm:rounded-lg transition-colors text-xs sm:text-[13px] w-full sm:w-auto shadow-md shadow-blue-500/20 cursor-pointer"
+            class="p-2 sm:p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors shadow-md shadow-blue-500/20 cursor-pointer flex items-center justify-center"
+            aria-label="Save preferences"
           >
-            Save Changes
+            <Show when={savedSuccess()} fallback={<Save class="w-4 h-4" />}>
+              <Check class="w-4 h-4" />
+            </Show>
           </button>
         </AdaptiveTooltip>
       </div>
