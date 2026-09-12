@@ -1,8 +1,9 @@
 import { useParams, A } from "@solidjs/router";
 import { ArrowLeft } from "lucide-solid";
+import type { JSX } from "solid-js";
 
-export default function DownloadsDetail() {
-  const params = useParams();
+export default function DownloadsDetail(): JSX.Element {
+  const params = useParams<{ slug: string }>();
 
   return (
     <div class="flex flex-col items-center justify-center min-h-[50vh] text-center gap-6 w-full">
@@ -11,7 +12,8 @@ export default function DownloadsDetail() {
           Hello World from Downloads Detail Route
         </h1>
         <p class="text-zinc-500 dark:text-zinc-400 text-sm transition-colors duration-300">
-          Viewing Details for dynamic slug: <strong class="text-blue-600 dark:text-blue-400">{params.slug}</strong>
+          Viewing Details for dynamic slug:{" "}
+          <strong class="text-blue-600 dark:text-blue-400">{params.slug}</strong>
         </p>
       </div>
       <A

@@ -1,123 +1,103 @@
-import { createSignal, createMemo, Show, onMount, For, createEffect } from "solid-js";
+import { createSignal, createMemo, Show, onMount, type JSX } from "solid-js";
 import { useParams, A, useNavigate } from "@solidjs/router";
-import { useParseStore } from "../store/useParseStore";
-import { useQueueStore } from "../store/useQueueStore";
-import { useUIStore } from "../store/useUIStore";
-import { logErrorToDb } from "../core/logger";
+import { PlayCircle } from "lucide-solid";
 
-import {
-  ArrowLeft,
-  PlayCircle,
-  GlobeLock,
-  ChevronDown,
-} from "lucide-solid";
-import { invoke } from "@tauri-apps/api/core";
+import { useParseStore } from "@/store/useParseStore";
+import { useUIStore } from "@/store/useUIStore";
+import { ipc } from "@/utils/ipc";
+import { isTauri } from "@/utils/tauri";
+import { formatDuration, formatSize } from "@/utils/format";
+import { sanitizeTitle, escapeFormatForFilename } from "@/utils/sanitize";
+import { logErrorToDb } from "@/core/logger";
+import type { SiteConfig, JobRecordPayload } from "@/core/types/database.types";
+import type {
+  DiscoveryPayload,
+  Format,
+  GenericPlaylistMetadata,
+  ParsedFile as ParsedFileRecord,
+  PresetOption,
+  SubtitleOption,
+  VideoMetadata,
+} from "@/core/types/ytdlp.types";
+import { CustomSelect } from "@/components/CustomSelect";
 
-// Modular feature components
-import { HeroCard } from "../features/parser/components/HeroCard";
-import { SingleVideoView } from "../features/parser/components/SingleVideoView";
-import { PlaylistView } from "../features/parser/components/PlaylistView";
-import { ConfigureTrackModal } from "../features/parser/components/ConfigureTrackModal";
+import { HeroCard } from "@/features/parser/components/HeroCard";
+import { SingleVideoView } from "@/features/parser/components/SingleVideoView";
+import { PlaylistView } from "@/features/parser/components/PlaylistView";
+import { ConfigureTrackModal } from "@/features/parser/components/ConfigureTrackModal";
 
-const CustomSelect = (props: {
-  value: string;
-  onChange: (val: string) => void;
-  options: { value: string; label: string }[];
-  placeholder: string;
-}) => {
-  const [isOpen, setIsOpen] = createSignal(false);
-  const selected = () => props.options.find((o) => o.value === props.value);
+interface PlaylistTrackInfo {
+  id: string;
+  title: string;
+  url: string;
+  duration?: number | undefined;
+  thumbnails?: Array<{ url: string }> | undefined;
+}
 
-  return (
-    <div class={`relative w-full ${isOpen() ? "z-50" : "z-10"}`}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen())}
-        class="w-full flex items-center justify-between px-3 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:border-zinc-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:bg-white dark:focus:bg-zinc-900 text-xs sm:text-sm text-zinc-900 dark:text-white transition-all shadow-inner outline-none"
-      >
-        <div class="flex items-center gap-2 truncate text-left">
-          <GlobeLock class="w-4 h-4 text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
-          <span class="truncate">{selected() ? selected()!.label : props.placeholder}</span>
-        </div>
-        <ChevronDown
-          class={`w-4 h-4 text-zinc-400 dark:text-zinc-500 transition-transform duration-200 flex-shrink-0 ${
-            isOpen() ? "rotate-180" : ""
-          }`}
-        />
-      </button>
+const PRESET_LIST: PresetOption[] = [
+  { label: "Best Quality (Unlimited / 4K+)", value: "bestvideo+bestaudio/best" },
+  {
+    label: "Best MP4 Format (Highly Compatible)",
+    value: "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+  },
+  { label: "Max 1440p (QHD)", value: "bestvideo[height<=1440]+bestaudio/best" },
+  { label: "Max 1080p (FHD)", value: "bestvideo[height<=1080]+bestaudio/best" },
+  { label: "Max 720p (HD)", value: "bestvideo[height<=720]+bestaudio/best" },
+  { label: "Max 480p (SD - Data Saver)", value: "bestvideo[height<=480]+bestaudio/best" },
+  { label: "Max 360p (Low - Feature Phone Saver)", value: "bestvideo[height<=360]+bestaudio/best" },
+  { label: "Extract Audio Only (Highest)", value: "bestaudio/best" },
+  { label: "Extract Audio Only (M4A Native)", value: "bestaudio[ext=m4a]/bestaudio/best" },
+];
 
-      <Show when={isOpen()}>
-        <div class="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-        <div class="absolute z-50 w-full mt-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl overflow-x-hidden overflow-y-auto py-1 max-h-60 custom-scrollbar overscroll-contain animate-fade-in origin-top pointer-events-auto">
-          <button
-            type="button"
-            onClick={() => {
-              props.onChange("");
-              setIsOpen(false);
-            }}
-            class={`w-full flex items-center gap-2 text-left px-3.5 py-2.5 text-xs sm:text-sm transition-all ${
-              !props.value
-                ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold"
-                : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10"
-            }`}
-          >
-            <GlobeLock class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
-            <span class="truncate">{props.placeholder}</span>
-          </button>
-          <Show when={props.options.length > 0}>
-            <div class="h-[1px] bg-zinc-200 dark:bg-zinc-800 w-full my-1" />
-          </Show>
-          <For each={props.options}>
-            {(opt) => (
-              <button
-                type="button"
-                onClick={() => {
-                  props.onChange(opt.value);
-                  setIsOpen(false);
-                }}
-                class={`w-full flex items-center gap-2 text-left px-3.5 py-2.5 text-xs sm:text-sm transition-all truncate ${
-                  props.value === opt.value
-                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold"
-                    : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/10"
-                }`}
-              >
-                <GlobeLock class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 flex-shrink-0" />
-                <span class="truncate">{opt.label}</span>
-              </button>
-            )}
-          </For>
-        </div>
-      </Show>
-    </div>
-  );
+const PREDEFINED_SUBS: SubtitleOption[] = [
+  { lang: "all", name: "All Available Subtitles" },
+  { lang: "en", name: "English" },
+  { lang: "bn", name: "Bengali" },
+  { lang: "es", name: "Spanish" },
+  { lang: "hi", name: "Hindi" },
+  { lang: "fr", name: "French" },
+  { lang: "ar", name: "Arabic" },
+  { lang: "ru", name: "Russian" },
+  { lang: "pt", name: "Portuguese" },
+  { lang: "de", name: "German" },
+  { lang: "ja", name: "Japanese" },
+];
+
+const subtitleOptionsFrom = (subtitles: VideoMetadata["subtitles"]): SubtitleOption[] => {
+  if (!subtitles) return [];
+  return Object.keys(subtitles).map((lang) => ({
+    lang,
+    name: subtitles[lang]?.[0]?.name ?? lang.toUpperCase(),
+  }));
 };
 
-export default function ParsedFileDetail() {
-  const params = useParams();
+export default function ParsedFileDetail(): JSX.Element {
+  const params = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const file = createMemo(() => useParseStore.state.parsedFiles.find((f) => f.slug === params.slug));
-  const payload = createMemo(() => file()?.payload || {});
+  const file = createMemo<ParsedFileRecord | undefined>(() =>
+    useParseStore.state.parsedFiles.find((f) => f.slug === params.slug),
+  );
+  const payload = createMemo<DiscoveryPayload>(() => file()?.payload ?? ({} as DiscoveryPayload));
 
-  const [siteConfigs, setSiteConfigs] = createSignal<any[]>([]);
+  const [siteConfigs, setSiteConfigs] = createSignal<SiteConfig[]>([]);
   const [selectedSiteSlug, setSelectedSiteSlug] = createSignal<string>("");
 
-  createEffect(() => {
-    const f = file();
-    if (f && f.siteConfigSlug) {
-      setSelectedSiteSlug(f.siteConfigSlug);
-    }
-  });
-
-  onMount(async () => {
-    const isTauri = typeof window !== "undefined" && !!(window as any).__TAURI_INTERNALS__;
-    if (isTauri) {
+  onMount(() => {
+    useUIStore.setActivePath("/parsed_file");
+    void (async () => {
+      if (!isTauri()) return;
       try {
-        const configs = await invoke<any[]>("get_site_configs");
+        const configs = await ipc.getSiteConfigs();
         setSiteConfigs(configs);
       } catch (err) {
         console.error("Failed to load site configs in ParsedFileDetail:", err);
       }
+    })();
+
+    const f = file();
+    if (f?.siteConfigSlug) {
+      setSelectedSiteSlug(f.siteConfigSlug);
     }
   });
 
@@ -130,8 +110,8 @@ export default function ParsedFileDetail() {
 
   // Modal specific state
   const [parsingTracks, setParsingTracks] = createSignal<Record<string, boolean>>({});
-  const [activeTrackPayload, setActiveTrackPayload] = createSignal<any>(null);
-  const [activeTrackFile, setActiveTrackFile] = createSignal<any>(null);
+  const [activeTrackPayload, setActiveTrackPayload] = createSignal<DiscoveryPayload | null>(null);
+  const [activeTrackFile, setActiveTrackFile] = createSignal<ParsedFileRecord | null>(null);
   const [showModal, setShowModal] = createSignal(false);
   const [modalSelectedVideo, setModalSelectedVideo] = createSignal("");
   const [modalSelectedAudio, setModalSelectedAudio] = createSignal("");
@@ -139,62 +119,46 @@ export default function ParsedFileDetail() {
   const [modalSelectedSubs, setModalSelectedSubs] = createSignal<string[]>([]);
   const [modalSelectionMode, setModalSelectionMode] = createSignal<"custom" | "fallback">("custom");
 
-  const formatDuration = (secs: number) => {
-    if (!secs) return "0:00";
-    const h = Math.floor(secs / 3600);
-    const m = Math.floor((secs % 3600) / 60);
-    const s = Math.floor(secs % 60);
-    if (h > 0) {
-      return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-    }
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
-
-  const formatSize = (bytes: number | null | undefined) => {
-    if (!bytes) return "Unknown Size";
-    const sizes = ["B", "KB", "MB", "GB"];
-    let i = 0;
-    let count = bytes;
-    while (count >= 1024 && i < sizes.length - 1) {
-      count /= 1024;
-      i++;
-    }
-    return `${count.toFixed(1)} ${sizes[i]}`;
-  };
-
-  const dispatchDownloadJob = async (jobPayload: any) => {
-    const payloadWithConfig = {
+  const dispatchDownloadJob = async (jobPayload: JobRecordPayload): Promise<void> => {
+    const payloadWithConfig: JobRecordPayload = {
       ...jobPayload,
       site_config_slug: selectedSiteSlug() || null,
     };
 
-    const isTauri = typeof window !== "undefined" && !!(window as any).__TAURI_INTERNALS__;
-    if (isTauri) {
+    if (isTauri()) {
       try {
-        const insertRes = await invoke<{ success: boolean; message: string }>("insert_job_record", { payload: payloadWithConfig });
-        if (!insertRes.success) throw new Error(insertRes.message);
-        
-        const startRes = await invoke<{ success: boolean; message: string }>("trigger_job_start", { jobSlug: payloadWithConfig.slug });
-        if (!startRes.success) throw new Error(startRes.message);
-      } catch (e: any) {
-        await logErrorToDb(e.message || String(e), "dispatch_download_job", payloadWithConfig.slug);
+        const insertRes = await ipc.insertJobRecord({ payload: payloadWithConfig });
+        if (!insertRes.success) throw new Error(insertRes.message ?? "insert_job_record failed");
+
+        const startRes = await ipc.triggerJobStart({ jobSlug: payloadWithConfig.slug });
+        if (!startRes.success) throw new Error(startRes.message ?? "trigger_job_start failed");
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        await logErrorToDb(msg, "dispatch_download_job", payloadWithConfig.slug);
       }
     } else {
-      console.log(`[Browser Preview] Job ${payloadWithConfig.slug} dispatched to backend mock:`, payloadWithConfig);
+      console.log(
+        `[Browser Preview] Job ${payloadWithConfig.slug} dispatched to backend mock:`,
+        payloadWithConfig,
+      );
     }
   };
 
-  const startDownload = async (formatString: string, isAudio = false, _customName?: string, targetUrl?: string) => {
+  const startDownload = async (
+    formatString: string,
+    isAudio = false,
+    customName?: string,
+    targetUrl?: string,
+  ): Promise<void> => {
     const f = file();
     if (!f) return;
 
     const uniqueSlug = `dl-${Date.now()}`;
-    const urlToUse = targetUrl || f.url;
-
+    const urlToUse = targetUrl ?? f.url;
     const fmt = formatString || "bestvideo+bestaudio/best";
-    const safeFmt = fmt.replace(/\//g, "_");
-    const baseTitle = _customName || f.title;
-    
+    const safeFmt = escapeFormatForFilename(fmt);
+    const baseTitle = customName ?? f.title;
+
     await dispatchDownloadJob({
       slug: uniqueSlug,
       url: urlToUse,
@@ -223,7 +187,7 @@ export default function ParsedFileDetail() {
           download_path: useUIStore.state.downloadPath,
           created_at: new Date().toISOString(),
           selected_subtitles: sub,
-          custom_title: `[sub_${sub}]_${_customName || f.title}`,
+          custom_title: `[sub_${sub}]_${customName ?? f.title}`,
         });
       });
       await Promise.all(promises);
@@ -232,12 +196,12 @@ export default function ParsedFileDetail() {
     navigate("/downloads");
   };
 
-  const handleParseTrack = async (track: any) => {
+  const handleParseTrack = async (track: PlaylistTrackInfo): Promise<void> => {
     const f = file();
     if (!f) return;
 
     const existingFile = useParseStore.state.parsedFiles.find(
-      (pf) => pf.parentPlaylistSlug === f.slug && pf.title === track.title
+      (pf) => pf.parentPlaylistSlug === f.slug && pf.title === track.title,
     );
 
     if (existingFile) {
@@ -256,99 +220,176 @@ export default function ParsedFileDetail() {
 
     try {
       let cleanUrl = track.url;
-      try {
-        const cleanRes = await invoke<{ success: boolean; sanitized_url: string }>(
-          "process_clipboard_paste",
-          { rawInput: track.url }
-        );
-        if (cleanRes.success) {
-          cleanUrl = cleanRes.sanitized_url;
+      if (isTauri()) {
+        try {
+          const cleanRes = await ipc.processClipboardPaste({ rawInput: track.url });
+          if (cleanRes.success && cleanRes.sanitized_url) {
+            cleanUrl = cleanRes.sanitized_url;
+          }
+        } catch (e) {
+          console.warn("Track clipboard paste cleaning failed:", e);
         }
-      } catch (e) {
-        console.warn("Track clipboard paste cleaning failed:", e);
       }
 
-      let trackPayload: any = null;
-      try {
-        const discoverRes = await invoke<{
-          success: boolean;
-          payload: any;
-          error_message: string | null;
-        }>("discover_asset_metadata", { 
-          targetUrl: cleanUrl, 
-          siteConfigSlug: selectedSiteSlug() || null 
-        });
-
-        if (discoverRes.success && discoverRes.payload) {
-          trackPayload = discoverRes.payload;
-        } else {
-          throw new Error(discoverRes.error_message || "Metadata extraction probe rejected track URL.");
+      let trackPayload: DiscoveryPayload | null = null;
+      if (isTauri()) {
+        try {
+          const discoverRes = await ipc.discoverAssetMetadata({
+            targetUrl: cleanUrl,
+            siteConfigSlug: selectedSiteSlug() || null,
+          });
+          if (discoverRes.success && discoverRes.payload) {
+            trackPayload = discoverRes.payload;
+          } else {
+            throw new Error(
+              discoverRes.error_message || "Metadata extraction probe rejected track URL.",
+            );
+          }
+        } catch (e) {
+          console.warn("discover_asset_metadata track failed (browser fallback):", e);
+          const mockTrack: VideoMetadata = {
+            id: track.id || `vid-${Date.now()}`,
+            title: track.title || "Introduction to Tauri & React - Premium Development Guide",
+            uploader: f.author || "Synclime Platform",
+            duration: track.duration || 185,
+            view_count: 12500,
+            thumbnail:
+              track.thumbnails?.[0]?.url ||
+              "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=480&auto=format&fit=crop&q=60",
+            formats: [
+              {
+                format_id: "bestvideo",
+                ext: "mp4",
+                format_note: "1085p 60fps",
+                width: 1920,
+                height: 1080,
+                fps: 60,
+                filesize: 95000000,
+              },
+              {
+                format_id: "720p",
+                ext: "mp4",
+                format_note: "720p 30fps",
+                width: 1280,
+                height: 720,
+                fps: 30,
+                filesize: 45000000,
+              },
+              {
+                format_id: "bestaudio",
+                ext: "m4a",
+                format_note: "HQ Audio",
+                acodec: "aac",
+                abr: 256,
+                filesize: 6000000,
+              },
+            ],
+            subtitles: {
+              en: [{ ext: "vtt", url: "", name: "English" }],
+              es: [{ ext: "vtt", url: "", name: "Spanish" }],
+            },
+            chapters: [],
+            type: "video",
+          };
+          trackPayload = mockTrack;
         }
-      } catch (e: any) {
-        console.warn("discover_asset_metadata track failed (browser fallback):", e);
-        trackPayload = {
+      } else {
+        const mockTrack: VideoMetadata = {
           id: track.id || `vid-${Date.now()}`,
           title: track.title || "Introduction to Tauri & React - Premium Development Guide",
           uploader: f.author || "Synclime Platform",
           duration: track.duration || 185,
           view_count: 12500,
-          thumbnail: track.thumbnails?.[0]?.url || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=480&auto=format&fit=crop&q=60",
+          thumbnail:
+            track.thumbnails?.[0]?.url ||
+            "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=480&auto=format&fit=crop&q=60",
           formats: [
-            { format_id: "bestvideo", ext: "mp4", format_note: "1085p 60fps", width: 1920, height: 1080, fps: 60, filesize: 95000000 },
-            { format_id: "720p", ext: "mp4", format_note: "720p 30fps", width: 1280, height: 720, fps: 30, filesize: 45000000 },
-            { format_id: "bestaudio", ext: "m4a", format_note: "HQ Audio", acodec: "aac", abr: 256, filesize: 6000000 },
+            {
+              format_id: "bestvideo",
+              ext: "mp4",
+              format_note: "1085p 60fps",
+              width: 1920,
+              height: 1080,
+              fps: 60,
+              filesize: 95000000,
+            },
+            {
+              format_id: "720p",
+              ext: "mp4",
+              format_note: "720p 30fps",
+              width: 1280,
+              height: 720,
+              fps: 30,
+              filesize: 45000000,
+            },
+            {
+              format_id: "bestaudio",
+              ext: "m4a",
+              format_note: "HQ Audio",
+              acodec: "aac",
+              abr: 256,
+              filesize: 6000000,
+            },
           ],
           subtitles: {
             en: [{ ext: "vtt", url: "", name: "English" }],
-            es: [{ ext: "vtt", url: "", name: "Spanish" }]
+            es: [{ ext: "vtt", url: "", name: "Spanish" }],
           },
           chapters: [],
-          _type: "video"
+          type: "video",
         };
+        trackPayload = mockTrack;
       }
 
-      const parsedTrackFile = {
+      if (!trackPayload) {
+        throw new Error("Failed to obtain track payload.");
+      }
+
+      const titleText = trackPayload.title || track.title;
+      const parsedTrackFile: ParsedFileRecord = {
         slug: trackPayload.id || `file-${Date.now()}`,
         url: cleanUrl,
-        title: trackPayload.title || track.title,
-        sanitizedTitle: (trackPayload.title || track.title)
-          .toLowerCase()
-          .replace(/[^a-z0-9]/g, "_")
-          .replace(/_+/g, "_")
-          .trim(),
+        title: titleText,
+        sanitizedTitle: sanitizeTitle(titleText),
         isPlaylist: false,
-        thumbnail: trackPayload.thumbnail || track.thumbnails?.[0]?.url || "",
-        duration: trackPayload.duration || track.duration || 0,
-        author: trackPayload.uploader || "External Publisher",
-        views: trackPayload.view_count || 0,
+        thumbnail:
+          ("thumbnail" in trackPayload && trackPayload.thumbnail) ||
+          track.thumbnails?.[0]?.url ||
+          "",
+        duration:
+          ("duration" in trackPayload && trackPayload.duration !== undefined
+            ? trackPayload.duration
+            : track.duration) ?? 0,
+        author: ("uploader" in trackPayload && trackPayload.uploader) || "External Publisher",
+        views: ("view_count" in trackPayload && trackPayload.view_count) || 0,
         payload: trackPayload,
         parsedAt: new Date().toISOString(),
         parentPlaylistSlug: f.slug,
-        siteConfigSlug: f.siteConfigSlug,
+        ...(f.siteConfigSlug ? { siteConfigSlug: f.siteConfigSlug } : {}),
       };
 
       useParseStore.addParsedFile(parsedTrackFile);
 
-      const isTauriEnvironment = typeof window !== "undefined" && !!(window as any).__TAURI_INTERNALS__;
-      if (isTauriEnvironment) {
+      if (isTauri()) {
         try {
-          await invoke("insert_parsed_file", {
+          await ipc.insertParsedFile({
             payload: {
               slug: parsedTrackFile.slug,
               url: parsedTrackFile.url,
               title: parsedTrackFile.title,
               sanitized_title: parsedTrackFile.sanitizedTitle,
               is_playlist: 0,
-              parent_playlist_slug: f.slug, // MOTHER LINK BRIDGE!
+              parent_playlist_slug: f.slug,
               playlist_name: f.title,
               sanitized_playlist_name: f.sanitizedTitle,
               json_metadata: JSON.stringify(trackPayload),
               created_at: parsedTrackFile.parsedAt,
-              site_config_slug: f.siteConfigSlug,
-            }
+              site_config_slug: f.siteConfigSlug ?? null,
+            },
           });
-        } catch (e: any) {
-          await logErrorToDb(e.message || String(e), "insert_parsed_track", parsedTrackFile.slug);
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          await logErrorToDb(msg, "insert_parsed_track", parsedTrackFile.slug);
         }
       }
 
@@ -360,39 +401,37 @@ export default function ParsedFileDetail() {
       setModalSelectedPreset("bestvideo+bestaudio/best");
       setModalSelectionMode("custom");
       setShowModal(true);
-
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      alert(err.message || "Failed to parse track metadata.");
+      const msg = err instanceof Error ? err.message : String(err);
+      alert(msg || "Failed to parse track metadata.");
     } finally {
       setParsingTracks((prev) => ({ ...prev, [track.id]: false }));
     }
   };
 
-  const startModalDownload = async () => {
+  const startModalDownload = async (): Promise<void> => {
     const activeFile = activeTrackFile();
     if (!activeFile) return;
 
     let formatString = "";
     if (modalSelectionMode() === "fallback") {
       formatString = modalSelectedPreset();
+    } else if (modalSelectedVideo() && modalSelectedAudio()) {
+      formatString = `${modalSelectedVideo()}+${modalSelectedAudio()}`;
+    } else if (modalSelectedVideo()) {
+      formatString = modalSelectedVideo();
+    } else if (modalSelectedAudio()) {
+      formatString = modalSelectedAudio();
     } else {
-      if (modalSelectedVideo() && modalSelectedAudio()) {
-        formatString = `${modalSelectedVideo()}+${modalSelectedAudio()}`;
-      } else if (modalSelectedVideo()) {
-        formatString = modalSelectedVideo();
-      } else if (modalSelectedAudio()) {
-        formatString = modalSelectedAudio();
-      } else {
-        formatString = "bestvideo+bestaudio/best";
-      }
+      formatString = "bestvideo+bestaudio/best";
     }
 
     const isAudio = formatString.includes("bestaudio") && !formatString.includes("bestvideo");
     const uniqueSlug = `dl-${Date.now()}`;
     const joinedSubs = modalSelectedSubs().includes("all") ? "all" : modalSelectedSubs().join(",");
-    const safeFmt = formatString.replace(/\//g, "_");
- 
+    const safeFmt = escapeFormatForFilename(formatString);
+
     await dispatchDownloadJob({
       slug: uniqueSlug,
       url: activeFile.url,
@@ -432,22 +471,33 @@ export default function ParsedFileDetail() {
     navigate("/downloads");
   };
 
-  const downloadAllPlaylist = async () => {
+  const downloadAllPlaylist = async (): Promise<void> => {
     const f = file();
     if (!f) return;
-    
-    let targetTracks = payload().entries || [];
+
+    const playlistPayload = payload() as GenericPlaylistMetadata;
+    let targetTracks: PlaylistTrackInfo[] = (playlistPayload.entries ?? []).map((entry) => {
+      const track: PlaylistTrackInfo = {
+        id: entry.id,
+        title: entry.title,
+        url: entry.url,
+      };
+      if (entry.duration !== undefined) track.duration = entry.duration;
+      if (entry.thumbnails) track.thumbnails = entry.thumbnails.map((t) => ({ url: t.url }));
+      return track;
+    });
+
     if (selectedTracks().length > 0) {
-      targetTracks = targetTracks.filter((t: any) => selectedTracks().includes(t.id));
+      targetTracks = targetTracks.filter((t) => selectedTracks().includes(t.id));
     }
     if (targetTracks.length === 0) return;
-    
+
     const playlistFormatString = selectedPreset() || "bestvideo+bestaudio/best";
-    const safeFmt = playlistFormatString.replace(/\//g, "_");
- 
-    const promises = targetTracks.map(async (track: any, index: number) => {
+    const safeFmt = escapeFormatForFilename(playlistFormatString);
+
+    const promises = targetTracks.map(async (track, index) => {
       const trackSlug = `track-${track.id}-${Date.now()}-${index}`;
-      
+
       await dispatchDownloadJob({
         slug: trackSlug,
         url: track.url,
@@ -488,18 +538,19 @@ export default function ParsedFileDetail() {
     navigate("/downloads");
   };
 
-  const downloadSubtitle = async (targetUrl: string, _trackTitle: string) => {
+  const downloadSubtitle = async (targetUrl: string, trackTitle: string): Promise<void> => {
     const f = file();
     if (!f) return;
-    
+
     if (selectedSubs().length === 0) {
       alert("Please select at least one subtitle language from the checkbox list first!");
       return;
     }
 
+    const { useQueueStore } = await import("@/store/useQueueStore");
     const queue = useQueueStore.state.queue;
-    const parentJob = queue.find(j => j.url === targetUrl && j.fileType !== "subtitle");
-    
+    const parentJob = queue.find((j) => j.url === targetUrl && j.fileType !== "subtitle");
+
     const subsToDispatch = selectedSubs().includes("all") ? ["all"] : selectedSubs();
     const promises = subsToDispatch.map((sub, index) => {
       const subSlug = `dl-sub-${Date.now()}-${sub}-${index}`;
@@ -514,94 +565,70 @@ export default function ParsedFileDetail() {
         download_path: useUIStore.state.downloadPath,
         created_at: new Date().toISOString(),
         selected_subtitles: sub,
-        custom_title: `[sub_${sub}]_${_trackTitle}`,
+        custom_title: `[sub_${sub}]_${trackTitle}`,
       });
     });
-    
+
     await Promise.all(promises);
     navigate("/downloads");
   };
 
-  const subOptions = createMemo(() => {
+  const subOptions = createMemo<SubtitleOption[]>(() => {
     const p = payload();
-    return p.subtitles
-      ? Object.keys(p.subtitles).map((lang) => ({
-          lang,
-          name: p.subtitles[lang][0]?.name || lang.toUpperCase(),
-        }))
-      : [];
+    if (!("subtitles" in p) || !p.subtitles) return [];
+    return subtitleOptionsFrom(p.subtitles);
   });
 
-  const PREDEFINED_SUBS = [
-    { lang: "all", name: "All Available Subtitles" },
-    { lang: "en", name: "English" },
-    { lang: "bn", name: "Bengali" },
-    { lang: "es", name: "Spanish" },
-    { lang: "hi", name: "Hindi" },
-    { lang: "fr", name: "French" },
-    { lang: "ar", name: "Arabic" },
-    { lang: "ru", name: "Russian" },
-    { lang: "pt", name: "Portuguese" },
-    { lang: "de", name: "German" },
-    { lang: "ja", name: "Japanese" },
-  ];
+  const displaySubOptions = createMemo<SubtitleOption[]>(() =>
+    subOptions().length > 0 ? subOptions() : PREDEFINED_SUBS,
+  );
 
-  const displaySubOptions = createMemo(() => subOptions().length > 0 ? subOptions() : PREDEFINED_SUBS);
-
-  const modalSubOptions = createMemo(() => {
+  const modalSubOptions = createMemo<SubtitleOption[]>(() => {
     const active = activeTrackPayload();
-    return active?.subtitles
-      ? Object.keys(active.subtitles).map((lang) => ({
-          lang,
-          name: active.subtitles[lang][0]?.name || lang.toUpperCase(),
-        }))
-      : [];
+    if (!active || !("subtitles" in active) || !active.subtitles) return [];
+    return subtitleOptionsFrom(active.subtitles);
   });
 
-  const modalDisplaySubOptions = createMemo(() => modalSubOptions().length > 0 ? modalSubOptions() : PREDEFINED_SUBS);
+  const modalDisplaySubOptions = createMemo<SubtitleOption[]>(() =>
+    modalSubOptions().length > 0 ? modalSubOptions() : PREDEFINED_SUBS,
+  );
 
-  const presetList = [
-    { label: "Best Quality (Unlimited / 4K+)", value: "bestvideo+bestaudio/best" },
-    { label: "Best MP4 Format (Highly Compatible)", value: "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" },
-    { label: "Max 1440p (QHD)", value: "bestvideo[height<=1440]+bestaudio/best" },
-    { label: "Max 1080p (FHD)", value: "bestvideo[height<=1080]+bestaudio/best" },
-    { label: "Max 720p (HD)", value: "bestvideo[height<=720]+bestaudio/best" },
-    { label: "Max 480p (SD - Data Saver)", value: "bestvideo[height<=480]+bestaudio/best" },
-    { label: "Max 360p (Low - Feature Phone Saver)", value: "bestvideo[height<=360]+bestaudio/best" },
-    { label: "Extract Audio Only (Highest)", value: "bestaudio/best" },
-    { label: "Extract Audio Only (M4A Native)", value: "bestaudio[ext=m4a]/bestaudio/best" },
-  ];
-
-  const videoStreams = createMemo(() => {
-    const formats = payload().formats || [];
-    return formats.filter((f: any) => f.vcodec !== "none" && (f.format_note || f.resolution));
+  const videoStreams = createMemo<Format[]>(() => {
+    const p = payload();
+    const formats = "formats" in p ? (p.formats ?? []) : [];
+    return formats.filter(
+      (f) => f.vcodec !== "none" && (f.format_note !== undefined || f.resolution !== undefined),
+    );
   });
 
-  const audioStreams = createMemo(() => {
-    const formats = payload().formats || [];
-    return formats.filter((f: any) => f.acodec !== "none" && f.vcodec === "none");
+  const audioStreams = createMemo<Format[]>(() => {
+    const p = payload();
+    const formats = "formats" in p ? (p.formats ?? []) : [];
+    return formats.filter((f) => f.acodec !== "none" && f.vcodec === "none");
   });
 
-  const getGeneratedFormatString = () => {
+  const getGeneratedFormatString = (): string => {
     if (selectionMode() === "fallback") {
       return selectedPreset();
     }
     if (selectedVideo() && selectedAudio()) {
       return `${selectedVideo()}+${selectedAudio()}`;
-    } else if (selectedVideo()) {
-      return selectedVideo();
-    } else if (selectedAudio()) {
-      return selectedAudio();
     }
+    if (selectedVideo()) return selectedVideo();
+    if (selectedAudio()) return selectedAudio();
     return "bestvideo+bestaudio/best";
   };
 
-  const toggleSub = (lang: string) => {
-    setSelectedSubs(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
+  const toggleSub = (lang: string): void => {
+    setSelectedSubs((prev) =>
+      prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang],
+    );
   };
 
-  const toggleModalSub = (lang: string) => {
-    setModalSelectedSubs(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
+  const toggleModalSub = (lang: string): void => {
+    setModalSelectedSubs((prev) =>
+      prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang],
+    );
   };
 
   return (
@@ -627,117 +654,119 @@ export default function ParsedFileDetail() {
         </div>
       }
     >
-      <div class="flex flex-col gap-4 sm:gap-6 w-full max-w-4xl mx-auto px-1 sm:px-4 py-1 sm:py-2 text-zinc-950 dark:text-white transition-colors duration-300 font-sans select-none">
-        
-        {/* Back Header Nav */}
-        <div class="flex justify-between items-center w-full">
-          <A
-            href="/parsed_files"
-            class="flex items-center justify-center sm:justify-start gap-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold border border-zinc-200 dark:border-zinc-700 w-full sm:w-auto px-3 py-2 sm:py-1.5 rounded text-[10px] uppercase tracking-wider transition-all duration-150 overflow-hidden"
-          >
-            <ArrowLeft class="w-3.5 h-3.5 flex-shrink-0" />
-            <span class="truncate">Back to Repository</span>
-          </A>
-        </div>
+      {(activeFile) => {
+        const f = activeFile();
+        const p = payload();
+        return (
+          <div class="flex flex-col gap-4 sm:gap-6 w-full max-w-4xl mx-auto px-1 sm:px-4 py-1 sm:py-2 text-zinc-950 dark:text-white transition-colors duration-300 font-sans select-none">
+            {/* Active Site Configuration Profile Card */}
+            <div class="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm text-left space-y-3 animate-fade-in">
+              <div class="flex flex-col gap-1">
+                <h3 class="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider">
+                  Active Site Configuration Profile
+                </h3>
+                <p class="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-400">
+                  Select an explicit profile to force specific cookies, proxy headers, or network
+                  limits for this download job.
+                </p>
+              </div>
+              <CustomSelect
+                value={selectedSiteSlug()}
+                onChange={setSelectedSiteSlug}
+                options={siteConfigs().map((c) => ({
+                  value: c.slug,
+                  label: `${c.title} (${c.domain})`,
+                }))}
+                placeholder="No Site Profile (Direct network fallback)"
+              />
+            </div>
 
-        {/* Asset Hero Section Card */}
-        <HeroCard
-          thumbnail={file()!.thumbnail}
-          title={file()!.title}
-          author={file()!.author}
-          isPlaylist={file()!.isPlaylist}
-          duration={file()!.duration}
-          description={payload().description}
-          formatDuration={formatDuration}
-        />
-
-        {/* Active Site Configuration Profile Card */}
-        <div class="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-sm text-left space-y-3 animate-fade-in">
-          <div class="flex flex-col gap-1">
-            <h3 class="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider">
-              Active Site Configuration Profile
-            </h3>
-            <p class="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-400">
-              Select an explicit profile to force specific cookies, proxy headers, or network limits for this download job.
-            </p>
-          </div>
-          <CustomSelect
-            value={selectedSiteSlug()}
-            onChange={setSelectedSiteSlug}
-            options={siteConfigs().map(c => ({ value: c.slug, label: `${c.title} (${c.domain})` }))}
-            placeholder="No Site Profile (Direct network fallback)"
-          />
-        </div>
-
-        <Show
-          when={file()!.isPlaylist}
-          fallback={
-            <SingleVideoView
-              url={file()!.url}
-              title={file()!.title}
-              selectionMode={selectionMode}
-              setSelectionMode={setSelectionMode}
-              selectedVideo={selectedVideo}
-              setSelectedVideo={setSelectedVideo}
-              selectedAudio={selectedAudio}
-              setSelectedAudio={setSelectedAudio}
-              selectedPreset={selectedPreset}
-              setSelectedPreset={setSelectedPreset}
-              videoStreams={videoStreams()}
-              audioStreams={audioStreams()}
-              presetList={presetList}
-              getGeneratedFormatString={getGeneratedFormatString}
-              startDownload={startDownload}
-              displaySubOptions={displaySubOptions()}
-              selectedSubs={selectedSubs}
-              toggleSub={toggleSub}
-              downloadSubtitle={downloadSubtitle}
-              formatSize={formatSize}
-              subOptions={subOptions()}
+            {/* Asset Hero Section Card */}
+            <HeroCard
+              thumbnail={f.thumbnail}
+              title={f.title}
+              author={f.author}
+              isPlaylist={f.isPlaylist}
+              duration={f.duration}
+              {...("description" in p && p.description !== undefined
+                ? { description: p.description }
+                : {})}
+              formatDuration={formatDuration}
             />
-          }
-        >
-          <PlaylistView
-            payload={payload}
-            selectedPreset={selectedPreset}
-            setSelectedPreset={setSelectedPreset}
-            presetList={presetList}
-            downloadAllPlaylist={downloadAllPlaylist}
-            selectedTracks={selectedTracks}
-            setSelectedTracks={setSelectedTracks}
-            subOptions={subOptions()}
-            displaySubOptions={displaySubOptions()}
-            selectedSubs={selectedSubs}
-            toggleSub={toggleSub}
-            parsingTracks={parsingTracks}
-            handleParseTrack={handleParseTrack}
-            downloadSubtitle={downloadSubtitle}
-            startDownload={startDownload}
-            formatDuration={formatDuration}
-          />
-        </Show>
 
-        <ConfigureTrackModal
-          showModal={showModal}
-          setShowModal={setShowModal}
-          activeTrackPayload={activeTrackPayload}
-          activeTrackFile={activeTrackFile}
-          modalSelectionMode={modalSelectionMode}
-          setModalSelectionMode={setModalSelectionMode}
-          modalSelectedVideo={modalSelectedVideo}
-          setModalSelectedVideo={setModalSelectedVideo}
-          modalSelectedAudio={modalSelectedAudio}
-          setModalSelectedAudio={setModalSelectedAudio}
-          modalSelectedPreset={modalSelectedPreset}
-          setModalSelectedPreset={setModalSelectedPreset}
-          modalSelectedSubs={modalSelectedSubs}
-          toggleModalSub={toggleModalSub}
-          modalDisplaySubOptions={modalDisplaySubOptions()}
-          presetList={presetList}
-          formatSize={formatSize}
-          startModalDownload={startModalDownload}
-        />
-      </div>
+            <Show
+              when={f.isPlaylist}
+              fallback={
+                <SingleVideoView
+                  url={f.url}
+                  title={f.title}
+                  selectionMode={selectionMode}
+                  setSelectionMode={setSelectionMode}
+                  selectedVideo={selectedVideo}
+                  setSelectedVideo={setSelectedVideo}
+                  selectedAudio={selectedAudio}
+                  setSelectedAudio={setSelectedAudio}
+                  selectedPreset={selectedPreset}
+                  setSelectedPreset={setSelectedPreset}
+                  videoStreams={videoStreams()}
+                  audioStreams={audioStreams()}
+                  presetList={PRESET_LIST}
+                  getGeneratedFormatString={getGeneratedFormatString}
+                  startDownload={startDownload}
+                  displaySubOptions={displaySubOptions()}
+                  selectedSubs={selectedSubs}
+                  toggleSub={toggleSub}
+                  downloadSubtitle={downloadSubtitle}
+                  formatSize={formatSize}
+                  subOptions={subOptions()}
+                />
+              }
+            >
+              <PlaylistView
+                payload={payload}
+                selectedPreset={selectedPreset}
+                setSelectedPreset={setSelectedPreset}
+                presetList={PRESET_LIST}
+                downloadAllPlaylist={downloadAllPlaylist}
+                selectedTracks={selectedTracks}
+                setSelectedTracks={setSelectedTracks}
+                subOptions={subOptions()}
+                displaySubOptions={displaySubOptions()}
+                selectedSubs={selectedSubs}
+                toggleSub={toggleSub}
+                parsingTracks={parsingTracks}
+                handleParseTrack={handleParseTrack}
+                downloadSubtitle={downloadSubtitle}
+                startDownload={startDownload}
+                formatDuration={formatDuration}
+              />
+            </Show>
+
+            <ConfigureTrackModal
+              showModal={showModal}
+              setShowModal={setShowModal}
+              activeTrackPayload={activeTrackPayload}
+              activeTrackFile={activeTrackFile}
+              modalSelectionMode={modalSelectionMode}
+              setModalSelectionMode={setModalSelectionMode}
+              modalSelectedVideo={modalSelectedVideo}
+              setModalSelectedVideo={setModalSelectedVideo}
+              modalSelectedAudio={modalSelectedAudio}
+              setModalSelectedAudio={setModalSelectedAudio}
+              modalSelectedPreset={modalSelectedPreset}
+              setModalSelectedPreset={setModalSelectedPreset}
+              modalSelectedSubs={modalSelectedSubs}
+              toggleModalSub={toggleModalSub}
+              modalDisplaySubOptions={modalDisplaySubOptions()}
+              presetList={PRESET_LIST}
+              formatSize={formatSize}
+              startModalDownload={() => {
+                void startModalDownload();
+              }}
+            />
+          </div>
+        );
+      }}
     </Show>
   );
 }

@@ -1,50 +1,37 @@
-import { onMount, createSignal, For, Show } from "solid-js";
-import { useUIStore } from "../store/useUIStore";
-import { FileWarning, Database, Trash2, ChevronRight, ChevronDown, CheckCircle2, AlertTriangle, Cpu } from "lucide-solid";
-import { invoke } from "@tauri-apps/api/core";
+import { onMount, createSignal, For, Show, type JSX } from "solid-js";
+import {
+  FileWarning,
+  Database,
+  Trash2,
+  ChevronRight,
+  ChevronDown,
+  CheckCircle2,
+  AlertTriangle,
+  Cpu,
+} from "lucide-solid";
+import { useUIStore } from "@/store/useUIStore";
+import { ipc } from "@/utils/ipc";
+import { isTauri } from "@/utils/tauri";
+import { formatTimestamp } from "@/utils/format";
+import type { ErrorLog, ParseLog } from "@/core/types/database.types";
 
-interface ErrorLog {
-  slug: string;
-  download_job_slug: string;
-  command_executed: string;
-  error_message: string;
-  is_resolved: number;
-  timestamp: string;
-}
+type LogsTab = "errors" | "parses";
 
-interface ParseLog {
-  slug: string;
-  parsed_file_slug: string;
-  status: string;
-  started_at: string;
-  finished_at: string | null;
-  duration_ms: number;
-  command_executed: string;
-  exit_code: number | null;
-  bytes_returned: number;
-}
-
-export default function Logs() {
-  const [activeTab, setActiveTab] = createSignal<"errors" | "parses">("errors");
+export default function Logs(): JSX.Element {
+  const [activeTab, setActiveTab] = createSignal<LogsTab>("errors");
   const [errorLogs, setErrorLogs] = createSignal<ErrorLog[]>([]);
   const [parseLogs, setParseLogs] = createSignal<ParseLog[]>([]);
   const [loading, setLoading] = createSignal(false);
   const [selectedLogSlug, setSelectedLogSlug] = createSignal<string | null>(null);
-  
   const [copiedKey, setCopiedKey] = createSignal<string | null>(null);
 
-  const loadLogs = async () => {
+  const loadLogs = async (): Promise<void> => {
     setLoading(true);
     try {
-      const isTauri = typeof window !== "undefined" && !!(window as any).__TAURI_INTERNALS__;
-      if (isTauri) {
-        const [errors, parses] = await Promise.all([
-          invoke<ErrorLog[]>("get_error_logs"),
-          invoke<ParseLog[]>("get_parse_logs")
-        ]);
-        setErrorLogs(errors);
-        setParseLogs(parses);
-      }
+      if (!isTauri()) return;
+      const [errors, parses] = await Promise.all([ipc.getErrorLogs(), ipc.getParseLogs()]);
+      setErrorLogs(errors.payload ?? []);
+      setParseLogs(parses.payload ?? []);
     } catch (err) {
       console.error("Failed to load logs from SQLite:", err);
     } finally {
@@ -54,25 +41,23 @@ export default function Logs() {
 
   onMount(() => {
     useUIStore.setActivePath("/logs");
-    loadLogs();
+    void loadLogs();
   });
 
-  const handleClearLogs = async () => {
+  const handleClearLogs = async (): Promise<void> => {
     if (!window.confirm("Are you sure you want to permanently clear all SQLite logs?")) return;
+    if (!isTauri()) return;
     try {
-      const isTauri = typeof window !== "undefined" && !!(window as any).__TAURI_INTERNALS__;
-      if (isTauri) {
-        await invoke("clear_all_logs");
-        setErrorLogs([]);
-        setParseLogs([]);
-        setSelectedLogSlug(null);
-      }
+      await ipc.clearAllLogs();
+      setErrorLogs([]);
+      setParseLogs([]);
+      setSelectedLogSlug(null);
     } catch (err) {
       console.error("Failed to clear logs:", err);
     }
   };
 
-  const handleCopyText = async (text: string, key: string) => {
+  const handleCopyText = async (text: string, key: string): Promise<void> => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedKey(key);
@@ -82,20 +67,18 @@ export default function Logs() {
     }
   };
 
-  const formatTimestamp = (isoStr: string) => {
-    try {
-      const date = new Date(isoStr);
-      return date.toLocaleString();
-    } catch {
-      return isoStr;
-    }
+  const switchTab = (tab: LogsTab): void => {
+    setActiveTab(tab);
+    setSelectedLogSlug(null);
+    void loadLogs();
   };
 
-  const hasLogs = () => (activeTab() === "errors" && errorLogs().length > 0) || (activeTab() === "parses" && parseLogs().length > 0);
+  const hasLogs = (): boolean =>
+    (activeTab() === "errors" && errorLogs().length > 0) ||
+    (activeTab() === "parses" && parseLogs().length > 0);
 
   return (
     <div class="w-full max-w-5xl mx-auto space-y-4.5 select-none animate-fade-in text-xs sm:text-sm font-sans px-1">
-      
       {/* Desktop Terminal Header Panel */}
       <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800/80 gap-3">
         <div class="flex items-center gap-3">
@@ -103,14 +86,20 @@ export default function Logs() {
             <Cpu class="w-5 h-5" />
           </div>
           <div class="text-left">
-            <h1 class="text-sm font-black text-zinc-900 dark:text-white tracking-tight leading-tight uppercase">Console Diagnostics</h1>
-            <p class="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">Trace SQLite core transactions, sub-processes, and download errors</p>
+            <h1 class="text-sm font-black text-zinc-900 dark:text-white tracking-tight leading-tight uppercase">
+              Console Diagnostics
+            </h1>
+            <p class="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
+              Trace SQLite core transactions, sub-processes, and download errors
+            </p>
           </div>
         </div>
-        
+
         <Show when={hasLogs()}>
           <button
-            onClick={handleClearLogs}
+            onClick={() => {
+              void handleClearLogs();
+            }}
             class="flex items-center gap-1.5 px-3 py-2 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500/35 text-red-600 dark:text-red-400 font-bold rounded-xl transition-all text-[10px] tracking-wider uppercase cursor-pointer shadow-sm animate-fade-in"
           >
             <Trash2 class="w-3.5 h-3.5" />
@@ -121,46 +110,54 @@ export default function Logs() {
 
       {/* Main Developer Panel Grid */}
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        
         {/* Left Side: Navigation debugger tabs inside page */}
         <div class="lg:col-span-3 flex flex-col gap-1 border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/10 p-2.5 rounded-2xl backdrop-blur-md">
-          <span class="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider px-2.5 py-1 text-left">Console Streams</span>
-          
+          <span class="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider px-2.5 py-1 text-left">
+            Console Streams
+          </span>
+
           <button
-            onClick={() => { setActiveTab("errors"); setSelectedLogSlug(null); loadLogs(); }}
+            onClick={() => switchTab("errors")}
             class={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab() === "errors" 
-                ? "bg-white dark:bg-white/10 text-red-500 dark:text-white font-extrabold shadow-sm border border-zinc-200/50 dark:border-zinc-800" 
+              activeTab() === "errors"
+                ? "bg-white dark:bg-white/10 text-red-500 dark:text-white font-extrabold shadow-sm border border-zinc-200/50 dark:border-zinc-800"
                 : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5"
             }`}
           >
             <div class="flex items-center gap-2">
-              <AlertTriangle class={`w-4 h-4 ${activeTab() === "errors" ? "text-red-500" : "text-zinc-400"}`} />
+              <AlertTriangle
+                class={`w-4 h-4 ${activeTab() === "errors" ? "text-red-500" : "text-zinc-400"}`}
+              />
               <span>Download Exceptions</span>
             </div>
-            <span class="text-[10px] bg-red-500/10 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded-md font-mono font-bold">{errorLogs().length}</span>
+            <span class="text-[10px] bg-red-500/10 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded-md font-mono font-bold">
+              {errorLogs().length}
+            </span>
           </button>
 
           <button
-            onClick={() => { setActiveTab("parses"); setSelectedLogSlug(null); loadLogs(); }}
+            onClick={() => switchTab("parses")}
             class={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab() === "parses" 
-                ? "bg-white dark:bg-white/10 text-indigo-500 dark:text-white font-extrabold shadow-sm border border-zinc-200/50 dark:border-zinc-800" 
+              activeTab() === "parses"
+                ? "bg-white dark:bg-white/10 text-indigo-500 dark:text-white font-extrabold shadow-sm border border-zinc-200/50 dark:border-zinc-800"
                 : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5"
             }`}
           >
             <div class="flex items-center gap-2">
-              <Database class={`w-4 h-4 ${activeTab() === "parses" ? "text-indigo-500" : "text-zinc-400"}`} />
+              <Database
+                class={`w-4 h-4 ${activeTab() === "parses" ? "text-indigo-500" : "text-zinc-400"}`}
+              />
               <span>Metadata Discovery</span>
             </div>
-            <span class="text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-md font-mono font-bold">{parseLogs().length}</span>
+            <span class="text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-md font-mono font-bold">
+              {parseLogs().length}
+            </span>
           </button>
         </div>
 
         {/* Right Side: Log Outputs Terminal Console */}
         <div class="lg:col-span-9 flex flex-col">
           <div class="border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4.5 rounded-2xl shadow-inner min-h-[460px] flex flex-col justify-between">
-            
             {/* Terminal Window chrome */}
             <div class="flex-grow flex flex-col justify-between">
               <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2 mb-3.5">
@@ -172,19 +169,29 @@ export default function Logs() {
                     {activeTab() === "errors" ? "stderr.stream" : "stdout.discovery"}
                   </span>
                 </div>
-                <span class="text-[9px] font-mono text-zinc-400 dark:text-zinc-655">SQLite Log Storage</span>
+                <span class="text-[9px] font-mono text-zinc-400 dark:text-zinc-655">
+                  SQLite Log Storage
+                </span>
               </div>
 
-              <Show when={loading()} fallback={
+              <Show
+                when={!loading()}
+                fallback={
+                  <div class="flex items-center justify-center py-24 flex-grow">
+                    <span class="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                }
+              >
                 <div class="space-y-2 flex-grow overflow-y-auto max-h-[420px] custom-scrollbar text-left font-mono">
-                  
                   {/* ERRORS LOG LISTING */}
                   <Show when={activeTab() === "errors"}>
                     <For each={errorLogs()}>
                       {(log) => {
-                        const isSelected = () => selectedLogSlug() === log.slug;
+                        const isSelected = (): boolean => selectedLogSlug() === log.slug;
                         return (
-                          <div class={`border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden bg-white dark:bg-zinc-950/60 transition-all ${isSelected() ? "border-red-500/50 dark:border-red-500/50" : ""}`}>
+                          <div
+                            class={`border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden bg-white dark:bg-zinc-950/60 transition-all ${isSelected() ? "border-red-500/50 dark:border-red-500/50" : ""}`}
+                          >
                             <button
                               onClick={() => setSelectedLogSlug(isSelected() ? null : log.slug)}
                               class="w-full flex items-center justify-between p-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 text-left transition-colors cursor-pointer"
@@ -194,28 +201,45 @@ export default function Logs() {
                                   <AlertTriangle class="w-3.5 h-3.5" />
                                 </div>
                                 <div class="flex flex-col min-w-0 flex-grow pr-3">
-                                  <span class="font-bold text-red-600 dark:text-red-400 text-xs break-all line-clamp-1">{log.error_message}</span>
-                                  <span class="text-[9px] text-zinc-400 dark:text-zinc-550 mt-1">{formatTimestamp(log.timestamp)} • Job: {log.download_job_slug}</span>
+                                  <span class="font-bold text-red-600 dark:text-red-400 text-xs break-all line-clamp-1">
+                                    {log.error_message}
+                                  </span>
+                                  <span class="text-[9px] text-zinc-400 dark:text-zinc-550 mt-1">
+                                    {formatTimestamp(log.timestamp)} • Job: {log.download_job_slug}
+                                  </span>
                                 </div>
                               </div>
-                              <Show when={isSelected()} fallback={<ChevronRight class="w-4 h-4 text-zinc-400 dark:text-zinc-600" />}>
-                                 <ChevronDown class="w-4 h-4 text-zinc-400 dark:text-zinc-600" />
+                              <Show
+                                when={isSelected()}
+                                fallback={
+                                  <ChevronRight class="w-4 h-4 text-zinc-400 dark:text-zinc-600" />
+                                }
+                              >
+                                <ChevronDown class="w-4 h-4 text-zinc-400 dark:text-zinc-600" />
                               </Show>
                             </button>
 
                             <Show when={isSelected()}>
                               <div class="border-t border-zinc-200 dark:border-zinc-900 p-4 bg-zinc-50/50 dark:bg-zinc-950/80 text-[10px] sm:text-xs text-left font-mono space-y-3.5 select-text overflow-x-auto">
-                                
                                 {/* Execution command block */}
                                 <div>
                                   <div class="flex items-center justify-between mb-1">
-                                    <span class="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Execution Command</span>
+                                    <span class="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                                      Execution Command
+                                    </span>
                                     <button
                                       type="button"
-                                      onClick={() => handleCopyText(log.command_executed, `${log.slug}-cmd`)}
+                                      onClick={() => {
+                                        void handleCopyText(
+                                          log.command_executed,
+                                          `${log.slug}-cmd`,
+                                        );
+                                      }}
                                       class="text-[9px] font-bold text-blue-500 hover:text-blue-400 transition-colors cursor-pointer"
                                     >
-                                      {copiedKey() === `${log.slug}-cmd` ? "Copied!" : "Copy Command"}
+                                      {copiedKey() === `${log.slug}-cmd`
+                                        ? "Copied!"
+                                        : "Copy Command"}
                                     </button>
                                   </div>
                                   <div class="bg-zinc-100 dark:bg-black p-2.5 rounded-lg border border-zinc-250 dark:border-zinc-900 break-all text-zinc-800 dark:text-zinc-300">
@@ -226,13 +250,19 @@ export default function Logs() {
                                 {/* Error message block */}
                                 <div>
                                   <div class="flex items-center justify-between mb-1">
-                                    <span class="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider font-mono">Full Error Payload Description</span>
+                                    <span class="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider font-mono">
+                                      Full Error Payload Description
+                                    </span>
                                     <button
                                       type="button"
-                                      onClick={() => handleCopyText(log.error_message, `${log.slug}-msg`)}
+                                      onClick={() => {
+                                        void handleCopyText(log.error_message, `${log.slug}-msg`);
+                                      }}
                                       class="text-[9px] font-bold text-red-500 hover:text-red-400 transition-colors cursor-pointer"
                                     >
-                                      {copiedKey() === `${log.slug}-msg` ? "Copied!" : "Copy Payload"}
+                                      {copiedKey() === `${log.slug}-msg`
+                                        ? "Copied!"
+                                        : "Copy Payload"}
                                     </button>
                                   </div>
                                   <div class="bg-red-500/5 text-red-700 dark:text-red-400 p-2.5 rounded-lg border border-red-500/15 dark:border-red-500/10 break-words whitespace-pre-wrap leading-relaxed select-text">
@@ -245,7 +275,8 @@ export default function Logs() {
                                     <strong>LOG SLUG:</strong> {log.slug}
                                   </div>
                                   <div>
-                                    <strong>RESOLVED STATUS:</strong> {log.is_resolved === 1 ? "RESOLVED" : "UNRESOLVED/ACTIVE"}
+                                    <strong>RESOLVED STATUS:</strong>{" "}
+                                    {log.is_resolved === 1 ? "RESOLVED" : "UNRESOLVED/ACTIVE"}
                                   </div>
                                 </div>
                               </div>
@@ -257,8 +288,12 @@ export default function Logs() {
                     <Show when={errorLogs().length === 0}>
                       <div class="flex flex-col items-center justify-center py-24 text-center gap-2">
                         <FileWarning class="w-8 h-8 text-zinc-300 dark:text-zinc-700 mb-1" />
-                        <h3 class="text-xs font-black text-zinc-400 dark:text-zinc-650 uppercase tracking-wide">Standard error is silent</h3>
-                        <p class="text-[10px] text-zinc-500 dark:text-zinc-600 max-w-xs font-semibold">Everything is running smoothly! Sub-engine failure streams will pipe here.</p>
+                        <h3 class="text-xs font-black text-zinc-400 dark:text-zinc-650 uppercase tracking-wide">
+                          Standard error is silent
+                        </h3>
+                        <p class="text-[10px] text-zinc-500 dark:text-zinc-600 max-w-xs font-semibold">
+                          Everything is running smoothly! Sub-engine failure streams will pipe here.
+                        </p>
                       </div>
                     </Show>
                   </Show>
@@ -267,47 +302,72 @@ export default function Logs() {
                   <Show when={activeTab() === "parses"}>
                     <For each={parseLogs()}>
                       {(log) => {
-                        const isSelected = () => selectedLogSlug() === log.slug;
+                        const isSelected = (): boolean => selectedLogSlug() === log.slug;
                         const isFailed = log.status === "failed";
                         return (
-                          <div class={`border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden bg-white dark:bg-zinc-950/60 transition-all ${isSelected() ? "border-indigo-500/50 dark:border-indigo-500/50" : ""}`}>
+                          <div
+                            class={`border border-zinc-200 dark:border-zinc-900 rounded-xl overflow-hidden bg-white dark:bg-zinc-950/60 transition-all ${isSelected() ? "border-indigo-500/50 dark:border-indigo-500/50" : ""}`}
+                          >
                             <button
                               onClick={() => setSelectedLogSlug(isSelected() ? null : log.slug)}
                               class="w-full flex items-center justify-between p-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 text-left transition-colors cursor-pointer"
                             >
                               <div class="flex items-start gap-3 min-w-0 flex-grow">
-                                <div class={`p-1 rounded-md flex-shrink-0 mt-0.5 border ${
-                                  isFailed ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                                }`}>
-                                  <Show when={isFailed} fallback={<CheckCircle2 class="w-3.5 h-3.5" />}>
-                                     <AlertTriangle class="w-3.5 h-3.5" />
+                                <div
+                                  class={`p-1 rounded-md flex-shrink-0 mt-0.5 border ${
+                                    isFailed
+                                      ? "bg-red-500/10 text-red-500 border-red-500/20"
+                                      : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                  }`}
+                                >
+                                  <Show
+                                    when={isFailed}
+                                    fallback={<CheckCircle2 class="w-3.5 h-3.5" />}
+                                  >
+                                    <AlertTriangle class="w-3.5 h-3.5" />
                                   </Show>
                                 </div>
                                 <div class="flex flex-col min-w-0 flex-grow pr-3">
-                                  <span class="font-bold text-zinc-800 dark:text-zinc-200 text-xs break-all line-clamp-1">{log.command_executed}</span>
+                                  <span class="font-bold text-zinc-800 dark:text-zinc-200 text-xs break-all line-clamp-1">
+                                    {log.command_executed}
+                                  </span>
                                   <span class="text-[9px] text-zinc-400 dark:text-zinc-550 mt-1">
-                                    {formatTimestamp(log.started_at)} • Target: {log.parsed_file_slug} • {log.duration_ms}ms
+                                    {formatTimestamp(log.started_at)} • Target:{" "}
+                                    {log.parsed_file_slug} • {log.duration_ms}ms
                                   </span>
                                 </div>
                               </div>
-                              <Show when={isSelected()} fallback={<ChevronRight class="w-4 h-4 text-zinc-400 dark:text-zinc-600" />}>
+                              <Show
+                                when={isSelected()}
+                                fallback={
+                                  <ChevronRight class="w-4 h-4 text-zinc-400 dark:text-zinc-600" />
+                                }
+                              >
                                 <ChevronDown class="w-4 h-4 text-zinc-400 dark:text-zinc-600" />
                               </Show>
                             </button>
 
                             <Show when={isSelected()}>
                               <div class="border-t border-zinc-200 dark:border-zinc-900 p-4 bg-zinc-50/50 dark:bg-zinc-950/80 text-[10px] sm:text-xs text-left font-mono space-y-3.5 select-text overflow-x-auto">
-                                
                                 {/* Discovery probe command */}
                                 <div>
                                   <div class="flex items-center justify-between mb-1">
-                                    <span class="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block mb-1">Probe Command Pipeline</span>
+                                    <span class="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block mb-1">
+                                      Probe Command Pipeline
+                                    </span>
                                     <button
                                       type="button"
-                                      onClick={() => handleCopyText(log.command_executed, `${log.slug}-cmd`)}
+                                      onClick={() => {
+                                        void handleCopyText(
+                                          log.command_executed,
+                                          `${log.slug}-cmd`,
+                                        );
+                                      }}
                                       class="text-[9px] font-bold text-blue-500 hover:text-blue-400 transition-colors cursor-pointer"
                                     >
-                                      {copiedKey() === `${log.slug}-cmd` ? "Copied!" : "Copy Command"}
+                                      {copiedKey() === `${log.slug}-cmd`
+                                        ? "Copied!"
+                                        : "Copy Command"}
                                     </button>
                                   </div>
                                   <div class="bg-zinc-100 dark:bg-black p-2.5 rounded-lg border border-zinc-250 dark:border-zinc-900 break-all text-zinc-800 dark:text-zinc-300">
@@ -317,20 +377,36 @@ export default function Logs() {
 
                                 <div class="grid grid-cols-2 gap-4 text-[11px] text-zinc-850 dark:text-zinc-300 font-sans">
                                   <div class="p-3 bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-900 rounded-xl space-y-1">
-                                    <strong class="text-zinc-450 dark:text-zinc-500 block text-[9px] uppercase tracking-wider font-mono">Exit Code</strong>
-                                    <span class="font-mono">{log.exit_code !== null ? log.exit_code : "N/A"}</span>
+                                    <strong class="text-zinc-450 dark:text-zinc-500 block text-[9px] uppercase tracking-wider font-mono">
+                                      Exit Code
+                                    </strong>
+                                    <span class="font-mono">
+                                      {log.exit_code !== null ? log.exit_code : "N/A"}
+                                    </span>
                                   </div>
                                   <div class="p-3 bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-900 rounded-xl space-y-1">
-                                    <strong class="text-zinc-450 dark:text-zinc-500 block text-[9px] uppercase tracking-wider font-mono">Bytes Transferred</strong>
-                                    <span class="font-mono">{log.bytes_returned.toLocaleString()} bytes</span>
+                                    <strong class="text-zinc-450 dark:text-zinc-500 block text-[9px] uppercase tracking-wider font-mono">
+                                      Bytes Transferred
+                                    </strong>
+                                    <span class="font-mono">
+                                      {log.bytes_returned.toLocaleString()} bytes
+                                    </span>
                                   </div>
                                   <div class="p-3 bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-900 rounded-xl space-y-1">
-                                    <strong class="text-zinc-450 dark:text-zinc-500 block text-[9px] uppercase tracking-wider font-mono">Analysis Time</strong>
-                                    <span class="font-mono text-indigo-500 dark:text-indigo-400 font-bold">{log.duration_ms} ms</span>
+                                    <strong class="text-zinc-450 dark:text-zinc-500 block text-[9px] uppercase tracking-wider font-mono">
+                                      Analysis Time
+                                    </strong>
+                                    <span class="font-mono text-indigo-500 dark:text-indigo-400 font-bold">
+                                      {log.duration_ms} ms
+                                    </span>
                                   </div>
                                   <div class="p-3 bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-900 rounded-xl space-y-1">
-                                    <strong class="text-zinc-450 dark:text-zinc-500 block text-[9px] uppercase tracking-wider font-mono">Engine Status</strong>
-                                    <span class={`font-black uppercase text-[10px] tracking-wider ${isFailed ? "text-red-500" : "text-emerald-500"}`}>
+                                    <strong class="text-zinc-450 dark:text-zinc-500 block text-[9px] uppercase tracking-wider font-mono">
+                                      Engine Status
+                                    </strong>
+                                    <span
+                                      class={`font-black uppercase text-[10px] tracking-wider ${isFailed ? "text-red-500" : "text-emerald-500"}`}
+                                    >
                                       {log.status}
                                     </span>
                                   </div>
@@ -347,25 +423,21 @@ export default function Logs() {
                     <Show when={parseLogs().length === 0}>
                       <div class="flex flex-col items-center justify-center py-24 text-center gap-2">
                         <Database class="w-8 h-8 text-zinc-300 dark:text-zinc-700 mb-1" />
-                        <h3 class="text-xs font-black text-zinc-400 dark:text-zinc-650 uppercase tracking-wide font-mono">Standard output is blank</h3>
-                        <p class="text-[10px] text-zinc-500 dark:text-zinc-600 max-w-xs font-semibold">Ready to trace. Extraction events will capture transaction packets here.</p>
+                        <h3 class="text-xs font-black text-zinc-400 dark:text-zinc-650 uppercase tracking-wide font-mono">
+                          Standard output is blank
+                        </h3>
+                        <p class="text-[10px] text-zinc-500 dark:text-zinc-600 max-w-xs font-semibold">
+                          Ready to trace. Extraction events will capture transaction packets here.
+                        </p>
                       </div>
                     </Show>
                   </Show>
-
-                </div>
-              }>
-                <div class="flex items-center justify-center py-24 flex-grow">
-                  <span class="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 </div>
               </Show>
             </div>
-
           </div>
         </div>
-
       </div>
-
     </div>
   );
 }
