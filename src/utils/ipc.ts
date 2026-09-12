@@ -432,8 +432,9 @@ export const ipc = {
       ? callTauri<GetLocalUpdatesResult>("get_local_updates")
       : Promise.reject(new Error("offline")),
 
-  getActiveApiPort: (): Promise<GetActiveApiPortResult> =>
-    isTauri()
-      ? callTauri<GetActiveApiPortResult>("get_active_api_port")
-      : Promise.resolve({ ...mockOk(0), port: 14221 }),
+  getActiveApiPort: async (): Promise<GetActiveApiPortResult> => {
+    if (!isTauri()) return { ...mockOk(14221), port: 14221 };
+    const rawPort = await callTauri<number>("get_active_api_port");
+    return { ...mockOk(rawPort), port: rawPort };
+  },
 } as const;

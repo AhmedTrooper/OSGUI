@@ -12,7 +12,6 @@ import {
   Link2,
   Copy,
   Check,
-  Server,
   X,
   Globe,
   ChevronLeft,
@@ -24,7 +23,6 @@ import { isTauri, safeListen } from "@/utils/tauri";
 import { formatDate, formatTime } from "@/utils/format";
 import type { InboxItem, InboxStatus } from "@/core/types/database.types";
 
-type HealthStatus = "idle" | "checking" | "online" | "offline";
 const PAGE_SIZE = 10;
 
 function extractDomain(urlStr: string): string {
@@ -46,9 +44,6 @@ export default function InboxRoute(): JSX.Element {
   const [searchQuery, setSearchQuery] = createSignal("");
   const [loading, setLoading] = createSignal(true);
   const [errorMsg, setErrorMsg] = createSignal("");
-  const [activePort, setActivePort] = createSignal(14221);
-  const [healthStatus, setHealthStatus] = createSignal<HealthStatus>("idle");
-  const [healthMsg, setHealthMsg] = createSignal("");
   const [copiedSlug, setCopiedSlug] = createSignal<string | null>(null);
   let unlistenInbox: (() => void) | null = null;
 
@@ -85,38 +80,9 @@ export default function InboxRoute(): JSX.Element {
     }
   };
 
-  const testConnection = async (): Promise<void> => {
-    setHealthStatus("checking");
-    setHealthMsg("");
-    try {
-      const res = await fetch(`http://localhost:${activePort()}/health`);
-      if (res.ok) {
-        const data: { message?: string } = await res.json();
-        setHealthStatus("online");
-        setHealthMsg(data.message || "Local API connection test succeeded.");
-      } else {
-        setHealthStatus("offline");
-        setHealthMsg(`Local Server responded with status: ${res.status}`);
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setHealthStatus("offline");
-      setHealthMsg(msg || "Failed to make HTTP socket handshake.");
-    }
-  };
-
   onMount(() => {
     useUIStore.setActivePath("/inbox");
     void fetchInbox(1);
-
-    void (async () => {
-      try {
-        const portResult = await ipc.getActiveApiPort();
-        setActivePort(portResult.port);
-      } catch (e) {
-        console.error("Failed to query active Axum port from SQLite:", e);
-      }
-    })();
 
     void safeListen("inbox-updated", () => {
       void fetchInbox(page());
@@ -447,91 +413,6 @@ export default function InboxRoute(): JSX.Element {
         </div>
       </Show>
 
-      {/* Local Ingestion Service & API Integration */}
-      <div class="border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 rounded-2xl p-4 sm:p-5 space-y-4 mt-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
-              <Server class="w-4 h-4" />
-            </div>
-            <div>
-              <h3 class="text-xs font-bold text-zinc-900 dark:text-white">
-                Local Ingestion Server
-              </h3>
-              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
-                Receives links from browser extensions and local webhooks
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => void testConnection()}
-            disabled={healthStatus() === "checking"}
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 self-start sm:self-auto"
-          >
-            <RefreshCw
-              class={`w-3.5 h-3.5 ${healthStatus() === "checking" ? "animate-spin text-blue-500" : ""}`}
-            />
-            <span>{healthStatus() === "checking" ? "Checking..." : "Test Connection"}</span>
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          {/* Status Details */}
-          <div class="p-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/70 dark:border-zinc-800/70 space-y-2.5">
-            <div class="flex items-center justify-between text-[11px]">
-              <span class="text-zinc-500 dark:text-zinc-400 font-medium">Local Port</span>
-              <code class="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono font-bold rounded">
-                {activePort()}
-              </code>
-            </div>
-            <div class="flex items-center justify-between text-[11px]">
-              <span class="text-zinc-500 dark:text-zinc-400 font-medium">Service Status</span>
-              <Show when={healthStatus() === "idle"}>
-                <span class="text-zinc-400 font-medium">Idle (Not Checked)</span>
-              </Show>
-              <Show when={healthStatus() === "checking"}>
-                <span class="text-blue-500 font-medium animate-pulse">Connecting...</span>
-              </Show>
-              <Show when={healthStatus() === "online"}>
-                <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  Online
-                </span>
-              </Show>
-              <Show when={healthStatus() === "offline"}>
-                <span class="inline-flex items-center gap-1.5 text-red-600 dark:text-red-400 font-semibold">
-                  <span class="w-1.5 h-1.5 rounded-full bg-red-500" />
-                  Offline
-                </span>
-              </Show>
-            </div>
-            <Show when={healthMsg()}>
-              <div class="pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono break-all leading-relaxed">
-                {healthMsg()}
-              </div>
-            </Show>
-          </div>
-
-          {/* Developer POST Schema */}
-          <div class="p-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/70 dark:border-zinc-800/70 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-                HTTP Payload Example
-              </span>
-              <span class="text-[10px] font-mono text-zinc-400">POST /add</span>
-            </div>
-            <pre class="p-2.5 bg-zinc-950 text-zinc-300 rounded-lg text-[10px] font-mono overflow-x-auto select-all leading-relaxed">
-{`POST http://localhost:${activePort()}/add
-Content-Type: application/json
-
-{
-  "url": "https://..."
-}`}
-            </pre>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
